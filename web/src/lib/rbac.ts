@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { Role } from "@prisma/client";
-import { getServerSession, getCurrentUser } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 
 /**
  * Check if user has a specific role

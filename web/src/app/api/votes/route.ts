@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { createVoteSchema } from "@/lib/validations/community";
-import { rateLimit, RATE_LIMITS, invalidateCache } from "@/lib/redis";
+import { invalidateCache } from "@/lib/redis";
 import {
   RATE_LIMITERS,
   rateLimitResponse,

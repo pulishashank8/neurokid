@@ -50,6 +50,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
     return NextResponse.json({ report: formatted });
   } catch (e) {
+    console.error("Error fetching report:", e);
     return NextResponse.json({ error: "Failed to fetch report" }, { status: 500 });
   }
 }
@@ -112,6 +113,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     return NextResponse.json({ report: updatedReport });
   } catch (e) {
+    console.error("Error updating report:", e);
     return NextResponse.json({ error: "Failed to update report" }, { status: 500 });
   }
 }

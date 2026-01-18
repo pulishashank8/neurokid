@@ -15,7 +15,7 @@ const queryClient = new QueryClient({
   },
 });
 
-export function SessionProvider({ children }: { children: ReactNode }) {
+export function SessionProvider({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <QueryClientProvider client={queryClient}>
       <NextAuthSessionProvider>

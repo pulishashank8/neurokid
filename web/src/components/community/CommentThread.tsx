@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { VoteButtons } from "./VoteButtons";
 import { ReportButton } from "./ReportButton";
@@ -47,9 +48,11 @@ export function CommentThread({
       <div className="py-4 sm:py-6">
         {/* Comment Header */}
         <div className="flex items-start gap-3">
-          <img
+          <Image
             src={comment.author.avatarUrl || "/default-avatar.svg"}
             alt={comment.author.username}
+            width={40}
+            height={40}
             className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex-shrink-0"
           />
 

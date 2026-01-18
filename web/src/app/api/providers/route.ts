@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     const city = searchParams.get("city")?.toLowerCase().trim();
     const zip = searchParams.get("zip")?.toLowerCase().trim();
     const type = searchParams.get("type");
-    const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
+    const limit = Math.min(Number.parseInt(searchParams.get("limit") || "50", 10), 100);
 
     let filtered: Provider[] = providers as Provider[];
 
@@ -55,6 +55,7 @@ export async function GET(request: Request) {
       limit,
     });
   } catch (error) {
+    console.error("Failed to fetch providers:", error);
     return Response.json(
       {
         success: false,

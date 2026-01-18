@@ -4,6 +4,12 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+interface SessionWithRoles {
+  user?: {
+    roles?: string[];
+  };
+}
+
 interface ReportListItem {
   id: string;
   reason: string;
@@ -15,6 +21,19 @@ interface ReportListItem {
   reporter: { id: string; username: string | null } | null;
 }
 
+function getStatusBadgeClass(status: string): string {
+  switch (status) {
+    case "OPEN":
+      return "bg-red-100 text-red-800";
+    case "UNDER_REVIEW":
+      return "bg-yellow-100 text-yellow-800";
+    case "RESOLVED":
+      return "bg-green-100 text-green-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+}
+
 export default function ModerationPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -23,7 +42,9 @@ export default function ModerationPage() {
   const [filterType, setFilterType] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  const canModerate = (session?.user as any)?.roles?.includes("MODERATOR") || (session?.user as any)?.roles?.includes("ADMIN");
+  const sessionWithRoles = session as SessionWithRoles | null;
+  const userRoles = sessionWithRoles?.user?.roles || [];
+  const canModerate = userRoles.includes("MODERATOR") || userRoles.includes("ADMIN");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -83,23 +104,22 @@ export default function ModerationPage() {
         </div>
 
         {/* Reports List */}
-        {loading ? (
+        {loading && (
           <div className="text-center py-8 text-gray-600">Loading reports...</div>
-        ) : reports.length === 0 ? (
+        )}
+        
+        {!loading && reports.length === 0 && (
           <div className="text-center py-8 text-gray-500">No reports found.</div>
-        ) : (
+        )}
+        
+        {!loading && reports.length > 0 && (
           <div className="space-y-4">
             {reports.map((report) => (
               <Link key={report.id} href={`/moderation/${report.id}`}>
                 <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg hover:border-gray-300 cursor-pointer transition">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex gap-2">
-                      <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
-                        report.status === "OPEN" ? "bg-red-100 text-red-800" :
-                        report.status === "UNDER_REVIEW" ? "bg-yellow-100 text-yellow-800" :
-                        report.status === "RESOLVED" ? "bg-green-100 text-green-800" :
-                        "bg-gray-100 text-gray-800"
-                      }`}>
+                      <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(report.status)}`}>
                         {report.status}
                       </span>
                       <span className="text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-1 rounded">

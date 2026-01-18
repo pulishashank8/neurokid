@@ -4,11 +4,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { createPostSchema, getPostsSchema } from "@/lib/validations/community";
 import DOMPurify from "isomorphic-dompurify";
-import { getCached, setCached, invalidateCache, rateLimit, RATE_LIMITS, CACHE_TTL, cacheKey } from "@/lib/redis";
-import {
-  RATE_LIMITERS,
-  rateLimitResponse,
-} from "@/lib/rateLimit";
+import { getCached, setCached, invalidateCache, CACHE_TTL, cacheKey } from "@/lib/redis";
+import { rateLimitResponse } from "@/lib/rateLimit";
 
 // Reddit-style Hot algorithm: time-decayed score based on votes
 function calculateHotScore(voteScore: number, createdAt: Date): number {
@@ -17,6 +14,14 @@ function calculateHotScore(voteScore: number, createdAt: Date): number {
   const ageHours = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60);
   const decay = Math.pow(0.8, ageHours / 2); // 50% decay per 2 hours
   return sign * magnitude * decay;
+}
+
+function enforceSafeLinks(html: string): string {
+  return html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
+    const hasRel = /\brel\s*=/.test(attrs);
+    const normalizedAttrs = hasRel ? attrs : `${attrs} rel="noopener noreferrer"`;
+    return `<a ${normalizedAttrs}>`;
+  });
 }
 
 // GET /api/posts - List posts with cursor pagination
@@ -299,10 +304,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Sanitize content to prevent XSS
-    const sanitizedContent = DOMPurify.sanitize(content, {
-      ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "a", "ul", "ol", "li", "blockquote", "code", "pre"],
-      ALLOWED_ATTR: ["href", "target", "rel"],
-    });
+    const sanitizedContent = enforceSafeLinks(
+      DOMPurify.sanitize(content, {
+        ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "a", "ul", "ol", "li", "blockquote", "code", "pre"],
+        ALLOWED_ATTR: ["href", "target", "rel"],
+      })
+    );
 
     // Verify category exists
     const category = await prisma.category.findUnique({

@@ -145,19 +145,23 @@ function CommunityPageContent() {
 
           {/* Posts Feed - Center Column with min-w-0 to prevent overflow */}
           <main className="min-w-0 space-y-4 sm:space-y-6">
-            {isLoading ? (
+            {isLoading && (
               <>
                 <PostCardSkeleton />
                 <PostCardSkeleton />
                 <PostCardSkeleton />
               </>
-            ) : isError ? (
+            )}
+            
+            {!isLoading && isError && (
               <EmptyState
                 icon="⚠️"
                 title="Error loading posts"
                 description="Something went wrong. Please try again."
               />
-            ) : posts.length === 0 ? (
+            )}
+            
+            {!isLoading && !isError && posts.length === 0 && (
               <EmptyState
                 icon="📝"
                 title="No posts yet"
@@ -171,7 +175,9 @@ function CommunityPageContent() {
                   href: "/community/new",
                 }}
               />
-            ) : (
+            )}
+            
+            {!isLoading && !isError && posts.length > 0 && (
               <>
                 {posts.map((post) => (
                   <PostCard key={post.id} post={post} />
@@ -192,12 +198,14 @@ function CommunityPageContent() {
                       {Array.from(
                         { length: Math.min(5, pagination.totalPages) },
                         (_, i) => {
-                          const pageNum =
-                            page <= 3
-                              ? i + 1
-                              : page >= pagination.totalPages - 2
-                              ? pagination.totalPages - 4 + i
-                              : page - 2 + i;
+                          let pageNum: number;
+                          if (page <= 3) {
+                            pageNum = i + 1;
+                          } else if (page >= pagination.totalPages - 2) {
+                            pageNum = pagination.totalPages - 4 + i;
+                          } else {
+                            pageNum = page - 2 + i;
+                          }
                           return pageNum <= pagination.totalPages ? pageNum : null;
                         }
                       ).map((pageNum) =>

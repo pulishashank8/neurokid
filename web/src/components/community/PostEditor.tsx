@@ -50,7 +50,6 @@ export function PostEditor({
   });
 
   const content = watch("content");
-  const title = watch("title");
 
   const onSubmit = async (data: CreatePostInput) => {
     setIsSubmitting(true);

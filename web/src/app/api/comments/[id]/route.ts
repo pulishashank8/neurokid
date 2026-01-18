@@ -6,6 +6,14 @@ import { updateCommentSchema } from "@/lib/validations/community";
 import { canModerate } from "@/lib/rbac";
 import DOMPurify from "isomorphic-dompurify";
 
+function enforceSafeLinks(html: string): string {
+  return html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
+    const hasRel = /\brel\s*=/.test(attrs);
+    const normalizedAttrs = hasRel ? attrs : `${attrs} rel="noopener noreferrer"`;
+    return `<a ${normalizedAttrs}>`;
+  });
+}
+
 // PATCH /api/comments/[id] - Update comment
 export async function PATCH(
   request: NextRequest,
@@ -63,10 +71,12 @@ export async function PATCH(
     const { content } = validation.data;
 
     // Sanitize content
-    const sanitizedContent = DOMPurify.sanitize(content, {
-      ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "a", "code"],
-      ALLOWED_ATTR: ["href", "target", "rel"],
-    });
+    const sanitizedContent = enforceSafeLinks(
+      DOMPurify.sanitize(content, {
+        ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "a", "code"],
+        ALLOWED_ATTR: ["href", "target", "rel"],
+      })
+    );
 
     const updatedComment = await prisma.comment.update({
       where: { id },

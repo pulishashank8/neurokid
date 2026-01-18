@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { canModerate } from "@/lib/rbac";
-import { ModerationActionType } from "@prisma/client";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,7 +13,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
 
     const body = await req.json();
-    const { action, reason } = body;
+    const { action, reason } = body as { action?: string; reason?: string };
+
+    const allowedActions = ["DISMISS", "REVIEW", "RESOLVE"] as const;
+    if (!action || !allowedActions.includes(action as any)) {
+      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    }
 
     const report = await prisma.report.findUnique({ where: { id } });
     if (!report) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -30,14 +34,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       updatedReport = await prisma.report.update({ where: { id }, data: { status: "RESOLVED" } });
     }
 
+    const actionTypeMap = {
+      DISMISS: "UNPIN",
+      REVIEW: "WARN",
+      RESOLVE: "REMOVE",
+    } as const;
+
     // Log the action
     await prisma.modActionLog.create({
       data: {
-        actionType: action === "DISMISS" ? "REMOVE" : "PIN",
+        actionType: actionTypeMap[action as keyof typeof actionTypeMap],
         targetType: report.targetType,
         targetId: report.targetId,
         moderatorId: session.user.id,
-        reason: report.reason,
+        reason: reason || report.reason,
         notes: reason || undefined,
       },
     });

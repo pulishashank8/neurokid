@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import Link from "next/link";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
 
@@ -49,13 +48,7 @@ export default function SettingsPage() {
     }
   }, [status, router]);
 
-  useEffect(() => {
-    if (session?.user) {
-      fetchProfile();
-    }
-  }, [session?.user]);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch("/api/user/profile");
@@ -77,7 +70,13 @@ export default function SettingsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [session?.user?.email]);
+
+  useEffect(() => {
+    if (session?.user) {
+      fetchProfile();
+    }
+  }, [session?.user, fetchProfile]);
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,8 +95,9 @@ export default function SettingsPage() {
       }
 
       toast.success("Profile updated successfully");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update profile");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to update profile";
+      toast.error(errorMessage);
     } finally {
       setIsSavingProfile(false);
     }
@@ -135,8 +135,9 @@ export default function SettingsPage() {
 
       toast.success("Password changed successfully");
       setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    } catch (error: any) {
-      toast.error(error.message || "Failed to change password");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to change password";
+      toast.error(errorMessage);
     } finally {
       setIsSavingPassword(false);
     }
@@ -166,8 +167,9 @@ export default function SettingsPage() {
 
       toast.success("Account deleted. Redirecting...");
       await signOut({ callbackUrl: "/" });
-    } catch (error: any) {
-      toast.error(error.message || "Failed to delete account");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete account";
+      toast.error(errorMessage);
       setIsDeleting(false);
     }
   };
@@ -177,7 +179,7 @@ export default function SettingsPage() {
 
     const formspreeEndpoint = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT;
     
-    if (!formspreeEndpoint) {
+    if (typeof formspreeEndpoint !== "string" || !formspreeEndpoint) {
       toast.error("Support form not configured");
       return;
     }
@@ -195,10 +197,11 @@ export default function SettingsPage() {
         throw new Error("Failed to send message");
       }
 
-      toast.success("Message sent. We'll reply soon!");
+      toast.success("Message sent. We will reply soon!");
       setContactData(prev => ({ ...prev, message: "" }));
-    } catch (error: any) {
-      toast.error(error.message || "Failed to send message");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to send message";
+      toast.error(errorMessage);
     } finally {
       setIsSendingMessage(false);
     }
@@ -445,7 +448,7 @@ export default function SettingsPage() {
                   </div>
                   <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Premium Features Coming Soon</h3>
                   <p className="text-[var(--text-secondary)] mb-6">
-                    We're working on premium subscription plans with exclusive features, priority support, and ad-free experience.
+                    We are working on premium subscription plans with exclusive features, priority support, and ad-free experience.
                   </p>
                   <div className="bg-white border border-[var(--border-light)] rounded-lg p-4 mb-4">
                     <div className="flex items-baseline justify-center gap-2 mb-2">
@@ -467,7 +470,7 @@ export default function SettingsPage() {
           {activeTab === "help" && (
             <div>
               <h2 className="text-xl font-semibold text-[var(--text)] mb-4">Contact Support</h2>
-              {!process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT ? (
+              {(typeof process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT === "undefined" || !process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT) ? (
                 <div className="max-w-lg bg-[var(--warning-bg)] border border-[var(--warning)] rounded-lg p-6">
                   <div className="flex items-start gap-3">
                     <svg className="w-5 h-5 text-[var(--warning)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">

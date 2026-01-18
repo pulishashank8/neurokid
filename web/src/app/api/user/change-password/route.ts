@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       select: { hashedPassword: true },
     });
 
-    if (!user || !user.hashedPassword) {
+    if (!user?.hashedPassword) {
       return NextResponse.json(
         { error: "User not found or password not set" },
         { status: 404 }

@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 
 export default function Home() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   // Redirect authenticated users to dashboard
@@ -46,16 +46,14 @@ export default function Home() {
               AI support, and resources. Transform confusion into clarity. Replace isolation with inclusion.
             </p>
             <div className="mt-6 sm:mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4 px-4">
-              <>
-                <Link href="/login" className="w-full sm:w-auto">
-                  <Button size="lg" className="w-full sm:w-auto min-h-[48px]">Sign In</Button>
-                </Link>
-                <Link href="/register" className="w-full sm:w-auto">
-                  <Button size="lg" variant="secondary" className="w-full sm:w-auto min-h-[48px]">
-                    Join Now
-                  </Button>
-                </Link>
-              </>
+              <Link href="/login" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto min-h-[48px]">Sign In</Button>
+              </Link>
+              <Link href="/register" className="w-full sm:w-auto">
+                <Button size="lg" variant="secondary" className="w-full sm:w-auto min-h-[48px]">
+                  Join Now
+                </Button>
+              </Link>
             </div>
             <div className="mt-6">
               <Link href="/about" className="text-blue-600 hover:text-blue-700 font-medium underline">

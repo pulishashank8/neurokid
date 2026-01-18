@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { isProduction } from "./src/lib/env";
 
 /**
@@ -7,7 +7,7 @@ import { isProduction } from "./src/lib/env";
  * Applied to all routes except static assets
  */
 
-export function middleware(request: NextRequest) {
+export function middleware() {
   const response = NextResponse.next();
 
   // X-Frame-Options: Prevent clickjacking

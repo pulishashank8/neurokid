@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/Button";
@@ -136,9 +137,11 @@ export default function PostDetailPage({
               </div>
 
               <div className="flex items-start gap-3 sm:gap-4 mb-4">
-                <img
+                <Image
                   src={post.author.avatarUrl || "/default-avatar.svg"}
                   alt={post.author.username}
+                  width={48}
+                  height={48}
                   className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">

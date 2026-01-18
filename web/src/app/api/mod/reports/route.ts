@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
       hasMore: skip + take < total,
     });
   } catch (e) {
+    console.error("Error fetching reports:", e);
     return NextResponse.json({ error: "Failed to fetch reports" }, { status: 500 });
   }
 }

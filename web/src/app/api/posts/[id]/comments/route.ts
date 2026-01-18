@@ -5,11 +5,16 @@ import { prisma } from "@/lib/prisma";
 import { createCommentSchema } from "@/lib/validations/community";
 import { canModerate } from "@/lib/rbac";
 import DOMPurify from "isomorphic-dompurify";
-import { rateLimit, RATE_LIMITS, invalidateCache } from "@/lib/redis";
-import {
-  RATE_LIMITERS,
-  rateLimitResponse,
-} from "@/lib/rateLimit";
+import { invalidateCache } from "@/lib/redis";
+import { rateLimitResponse } from "@/lib/rateLimit";
+
+function enforceSafeLinks(html: string): string {
+  return html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
+    const hasRel = /\brel\s*=/.test(attrs);
+    const normalizedAttrs = hasRel ? attrs : `${attrs} rel="noopener noreferrer"`;
+    return `<a ${normalizedAttrs}>`;
+  });
+}
 
 // GET /api/posts/[id]/comments - Get threaded comments
 export async function GET(
@@ -186,10 +191,12 @@ export async function POST(
     }
 
     // Sanitize content
-    const sanitizedContent = DOMPurify.sanitize(content, {
-      ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "a", "code"],
-      ALLOWED_ATTR: ["href", "target", "rel"],
-    });
+    const sanitizedContent = enforceSafeLinks(
+      DOMPurify.sanitize(content, {
+        ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "a", "code"],
+        ALLOWED_ATTR: ["href", "target", "rel"],
+      })
+    );
 
     // Create comment
     const comment = await prisma.comment.create({

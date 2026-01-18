@@ -4,6 +4,10 @@ import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/prisma";
 import { LoginSchema } from "@/lib/validators";
 import bcryptjs from "bcryptjs";
+import {
+  RATE_LIMITERS,
+  getClientIp,
+} from "@/lib/rateLimit";
 
 export const authOptions: NextAuthOptions = {
   // No adapter needed when using JWT strategy
@@ -15,8 +19,15 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        // Brute-force protection per IP
+        const ip = getClientIp(req as unknown as Request) || "unknown";
+        const canLogin = await RATE_LIMITERS.login.checkLimit(ip);
+        if (!canLogin) {
           return null;
         }
 
@@ -65,8 +76,12 @@ export const authOptions: NextAuthOptions = {
             roles: user.userRoles.map((ur: any) => ur.role),
           };
         } catch (err) {
-          // Fallback: allow dev login without DB if env flag is set
-          if (process.env.ALLOW_DEV_LOGIN_WITHOUT_DB === "true") {
+          console.error("Login authorization failed:", err);
+          // Fallback: allow dev login without DB if env flag is set (non-production only)
+          if (
+            process.env.NODE_ENV !== "production" &&
+            process.env.ALLOW_DEV_LOGIN_WITHOUT_DB === "true"
+          ) {
             const devAccounts: Record<string, { password: string; roles: string[] }> = {
               "admin@neurokind.local": { password: "admin123", roles: ["ADMIN"] },
               "parent@neurokind.local": { password: "parent123", roles: ["PARENT"] },
@@ -231,6 +246,10 @@ export const authOptions: NextAuthOptions = {
             token.roles = userData.userRoles.map((ur: any) => ur.role);
             token.name = userData.profile?.displayName || userData.profile?.username || userData.email;
             token.username = userData.profile?.username;
+          } else {
+            (token as any).disabled = true;
+            delete token.id;
+            token.roles = [];
           }
         } catch {
           // If DB unavailable, keep existing data (dev fallback)
@@ -241,6 +260,9 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token }) {
+      if ((token as any).disabled) {
+        return null;
+      }
       if (session.user) {
         (session.user as any).id = token.id as string;
         (session.user as any).username = token.username as string;

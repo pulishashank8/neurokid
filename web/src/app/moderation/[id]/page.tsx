@@ -81,6 +81,7 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
         setFeedback({ type: "error", message: json.message || `${action} failed` });
       }
     } catch (err) {
+      console.error("Moderation action failed:", err);
       setFeedback({ type: "error", message: "Action failed" });
     }
     setActionInProgress(false);
@@ -103,6 +104,7 @@ export default function ReportDetailPage({ params }: { params: Promise<{ id: str
         setFeedback({ type: "error", message: json.message || "Status update failed" });
       }
     } catch (err) {
+      console.error("Status update failed:", err);
       setFeedback({ type: "error", message: "Status update failed" });
     }
     setActionInProgress(false);

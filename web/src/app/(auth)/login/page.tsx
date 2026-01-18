@@ -48,7 +48,7 @@ function LoginContent() {
 
       // Redirect to callback URL
       router.push(callbackUrl);
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred");
       setIsLoading(false);
     }

@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
           id: user.id,
           email: user.email,
           profile: user.profile,
-          roles: user.userRoles.map((ur: any) => ur.role),
+          roles: user.userRoles.map((ur) => ur.role),
         },
       },
       { status: 201 }

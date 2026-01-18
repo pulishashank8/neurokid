@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { signOut } from "next-auth/react";
 
 export async function DELETE() {
   try {

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { PostCard } from "@/components/community/PostCard";
-import { PostCardSkeleton, LoadingSpinner } from "@/components/community/LoadingSkeletons";
+import { PostCardSkeleton } from "@/components/community/LoadingSkeletons";
 import { EmptyState } from "@/components/community/EmptyState";
 import { useQuery } from "@tanstack/react-query";
 

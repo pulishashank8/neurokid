@@ -6,6 +6,14 @@ import { updatePostSchema } from "@/lib/validations/community";
 import { canModerate } from "@/lib/rbac";
 import DOMPurify from "isomorphic-dompurify";
 
+function enforceSafeLinks(html: string): string {
+  return html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
+    const hasRel = /\brel\s*=/.test(attrs);
+    const normalizedAttrs = hasRel ? attrs : `${attrs} rel="noopener noreferrer"`;
+    return `<a ${normalizedAttrs}>`;
+  });
+}
+
 // GET /api/posts/[id] - Get single post
 export async function GET(
   request: NextRequest,
@@ -140,10 +148,12 @@ export async function PATCH(
     const updateData: any = {};
     if (title) updateData.title = title;
     if (content) {
-      updateData.content = DOMPurify.sanitize(content, {
-        ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "a", "ul", "ol", "li", "blockquote", "code", "pre"],
-        ALLOWED_ATTR: ["href", "target", "rel"],
-      });
+      updateData.content = enforceSafeLinks(
+        DOMPurify.sanitize(content, {
+          ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "a", "ul", "ol", "li", "blockquote", "code", "pre"],
+          ALLOWED_ATTR: ["href", "target", "rel"],
+        })
+      );
     }
     if (categoryId) updateData.categoryId = categoryId;
 

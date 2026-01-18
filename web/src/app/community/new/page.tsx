@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { PostEditor } from "@/components/community/PostEditor";
@@ -20,7 +19,6 @@ interface Tag {
 
 export default function NewPostPage() {
   const router = useRouter();
-  const [isCreating, setIsCreating] = useState(false);
 
   // Fetch categories
   const { data: categoriesData, isLoading: categoriesLoading } = useQuery({

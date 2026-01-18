@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
         result.redis = "ok";
       } catch (error) {
         result.redis = "unavailable";
+        result.redisError = String(error);
         // Not critical; don't degrade status
       }
     } else {

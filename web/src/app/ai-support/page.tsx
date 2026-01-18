@@ -47,7 +47,7 @@ export default function AiSupportPage() {
         content: json.reply,
       };
       setMessages((m) => [...m, assistantMsg]);
-    } catch (e: any) {
+    } catch {
       setMessages((m) => [
         ...m,
         {
