@@ -1,13 +1,12 @@
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { LoginSchema } from "@/lib/validators";
 import bcryptjs from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  // No adapter needed when using JWT strategy
   providers: [
     // Credentials provider for email/password login
     CredentialsProvider({
@@ -115,15 +114,16 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async signIn({ user, account }) {
-      // For Google OAuth: auto-create profile if user doesn't have one
+      // For Google OAuth: create or update user account
       if (account?.provider === "google" && user.email) {
         try {
-          const existingUser = await prisma.user.findUnique({
+          let existingUser = await prisma.user.findUnique({
             where: { email: user.email },
             include: { profile: true, userRoles: true },
           });
 
-          if (existingUser && !existingUser.profile) {
+          // Create user if doesn't exist
+          if (!existingUser) {
             // Generate username from Google name or email
             let baseUsername = user.name?.toLowerCase().replace(/\s+/g, "") || user.email.split("@")[0];
             baseUsername = baseUsername.replace(/[^a-z0-9]/g, "");
@@ -138,14 +138,59 @@ export const authOptions: NextAuthOptions = {
               counter++;
             }
 
-            // Create profile
-            await prisma.profile.create({
+            // Create user with profile and role in a transaction
+            existingUser = await prisma.user.create({
               data: {
-                userId: existingUser.id,
-                username,
-                displayName: user.name || username,
+                email: user.email,
+                lastLoginAt: new Date(),
+                profile: {
+                  create: {
+                    username,
+                    displayName: user.name || username,
+                    avatarUrl: user.image || null,
+                  },
+                },
+                userRoles: {
+                  create: {
+                    role: "PARENT",
+                  },
+                },
               },
+              include: { profile: true, userRoles: true },
             });
+
+            // Store user ID for JWT
+            user.id = existingUser.id;
+          } else {
+            // Update last login
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: { lastLoginAt: new Date() },
+            });
+
+            // Create profile if missing
+            if (!existingUser.profile) {
+              let baseUsername = user.name?.toLowerCase().replace(/\s+/g, "") || user.email.split("@")[0];
+              baseUsername = baseUsername.replace(/[^a-z0-9]/g, "");
+              
+              let username = baseUsername;
+              let counter = 1;
+              while (true) {
+                const exists = await prisma.profile.findUnique({ where: { username } });
+                if (!exists) break;
+                username = `${baseUsername}${counter}`;
+                counter++;
+              }
+
+              await prisma.profile.create({
+                data: {
+                  userId: existingUser.id,
+                  username,
+                  displayName: user.name || username,
+                  avatarUrl: user.image || null,
+                },
+              });
+            }
 
             // Ensure user has PARENT role
             if (existingUser.userRoles.length === 0) {
@@ -156,9 +201,13 @@ export const authOptions: NextAuthOptions = {
                 },
               });
             }
+
+            // Store user ID for JWT
+            user.id = existingUser.id;
           }
         } catch (err) {
-          console.error("Error creating profile for Google user:", err);
+          console.error("Error creating/updating Google user:", err);
+          return false;
         }
       }
       return true;

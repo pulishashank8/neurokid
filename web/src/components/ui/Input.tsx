@@ -12,27 +12,27 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-semibold text-[var(--text-primary)] mb-2">
+          <label className="block text-sm font-semibold text-[var(--text)] mb-2">
             {label}
           </label>
         )}
         <input
           ref={ref}
           className={`
-            input
-            bg-[var(--bg-elevated)]
-            border-2 border-[var(--border-base)]
-            text-[var(--text-primary)]
+            bg-[var(--surface)]
+            border-2 border-[var(--border)]
+            text-[var(--text)]
+            placeholder:text-[var(--muted)]
             rounded-[var(--radius-md)]
             px-4 py-3
             w-full
             min-h-[48px]
             text-base
             transition-all duration-[var(--transition-fast)]
-            hover:border-[var(--primary-light)]
+            hover:border-[var(--primary)]
             focus:border-[var(--primary)]
             focus:outline-none
-            focus:shadow-[var(--focus-ring)]
+            focus:shadow-[0_0_0_3px_var(--focus-ring)]
             ${error ? "border-[var(--error)]" : ""}
             ${className}
           `}

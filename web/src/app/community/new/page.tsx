@@ -49,8 +49,8 @@ export default function NewPostPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] py-6 sm:py-12 px-4">
-      <div className="container max-w-2xl mx-auto">
+    <div className="min-h-screen bg-[var(--bg-primary)] pt-20 pb-6 sm:pt-24 sm:pb-12 px-4">
+      <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8 sm:mb-12">
           <Link href="/community">

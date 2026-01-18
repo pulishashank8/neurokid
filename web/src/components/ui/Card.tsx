@@ -15,7 +15,7 @@ export function Card({ children, className = "", hover = true }: CardProps) {
     <div 
       className={`
         bg-[var(--surface)] 
-        border border-[var(--border-light)] 
+        border border-[var(--border)] 
         rounded-[var(--radius-lg)] 
         p-6
         shadow-[var(--shadow-md)]

@@ -18,6 +18,9 @@
     "api:posts": "pwsh -Command \"Invoke-RestMethod 'http://localhost:3000/api/posts?limit=5&sort=new' | ConvertTo-Json\"",
     "api:post-detail": "pwsh -Command \"Write-Host 'Usage: npm run api:post-detail -- [post-id]' ; Invoke-RestMethod \\\"http://localhost:3000/api/posts/your-post-id\\\"\"",
     "api:comments": "pwsh -Command \"Write-Host 'Usage: npm run api:comments -- [post-id]' ; Invoke-RestMethod \\\"http://localhost:3000/api/posts/your-post-id/comments\\\"\"",
+    "test:health": "node scripts/test-smoke.mjs",
+    "test:create-post": "node scripts/test-create-post.mjs",
+    "test:smoke": "node scripts/test-smoke.mjs",
     "test:windows": "pwsh -Command \"Write-Host 'Testing NeuroKind API on Windows...' ; Write-Host '✓ Health:' ; Invoke-RestMethod 'http://localhost:3000/api/health' | ConvertTo-Json ; Write-Host '✓ Posts:' ; Invoke-RestMethod 'http://localhost:3000/api/posts?limit=1&sort=new' | ConvertTo-Json\""
   },
   "dependencies": {

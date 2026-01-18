@@ -55,38 +55,38 @@ export default function ScreeningIntroPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-blue-50">
-      <section className="border-b bg-white py-12">
-        <div className="mx-auto max-w-3xl px-4 text-center">
-          <h1 className="text-4xl font-bold text-gray-900">Autism Screening</h1>
-          <p className="mt-3 text-gray-600">
+    <div className="min-h-screen bg-gradient-to-br from-white to-blue-50 pt-16">
+      <section className="border-b bg-white py-8 sm:py-12">
+        <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8 text-center">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">Autism Screening</h1>
+          <p className="mt-3 text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
             This is a parent-friendly screening tool, not a diagnosis. It helps you
             understand whether a professional evaluation may be helpful.
           </p>
         </div>
       </section>
-      <section className="py-12">
-        <div className="mx-auto max-w-3xl px-4">
-          <div className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm">
-            <div className="grid gap-6 sm:grid-cols-2">
+      <section className="py-8 sm:py-12">
+        <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto rounded-2xl border border-blue-100 bg-white p-4 sm:p-6 shadow-sm">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Child age (years)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Child age (years)</label>
                 <input
                   type="number"
                   step="0.1"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
                   placeholder="e.g., 2.5"
-                  className="mt-2 w-full rounded-lg border px-3 py-2"
+                  className="w-full rounded-lg border px-3 py-2 min-h-[44px]"
                 />
                 <p className="mt-2 text-xs text-gray-500">Supported ages: 1.5–12.0 years</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Child gender (optional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Child gender (optional)</label>
                 <select
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  className="mt-2 w-full rounded-lg border px-3 py-2"
+                  className="w-full rounded-lg border px-3 py-2 min-h-[44px]"
                 >
                   <option value="">Prefer not to say</option>
                   <option value="female">Female</option>
@@ -96,10 +96,10 @@ export default function ScreeningIntroPage() {
                 </select>
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Has your child had a professional evaluation before? (optional)
                 </label>
-                <div className="mt-2 flex gap-3">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
                   {[
                     { v: "yes", label: "Yes" },
                     { v: "no", label: "No" },
@@ -107,7 +107,7 @@ export default function ScreeningIntroPage() {
                     <button
                       key={o.v}
                       onClick={() => setPrevEval(o.v)}
-                      className={`rounded-lg border px-3 py-2 text-sm ${
+                      className={`flex-1 sm:flex-none rounded-lg border px-4 py-2 text-sm min-h-[44px] ${
                         prevEval === o.v ? "bg-blue-600 text-white" : "bg-white"
                       }`}
                     >
@@ -116,7 +116,7 @@ export default function ScreeningIntroPage() {
                   ))}
                   <button
                     onClick={() => setPrevEval("")}
-                    className="rounded-lg border px-3 py-2 text-sm"
+                    className="flex-1 sm:flex-none rounded-lg border px-4 py-2 text-sm min-h-[44px]"
                   >
                     Skip
                   </button>
@@ -130,13 +130,13 @@ export default function ScreeningIntroPage() {
               </div>
             )}
 
-            <div className="mt-6 flex items-center justify-between">
+            <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <p className="text-xs text-gray-500">
                 Disclaimer: This screening does not diagnose autism. It only indicates whether a professional evaluation may be helpful.
               </p>
               <button
                 onClick={handleStart}
-                className="rounded-lg bg-blue-600 px-5 py-2 text-white shadow-sm hover:bg-blue-700"
+                className="w-full sm:w-auto rounded-lg bg-blue-600 px-6 py-2 text-white shadow-sm hover:bg-blue-700 min-h-[48px] font-medium"
               >
                 Start Screening
               </button>

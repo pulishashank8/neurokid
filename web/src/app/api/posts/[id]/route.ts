@@ -134,7 +134,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { title, content, categoryId, tags } = validation.data;
+    const { title, content, categoryId, tagIds } = validation.data;
 
     // Sanitize content if provided
     const updateData: any = {};
@@ -148,9 +148,9 @@ export async function PATCH(
     if (categoryId) updateData.categoryId = categoryId;
 
     // Handle tags update
-    if (tags) {
+    if (tagIds) {
       updateData.tags = {
-        set: tags.map((tagId) => ({ id: tagId })),
+        set: tagIds.map((tagId) => ({ id: tagId })),
       };
     }
 

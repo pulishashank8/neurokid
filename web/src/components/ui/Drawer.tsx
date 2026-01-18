@@ -82,10 +82,10 @@ export function Drawer({
       >
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between p-4 border-b border-[var(--border-light)]">
+          <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
             <h2 
               id="drawer-title" 
-              className="text-xl font-bold text-[var(--text-primary)] m-0"
+              className="text-xl font-bold text-[var(--text)] m-0"
             >
               {title}
             </h2>
@@ -94,7 +94,7 @@ export function Drawer({
               className="
                 p-2 
                 rounded-[var(--radius-md)] 
-                hover:bg-[var(--primary-light)]
+                hover:bg-[var(--surface2)]
                 transition-colors
                 min-h-[44px]
                 min-w-[44px]
@@ -103,7 +103,7 @@ export function Drawer({
               aria-label="Close drawer"
             >
               <svg 
-                className="w-6 h-6 text-[var(--text-primary)]" 
+                className="w-6 h-6 text-[var(--text)]" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"

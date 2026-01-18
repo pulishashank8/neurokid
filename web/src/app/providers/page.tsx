@@ -66,48 +66,49 @@ export default function ProvidersPage() {
   }, [providers, query, city, zip, type, limit]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Provider Finder</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Search local neurodiversity-friendly providers. This directory is a
-        starter dataset; verify details and availability directly with the
-        provider.
-      </p>
+    <div className="min-h-screen pt-20 pb-6 sm:pt-24 sm:pb-12">
+      <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Provider Finder</h1>
+        <p className="mt-2 text-sm sm:text-base text-muted-foreground">
+          Search local neurodiversity-friendly providers. This directory is a
+          starter dataset; verify details and availability directly with the
+          provider.
+        </p>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <label className="block text-sm font-medium">Search</label>
+          <label className="block text-sm font-medium mb-1">Search</label>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Name, address, keyword"
-            className="mt-1 w-full rounded-md border p-2 text-sm"
+            className="w-full rounded-md border p-2 text-sm min-h-[44px]"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium">City</label>
+          <label className="block text-sm font-medium mb-1">City</label>
           <input
             value={city}
             onChange={(e) => setCity(e.target.value)}
             placeholder="e.g., Seattle"
-            className="mt-1 w-full rounded-md border p-2 text-sm"
+            className="w-full rounded-md border p-2 text-sm min-h-[44px]"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium">ZIP</label>
+          <label className="block text-sm font-medium mb-1">ZIP</label>
           <input
             value={zip}
             onChange={(e) => setZip(e.target.value)}
             placeholder="e.g., 98101"
-            className="mt-1 w-full rounded-md border p-2 text-sm"
+            className="w-full rounded-md border p-2 text-sm min-h-[44px]"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium">Type</label>
+          <label className="block text-sm font-medium mb-1">Type</label>
           <select
             value={type}
             onChange={(e) => setType(e.target.value as ProviderType | "ALL")}
-            className="mt-1 w-full rounded-md border p-2 text-sm"
+            className="w-full rounded-md border p-2 text-sm min-h-[44px]"
           >
             {TYPE_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -118,20 +119,20 @@ export default function ProvidersPage() {
         </div>
       </div>
 
-      <div className="mt-6 flex items-center justify-between">
+      <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <p className="text-sm text-muted-foreground">
           Showing {filtered.length} of {providers.length}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
-            className="rounded-md border px-3 py-2 text-sm"
+            className="flex-1 sm:flex-none rounded-md border px-3 py-2 text-sm min-h-[44px]"
             onClick={() => setLimit((l) => Math.max(12, l - 12))}
             disabled={limit <= 12}
           >
             Show Less
           </button>
           <button
-            className="rounded-md border px-3 py-2 text-sm"
+            className="flex-1 sm:flex-none rounded-md border px-3 py-2 text-sm min-h-[44px]"
             onClick={() => setLimit((l) => l + 12)}
             disabled={filtered.length < limit}
           >
@@ -140,7 +141,7 @@ export default function ProvidersPage() {
         </div>
       </div>
 
-      <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-4 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((p) => (
           <li key={p.id} className="rounded-lg border p-4">
             <div className="flex items-start justify-between gap-2">
@@ -162,13 +163,13 @@ export default function ProvidersPage() {
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-md border px-3 py-2 text-xs"
+                className="flex-1 rounded-md border px-3 py-2 text-xs sm:text-sm text-center min-h-[44px] flex items-center justify-center"
               >
                 View on Maps
               </a>
               <a
                 href={`tel:${p.phone ?? ""}`}
-                className="rounded-md border px-3 py-2 text-xs"
+                className="flex-1 rounded-md border px-3 py-2 text-xs sm:text-sm text-center min-h-[44px] flex items-center justify-center"
               >
                 Call
               </a>
@@ -190,6 +191,7 @@ export default function ProvidersPage() {
           services, credentials, availability, and insurance coverage directly
           with providers.
         </p>
+      </div>
       </div>
     </div>
   );

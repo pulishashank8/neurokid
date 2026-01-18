@@ -17,6 +17,7 @@ export default function SettingsPage() {
   
   // Profile state
   const [profileData, setProfileData] = useState({
+    displayName: "",
     username: "",
     location: "",
   });
@@ -61,6 +62,7 @@ export default function SettingsPage() {
       if (response.ok) {
         const data = await response.json();
         setProfileData({
+          displayName: data.profile?.displayName || "",
           username: data.profile?.username || "",
           location: data.profile?.location || "",
         });
@@ -204,10 +206,10 @@ export default function SettingsPage() {
 
   if (status === "loading" || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
+      <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent"></div>
-          <p className="mt-4 text-[var(--text-secondary)]">Loading...</p>
+          <p className="mt-4 text-[var(--muted)]">Loading...</p>
         </div>
       </div>
     );
@@ -218,69 +220,53 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
-      {/* Navigation */}
-      <nav className="bg-[var(--bg-surface)] border-b border-[var(--border-light)] shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center">
-                <span className="text-white font-bold text-xl">N</span>
-              </div>
-              <span className="text-xl font-bold text-[var(--text-primary)]">NeuroKind</span>
-            </Link>
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">← Back to Dashboard</Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    <div className="min-h-screen bg-[var(--background)] pt-16">
+      {/* Page Header - Removed duplicate nav */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[var(--text-primary)]">Settings</h1>
-          <p className="mt-2 text-[var(--text-secondary)]">Manage your account and preferences</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)]">Settings</h1>
+          <p className="mt-2 text-sm sm:text-base text-[var(--muted)]">Manage your account and preferences</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 border-b border-[var(--border-light)] mb-8 overflow-x-auto">
+        <div className="flex gap-2 border-b border-[var(--border)] mb-6 sm:mb-8 overflow-x-auto">
           <button
             onClick={() => setActiveTab("profile")}
-            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
+            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors min-h-[44px] ${
               activeTab === "profile"
                 ? "border-[var(--primary)] text-[var(--primary)]"
-                : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                : "border-transparent text-[var(--muted)] hover:text-[var(--text)]"
             }`}
           >
             Profile
           </button>
           <button
             onClick={() => setActiveTab("security")}
-            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
+            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors min-h-[44px] ${
               activeTab === "security"
                 ? "border-[var(--primary)] text-[var(--primary)]"
-                : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                : "border-transparent text-[var(--muted)] hover:text-[var(--text)]"
             }`}
           >
             Login & Security
           </button>
           <button
             onClick={() => setActiveTab("subscription")}
-            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
+            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors min-h-[44px] ${
               activeTab === "subscription"
                 ? "border-[var(--primary)] text-[var(--primary)]"
-                : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                : "border-transparent text-[var(--muted)] hover:text-[var(--text)]"
             }`}
           >
             Subscription
           </button>
           <button
             onClick={() => setActiveTab("help")}
-            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
+            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors min-h-[44px] ${
               activeTab === "help"
                 ? "border-[var(--primary)] text-[var(--primary)]"
-                : "border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                : "border-transparent text-[var(--muted)] hover:text-[var(--text)]"
             }`}
           >
             Help & Support
@@ -288,14 +274,14 @@ export default function SettingsPage() {
         </div>
 
         {/* Tab Content */}
-        <div className="bg-[var(--bg-surface)] rounded-lg border border-[var(--border-light)] p-6">
+        <div className="bg-[var(--surface)] rounded-lg border border-[var(--border)] p-4 sm:p-6">
           {/* Profile Tab */}
           {activeTab === "profile" && (
             <div>
-              <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">Profile Information</h2>
+              <h2 className="text-xl font-semibold text-[var(--text)] mb-4">Profile Information</h2>
               <form onSubmit={handleProfileSubmit} className="space-y-6 max-w-lg">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                  <label htmlFor="email" className="block text-sm font-medium text-[var(--text)] mb-2">
                     Email
                   </label>
                   <input
@@ -303,38 +289,39 @@ export default function SettingsPage() {
                     type="email"
                     value={session.user?.email || ""}
                     disabled
-                    className="w-full px-4 py-2 bg-[var(--bg-elevated)] border border-[var(--border-light)] rounded-lg text-[var(--text-muted)] cursor-not-allowed"
+                    className="w-full px-4 py-2 bg-[var(--surface2)] border border-[var(--border)] rounded-lg text-[var(--muted)] cursor-not-allowed"
                   />
-                  <p className="mt-1 text-xs text-[var(--text-muted)]">Email cannot be changed</p>
+                  <p className="mt-1 text-xs text-[var(--muted)]">Email cannot be changed</p>
                 </div>
 
                 <div>
-                  <label htmlFor="username" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                    Username
+                  <label htmlFor="displayName" className="block text-sm font-medium text-[var(--text)] mb-2">
+                    Display Name
                   </label>
                   <input
-                    id="username"
+                    id="displayName"
                     type="text"
-                    value={profileData.username}
-                    onChange={(e) => setProfileData({ ...profileData, username: e.target.value })}
-                    className="w-full px-4 py-2 bg-[var(--bg-elevated)] border border-[var(--border-light)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
-                    placeholder="Your username"
+                    value={profileData.displayName}
+                    onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
+                    className="w-full px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--primary)]"
+                    placeholder="Your display name"
                   />
+                  <p className="mt-1 text-xs text-[var(--muted)]">This is how your name appears to others</p>
                 </div>
 
                 <div>
-                  <label htmlFor="location" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                    Location
+                  <label htmlFor="location" className="block text-sm font-medium text-[var(--text)] mb-2">
+                    Location (Optional)
                   </label>
                   <input
                     id="location"
                     type="text"
                     value={profileData.location}
                     onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
-                    className="w-full px-4 py-2 bg-[var(--bg-elevated)] border border-[var(--border-light)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
-                    placeholder="City, State or ZIP code"
+                    className="w-full px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--primary)]"
+                    placeholder="City, State"
                   />
-                  <p className="mt-1 text-xs text-[var(--text-muted)]">Optional: helps find local providers</p>
+                  <p className="mt-1 text-xs text-[var(--muted)]">Helps find local providers and resources</p>
                 </div>
 
                 <Button
@@ -353,10 +340,10 @@ export default function SettingsPage() {
             <div className="space-y-8">
               {/* Change Password */}
               <div>
-                <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">Change Password</h2>
+                <h2 className="text-xl font-semibold text-[var(--text)] mb-4">Change Password</h2>
                 <form onSubmit={handlePasswordSubmit} className="space-y-6 max-w-lg">
                   <div>
-                    <label htmlFor="currentPassword" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                    <label htmlFor="currentPassword" className="block text-sm font-medium text-[var(--text)] mb-2">
                       Current Password
                     </label>
                     <input
@@ -364,13 +351,13 @@ export default function SettingsPage() {
                       type="password"
                       value={passwordData.currentPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                      className="w-full px-4 py-2 bg-[var(--bg-elevated)] border border-[var(--border-light)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
+                      className="w-full px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--primary)]"
                       required
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="newPassword" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                    <label htmlFor="newPassword" className="block text-sm font-medium text-[var(--text)] mb-2">
                       New Password
                     </label>
                     <input
@@ -378,15 +365,15 @@ export default function SettingsPage() {
                       type="password"
                       value={passwordData.newPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                      className="w-full px-4 py-2 bg-[var(--bg-elevated)] border border-[var(--border-light)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
+                      className="w-full px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--primary)]"
                       required
                       minLength={8}
                     />
-                    <p className="mt-1 text-xs text-[var(--text-muted)]">Minimum 8 characters</p>
+                    <p className="mt-1 text-xs text-[var(--muted)]">Minimum 8 characters</p>
                   </div>
 
                   <div>
-                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-[var(--text)] mb-2">
                       Confirm New Password
                     </label>
                     <input
@@ -394,7 +381,7 @@ export default function SettingsPage() {
                       type="password"
                       value={passwordData.confirmPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                      className="w-full px-4 py-2 bg-[var(--bg-elevated)] border border-[var(--border-light)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]"
+                      className="w-full px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--primary)]"
                       required
                     />
                   </div>
@@ -410,16 +397,16 @@ export default function SettingsPage() {
               </div>
 
               {/* Delete Account */}
-              <div className="pt-8 border-t border-[var(--border-light)]">
-                <h2 className="text-xl font-semibold text-red-600 mb-4">Danger Zone</h2>
-                <div className="max-w-lg bg-red-50 border border-red-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-red-900 mb-2">Delete Account</h3>
-                  <p className="text-sm text-red-800 mb-4">
+              <div className="pt-8 border-t border-[var(--border)]">
+                <h2 className="text-xl font-semibold text-[var(--error)] mb-4">Danger Zone</h2>
+                <div className="max-w-lg bg-[var(--error-bg)] border border-[var(--error)] rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-[var(--text)] mb-2">Delete Account</h3>
+                  <p className="text-sm text-[var(--muted)] mb-4">
                     Once you delete your account, there is no going back. Your posts will be anonymized and you will lose access to all data.
                   </p>
                   <div className="space-y-4">
                     <div>
-                      <label htmlFor="deleteConfirm" className="block text-sm font-medium text-red-900 mb-2">
+                      <label htmlFor="deleteConfirm" className="block text-sm font-medium text-[var(--text)] mb-2">
                         Type <strong>DELETE</strong> to confirm
                       </label>
                       <input
@@ -427,7 +414,7 @@ export default function SettingsPage() {
                         type="text"
                         value={deleteConfirmation}
                         onChange={(e) => setDeleteConfirmation(e.target.value)}
-                        className="w-full px-4 py-2 border border-red-300 rounded-lg focus:outline-none focus:border-red-500"
+                        className="w-full px-4 py-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--error)]"
                         placeholder="DELETE"
                       />
                     </div>
@@ -435,7 +422,7 @@ export default function SettingsPage() {
                       type="button"
                       onClick={handleDeleteAccount}
                       disabled={deleteConfirmation !== "DELETE" || isDeleting}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-4 py-2 bg-[var(--error)] text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                       {isDeleting ? "Deleting..." : "Delete My Account"}
                     </button>
@@ -479,60 +466,77 @@ export default function SettingsPage() {
           {/* Help Tab */}
           {activeTab === "help" && (
             <div>
-              <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">Contact Support</h2>
+              <h2 className="text-xl font-semibold text-[var(--text)] mb-4">Contact Support</h2>
               {!process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT ? (
-                <div className="max-w-lg bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                  <p className="text-yellow-800">
-                    Support form is not configured. Please set the NEXT_PUBLIC_FORMSPREE_ENDPOINT environment variable.
-                  </p>
+                <div className="max-w-lg bg-[var(--warning-bg)] border border-[var(--warning)] rounded-lg p-6">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-[var(--warning)] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <div>
+                      <p className="font-semibold text-[var(--text)] mb-1">Support form not configured</p>
+                      <p className="text-sm text-[var(--muted)]">
+                        Set <code className="px-1 py-0.5 bg-[var(--surface2)] rounded text-xs">NEXT_PUBLIC_FORMSPREE_ENDPOINT</code> to enable the contact form.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ) : (
-                <div className="max-w-md">
-                  <div className="bg-black/90 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-800">
-                    <form onSubmit={handleContactSubmit} className="space-y-6">
+                <div className="max-w-lg">
+                  <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-sm p-6">
+                    <form onSubmit={handleContactSubmit} className="space-y-5">
                       <div>
+                        <label htmlFor="contactName" className="block text-sm font-medium text-[var(--text)] mb-2">
+                          Name
+                        </label>
                         <input
                           id="contactName"
                           type="text"
                           value={contactData.name}
                           onChange={(e) => setContactData({ ...contactData, name: e.target.value })}
-                          className="w-full px-4 py-3 bg-[#2C3544] border-0 rounded-xl text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all duration-200"
+                          className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--focus-ring)]"
                           placeholder="Your Name"
                           required
                         />
                       </div>
 
                       <div>
+                        <label htmlFor="contactEmail" className="block text-sm font-medium text-[var(--text)] mb-2">
+                          Email
+                        </label>
                         <input
                           id="contactEmail"
                           type="email"
                           value={contactData.email}
                           onChange={(e) => setContactData({ ...contactData, email: e.target.value })}
-                          className="w-full px-4 py-3 bg-[#2C3544] border-0 rounded-xl text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all duration-200"
+                          className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--focus-ring)]"
                           placeholder="Your Email"
                           required
                         />
                       </div>
 
                       <div>
+                        <label htmlFor="message" className="block text-sm font-medium text-[var(--text)] mb-2">
+                          Message
+                        </label>
                         <textarea
                           id="message"
                           value={contactData.message}
                           onChange={(e) => setContactData({ ...contactData, message: e.target.value })}
-                          rows={5}
-                          className="w-full px-4 py-3 bg-[#2C3544] border-0 rounded-xl text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 resize-none transition-all duration-200"
-                          placeholder="Your Message"
+                          rows={6}
+                          className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-lg text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--focus-ring)] resize-none"
+                          placeholder="How can we help you?"
                           required
                         />
                       </div>
 
-                      <button
+                      <Button
                         type="submit"
                         disabled={isSendingMessage}
-                        className="w-full px-6 py-3 bg-cyan-500 hover:bg-cyan-600 disabled:bg-cyan-500/50 text-white font-medium rounded-xl transition-all duration-200 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40"
+                        className="w-full"
                       >
                         {isSendingMessage ? "Sending..." : "Send Message"}
-                      </button>
+                      </Button>
                     </form>
                   </div>
                 </div>

@@ -90,10 +90,10 @@ function CommunityPageContent() {
   const pagination = postsData?.pagination;
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
-      {/* Header */}
-      <div className="bg-[var(--bg-surface)] border-b border-[var(--border-light)] sticky top-0 z-40 shadow-sm">
-        <div className="container max-w-6xl mx-auto px-4 py-4 sm:py-6">
+    <div className="min-h-screen bg-[var(--bg-primary)] pt-16">
+      {/* Header - NOT sticky, just a regular section */}
+      <div className="bg-[var(--bg-surface)] border-b border-[var(--border-light)] shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 sm:py-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
@@ -129,22 +129,22 @@ function CommunityPageContent() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="container max-w-6xl mx-auto px-4 py-6 sm:py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6 sm:gap-8">
+      {/* Main Content - Stable Grid Layout */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] xl:grid-cols-[260px_1fr_320px] gap-6">
           {/* Desktop Sidebar */}
-          <div className="hidden md:block md:col-span-1 lg:col-span-1">
-            <div className="sticky top-24 bg-[var(--bg-surface)] rounded-[var(--radius-lg)] border border-[var(--border-light)] p-4 sm:p-6">
+          <aside className="hidden lg:block">
+            <div className="sticky top-20 bg-[var(--bg-surface)] rounded-[var(--radius-lg)] border border-[var(--border-light)] p-4 sm:p-6">
               <CategorySidebar
                 categories={categories}
                 selectedId={selectedCategory}
                 onSelect={setSelectedCategory}
               />
             </div>
-          </div>
+          </aside>
 
-          {/* Posts Feed */}
-          <div className="col-span-1 md:col-span-3 lg:col-span-4 space-y-4 sm:space-y-6">
+          {/* Posts Feed - Center Column with min-w-0 to prevent overflow */}
+          <main className="min-w-0 space-y-4 sm:space-y-6">
             {isLoading ? (
               <>
                 <PostCardSkeleton />
@@ -228,7 +228,19 @@ function CommunityPageContent() {
                 )}
               </>
             )}
-          </div>
+          </main>
+
+          {/* Right Sidebar - Placeholder for XL screens */}
+          <aside className="hidden xl:block">
+            <div className="sticky top-20 bg-[var(--bg-surface)] rounded-[var(--radius-lg)] border border-[var(--border-light)] p-4">
+              <h3 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-wide mb-4">
+                Community Info
+              </h3>
+              <p className="text-sm text-[var(--text-secondary)]">
+                Welcome to the NeuroKind community! Share experiences, ask questions, and connect.
+              </p>
+            </div>
+          </aside>
         </div>
       </div>
 

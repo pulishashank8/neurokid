@@ -40,12 +40,12 @@ export default function NavBar() {
   return (
     <>
       {/* Desktop Navbar */}
-      <nav className="sticky top-0 z-40 border-b bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm dark:border-[var(--border-dark)] dark:bg-[var(--bg-elevated)]">
+      <nav className="sticky top-0 z-40 border-b bg-[var(--surface)] text-[var(--text)] shadow-sm border-[var(--border)]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-600 text-white font-bold">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--primary)] text-[var(--primary-foreground)] font-bold">
                 NK
               </div>
               <span className="hidden text-lg font-semibold sm:inline">
@@ -61,8 +61,8 @@ export default function NavBar() {
                   href={item.href}
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     pathname === item.href
-                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                      : "text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] dark:hover:bg-[var(--bg-elevated-hover)]"
+                      ? "bg-[var(--surface2)] text-[var(--primary)]"
+                      : "text-[var(--muted)] hover:bg-[var(--surface2)] hover:text-[var(--text)]"
                   }`}
                 >
                   {item.label}
@@ -76,7 +76,7 @@ export default function NavBar() {
               {session && (
                 <button
                   onClick={toggleTheme}
-                  className="inline-flex items-center justify-center w-10 h-10 rounded-lg transition-colors bg-transparent hover:bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                  className="inline-flex items-center justify-center w-10 h-10 rounded-lg transition-colors bg-transparent hover:bg-[var(--surface2)] text-[var(--text)]"
                   aria-label="Toggle theme"
                   title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
                 >
@@ -98,7 +98,7 @@ export default function NavBar() {
               {session && (
                 <button
                   onClick={() => signOut({ callbackUrl: "/login" })}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors text-[var(--muted)] hover:bg-[var(--surface2)] hover:text-[var(--text)]"
                   title="Sign out"
                 >
                   {/* Exit/Sign Out SVG */}
@@ -111,7 +111,7 @@ export default function NavBar() {
 
               {/* Mobile Menu Button */}
               <button
-                className="md:hidden p-2 rounded-md hover:bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                className="md:hidden p-2 rounded-md hover:bg-[var(--surface2)] text-[var(--text)]"
                 onClick={() => setMobileOpen(!mobileOpen)}
                 aria-label="Toggle menu"
               >
@@ -134,15 +134,15 @@ export default function NavBar() {
 
           {/* Mobile Menu */}
           {mobileOpen && (
-            <div className="md:hidden border-t border-[var(--border-light)] bg-[var(--bg-surface)] py-2">
+            <div className="md:hidden border-t border-[var(--border)] bg-[var(--surface)] py-2">
               {NAV_ITEMS.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
                     pathname === item.href
-                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                      : "text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]"
+                      ? "bg-[var(--surface2)] text-[var(--primary)]"
+                      : "text-[var(--muted)] hover:bg-[var(--surface2)] hover:text-[var(--text)]"
                   }`}
                   onClick={() => setMobileOpen(false)}
                 >
@@ -152,10 +152,10 @@ export default function NavBar() {
               
               {/* Mobile Theme Toggle + Sign Out */}
               {session && (
-                <div className="border-t border-[var(--border-light)] mt-2 pt-2 flex flex-col gap-2">
+                <div className="border-t border-[var(--border)] mt-2 pt-2 flex flex-col gap-2">
                   <button
                     onClick={toggleTheme}
-                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium transition-colors text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] w-full"
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium transition-colors text-[var(--muted)] hover:bg-[var(--surface2)] hover:text-[var(--text)] w-full"
                   >
                     {theme === "light" ? (
                       <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">

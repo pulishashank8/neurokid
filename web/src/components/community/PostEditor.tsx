@@ -31,6 +31,7 @@ export function PostEditor({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const {
     register,
@@ -38,11 +39,12 @@ export function PostEditor({
     watch,
     formState: { errors, isValid },
     reset,
+    setError,
   } = useForm<CreatePostInput>({
-    resolver: zodResolver(createPostSchema),
+    resolver: zodResolver(createPostSchema) as any,
     defaultValues: {
       isAnonymous: false,
-      tags: [],
+      tagIds: [],
     },
     mode: "onChange",
   });
@@ -52,6 +54,7 @@ export function PostEditor({
 
   const onSubmit = async (data: CreatePostInput) => {
     setIsSubmitting(true);
+    setFieldErrors({});
 
     try {
       const response = await fetch("/api/posts", {
@@ -60,16 +63,23 @@ export function PostEditor({
         body: JSON.stringify({
           ...data,
           isAnonymous,
-          tags: selectedTags,
+          tagIds: selectedTags,
         }),
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create post");
+        // Handle field-level errors
+        if (result.fieldErrors) {
+          setFieldErrors(result.fieldErrors);
+          Object.keys(result.fieldErrors).forEach((key) => {
+            setError(key as any, { message: result.fieldErrors[key] });
+          });
+        }
+        throw new Error(result.error || "Failed to create post");
       }
 
-      const result = await response.json();
       toast.success("Post created successfully!");
       reset();
       setSelectedTags([]);
@@ -133,24 +143,34 @@ export function PostEditor({
       {tags.length > 0 && (
         <div>
           <label className="block text-sm font-semibold text-[var(--text-primary)] mb-3">
-            Tags (up to 5)
+            Tags (up to 5) {selectedTags.length > 0 && `- ${selectedTags.length} selected`}
           </label>
           <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
-              <button
-                key={tag.id}
-                type="button"
-                onClick={() => handleTagToggle(tag.id)}
-                className={`px-3 py-2 rounded-full text-xs font-medium transition-all ${
-                  selectedTags.includes(tag.id)
-                    ? "bg-[var(--primary)] text-white"
-                    : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated-hover)]"
-                }`}
-              >
-                #{tag.name}
-              </button>
-            ))}
+            {tags.map((tag) => {
+              const isSelected = selectedTags.includes(tag.id);
+              const isDisabled = !isSelected && selectedTags.length >= 5;
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => handleTagToggle(tag.id)}
+                  disabled={isDisabled}
+                  className={`px-3 py-2 rounded-full text-xs font-medium transition-all ${
+                    isSelected
+                      ? "bg-[var(--primary)] text-white"
+                      : isDisabled
+                      ? "bg-[var(--bg-elevated)] text-[var(--text-muted)] opacity-50 cursor-not-allowed"
+                      : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated-hover)]"
+                  }`}
+                >
+                  #{tag.name}
+                </button>
+              );
+            })}
           </div>
+          {fieldErrors.tagIds && (
+            <p className="text-xs text-[var(--danger)] mt-1">{fieldErrors.tagIds}</p>
+          )}
         </div>
       )}
 

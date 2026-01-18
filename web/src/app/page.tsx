@@ -30,28 +30,28 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pt-16">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-blue-50 to-indigo-100 py-12 sm:py-16 lg:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="relative bg-gradient-to-br from-blue-50 to-indigo-100 py-12 sm:py-16 lg:py-20">
+        <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl md:text-5xl lg:text-6xl">
               <span className="text-blue-600">NeuroKind</span>
             </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-2xl font-semibold text-gray-800 sm:text-3xl">
+            <p className="mx-auto mt-4 max-w-2xl text-xl font-semibold text-gray-800 sm:text-2xl md:text-3xl">
               Empowering Autism Awareness, One Family at a Time
             </p>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 sm:text-xl">
+            <p className="mx-auto mt-4 sm:mt-6 max-w-2xl text-base text-gray-600 sm:text-lg md:text-xl px-4">
               A compassionate digital ecosystem connecting families with community, verified providers, 
               AI support, and resources. Transform confusion into clarity. Replace isolation with inclusion.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4">
+            <div className="mt-6 sm:mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4 px-4">
               <>
-                <Link href="/login">
-                  <Button size="lg">Sign In</Button>
+                <Link href="/login" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto min-h-[48px]">Sign In</Button>
                 </Link>
-                <Link href="/register">
-                  <Button size="lg" variant="secondary">
+                <Link href="/register" className="w-full sm:w-auto">
+                  <Button size="lg" variant="secondary" className="w-full sm:w-auto min-h-[48px]">
                     Join Now
                   </Button>
                 </Link>
@@ -67,13 +67,13 @@ export default function Home() {
       </div>
 
       {/* 4 Pillars Section */}
-      <div className="py-12 sm:py-16 lg:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Everything you need in one place</h2>
-            <p className="mt-4 text-lg text-gray-600">Four pillars of support for autistic families</p>
+      <div className="py-12 sm:py-16 lg:py-20">
+        <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl px-4">Everything you need in one place</h2>
+            <p className="mt-3 sm:mt-4 text-base sm:text-lg text-gray-600 px-4">Four pillars of support for autistic families</p>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {/* Pillar 1: Community */}
             <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
@@ -202,16 +202,16 @@ export default function Home() {
       </div>
 
       {/* Call to Action */}
-      <div className="bg-blue-600 py-12 sm:py-16 lg:py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+      <div className="bg-blue-600 py-12 sm:py-16 lg:py-20">
+        <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8 text-center">
+          <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl px-4">
             Ready to get started?
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-blue-100">
+          <p className="mx-auto mt-3 sm:mt-4 max-w-2xl text-base sm:text-lg text-blue-100 px-4">
             Join our community today and connect with others on the neurodivergent spectrum.
           </p>
-          <Link href="/register" className="mt-8 inline-block">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
+          <Link href="/register" className="mt-6 sm:mt-8 inline-block px-4">
+            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 min-h-[48px] w-full sm:w-auto">
               Create Account
             </Button>
           </Link>
@@ -219,9 +219,9 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-gray-200 bg-white py-8 sm:py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+      <div className="border-t border-gray-200 bg-white py-6 sm:py-8">
+        <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
+          <div className="flex flex-col items-center justify-between gap-3 sm:gap-4 sm:flex-row">
             <p className="text-sm text-gray-600">
               © 2026 NeuroKind. A safe space for neurodivergent communities.
             </p>

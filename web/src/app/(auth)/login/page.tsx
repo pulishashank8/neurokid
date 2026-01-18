@@ -110,14 +110,14 @@ function LoginContent() {
             <div className="w-full border-t border-[var(--border-light)]"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-[var(--bg-surface)] text-[var(--text-muted)]">Or continue with</span>
+            <span className="px-3 bg-white dark:bg-[var(--bg-surface)] text-[var(--text-muted)]">Or continue with</span>
           </div>
         </div>
 
         <button
           type="button"
           onClick={() => signIn("google", { callbackUrl })}
-          className="mt-4 w-full flex items-center justify-center gap-3 px-4 py-3 border border-[var(--border-light)] rounded-[var(--radius-md)] bg-white hover:bg-gray-50 transition-colors text-[var(--text-primary)] font-medium"
+          className="mt-4 w-full flex items-center justify-center gap-3 px-4 py-3 border border-[var(--border-light)] rounded-[var(--radius-md)] bg-white hover:bg-gray-50 transition-colors text-[var(--text-primary)] font-medium min-h-[48px]"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
@@ -167,15 +167,17 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <Card className="max-w-md mx-auto" hover={false}>
-        <div className="text-center">
-          <div className="skeleton h-8 w-48 mx-auto mb-4"></div>
-          <div className="skeleton h-4 w-32 mx-auto"></div>
-        </div>
-      </Card>
-    }>
-      <LoginContent />
-    </Suspense>
+    <div className="min-h-screen pt-20 pb-12 px-4">
+      <Suspense fallback={
+        <Card className="max-w-md mx-auto" hover={false}>
+          <div className="text-center">
+            <div className="skeleton h-8 w-48 mx-auto mb-4"></div>
+            <div className="skeleton h-4 w-32 mx-auto"></div>
+          </div>
+        </Card>
+      }>
+        <LoginContent />
+      </Suspense>
+    </div>
   );
 }

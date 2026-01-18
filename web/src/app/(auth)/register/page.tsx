@@ -99,20 +99,23 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <Card className="max-w-md mx-auto text-center" hover={false}>
-        <div className="mb-4 inline-flex items-center justify-center w-16 h-16 bg-[var(--success-light)] rounded-full">
-          <svg className="w-8 h-8 text-[var(--success)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Registration Successful!</h2>
-        <p className="text-[var(--text-secondary)]">Your account has been created. Redirecting to login...</p>
-      </Card>
+      <div className="min-h-screen pt-20 pb-12 px-4">
+        <Card className="max-w-md mx-auto text-center" hover={false}>
+          <div className="mb-4 inline-flex items-center justify-center w-16 h-16 bg-[var(--success-light)] rounded-full">
+            <svg className="w-8 h-8 text-[var(--success)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Registration Successful!</h2>
+          <p className="text-[var(--text-secondary)]">Your account has been created. Redirecting to login...</p>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <Card className="max-w-md mx-auto" hover={false}>
+    <div className="min-h-screen pt-20 pb-12 px-4">
+      <Card className="max-w-md mx-auto" hover={false}>
       <div className="text-center mb-6 sm:mb-8">
         <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-[var(--radius-lg)] bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center">
           <span className="text-white font-bold text-xl sm:text-2xl">N</span>
@@ -212,5 +215,6 @@ export default function RegisterPage() {
         </p>
       </div>
     </Card>
+    </div>
   );
 }

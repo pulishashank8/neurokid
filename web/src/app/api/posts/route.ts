@@ -248,13 +248,24 @@ export async function POST(request: NextRequest) {
     const validation = createPostSchema.safeParse(body);
 
     if (!validation.success) {
+      // Return field-level errors
+      const fieldErrors: Record<string, string> = {};
+      validation.error.errors.forEach((err) => {
+        if (err.path.length > 0) {
+          fieldErrors[err.path[0] as string] = err.message;
+        }
+      });
       return NextResponse.json(
-        { error: "Invalid input", details: validation.error.errors },
+        { 
+          error: "Validation failed", 
+          fieldErrors,
+          details: validation.error.errors 
+        },
         { status: 400 }
       );
     }
 
-    const { title, content, categoryId, tags, isAnonymous } = validation.data;
+    const { title, content, categoryId, tagIds, isAnonymous } = validation.data;
 
     // ===== ANTI-SPAM CHECKS =====
     
@@ -299,7 +310,31 @@ export async function POST(request: NextRequest) {
     });
 
     if (!category) {
-      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+      return NextResponse.json(
+        { 
+          error: "Validation failed",
+          fieldErrors: { categoryId: "Category not found" }
+        }, 
+        { status: 400 }
+      );
+    }
+
+    // Verify tags exist if provided
+    if (tagIds && tagIds.length > 0) {
+      const existingTags = await prisma.tag.findMany({
+        where: { id: { in: tagIds } },
+        select: { id: true },
+      });
+      
+      if (existingTags.length !== tagIds.length) {
+        return NextResponse.json(
+          { 
+            error: "Validation failed",
+            fieldErrors: { tagIds: "One or more tags not found" }
+          }, 
+          { status: 400 }
+        );
+      }
     }
 
     // Create post with tags
@@ -311,8 +346,8 @@ export async function POST(request: NextRequest) {
         categoryId,
         isAnonymous,
         status: "ACTIVE",
-        tags: tags && tags.length > 0 ? {
-          connect: tags.map((tagId) => ({ id: tagId })),
+        tags: tagIds && tagIds.length > 0 ? {
+          connect: tagIds.map((tagId) => ({ id: tagId })),
         } : undefined,
       },
       include: {

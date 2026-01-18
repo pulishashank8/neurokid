@@ -15,12 +15,12 @@ export function Button({
   className = "",
   ...props 
 }: ButtonProps) {
-  const baseStyles = "btn inline-flex items-center justify-center font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseStyles = "inline-flex items-center justify-center font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed";
   
   const variantStyles = {
-    primary: "bg-[var(--primary)] text-[var(--text-on-primary)] hover:bg-[var(--primary-hover)] shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]",
-    secondary: "bg-[var(--surface)] text-[var(--text-primary)] border-2 border-[var(--primary)] hover:bg-[var(--primary-light)]",
-    ghost: "bg-transparent text-[var(--primary)] hover:bg-[var(--primary-light)]",
+    primary: "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]",
+    secondary: "bg-[var(--surface)] text-[var(--text)] border-2 border-[var(--border)] hover:bg-[var(--surface2)]",
+    ghost: "bg-transparent text-[var(--primary)] hover:bg-[var(--surface2)]",
   };
   
   const sizeStyles = {
