@@ -1,5 +1,7 @@
 # NeuroKind
 
+_Last updated: 2026-01-19_
+
 > **A comprehensive platform supporting families navigating autism spectrum disorder (ASD)**
 
 NeuroKind is a full-stack web application designed to provide evidence-based resources, community support, and professional guidance for families with autistic children. The platform combines autism screening tools, provider directories, AI-powered support, and a thriving community forum.
