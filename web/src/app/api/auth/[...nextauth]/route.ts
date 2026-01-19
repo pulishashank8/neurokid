@@ -4,10 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/prisma";
 import { LoginSchema } from "@/lib/validators";
 import bcryptjs from "bcryptjs";
-import {
-  RATE_LIMITERS,
-  getClientIp,
-} from "@/lib/rateLimit";
+import { logger } from "@/lib/logger";
 
 export const authOptions: NextAuthOptions = {
   // No adapter needed when using JWT strategy
@@ -20,82 +17,87 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
-
-        // Brute-force protection per IP
-        const ip = getClientIp(req as unknown as Request) || "unknown";
-        const canLogin = await RATE_LIMITERS.login.checkLimit(ip);
-        if (!canLogin) {
-          return null;
-        }
-
-        // Validate input
-        const parsed = LoginSchema.safeParse({
-          email: credentials.email,
-          password: credentials.password,
-        });
-
-        if (!parsed.success) {
-          return null;
-        }
-
         try {
-          // Find user by email
-          const user = await prisma.user.findUnique({
-            where: { email: parsed.data.email },
-            include: { userRoles: true, profile: true },
-          });
-
-          if (!user) {
+          logger.info({ email: credentials?.email?.substring(0, 3) + '***' }, 'Login attempt');
+          
+          if (!credentials?.email || !credentials?.password) {
+            logger.warn('Missing credentials');
             return null;
           }
 
-          // Check password
-          const passwordMatch = await bcryptjs.compare(
-            parsed.data.password,
-            user.hashedPassword || ""
-          );
+          // Validate input
+          const parsed = LoginSchema.safeParse({
+            email: credentials.email,
+            password: credentials.password,
+          });
 
-          if (!passwordMatch) {
+          if (!parsed.success) {
+            logger.warn({ errors: parsed.error.errors }, 'Login validation failed');
             return null;
           }
 
-          // Update lastLoginAt
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { lastLoginAt: new Date() },
-          });
+          try {
+            // Find user by email
+            const user = await prisma.user.findUnique({
+              where: { email: parsed.data.email },
+              include: { userRoles: true, profile: true },
+            });
 
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.profile?.displayName || user.profile?.username || user.email,
-            username: user.profile?.username,
-            roles: user.userRoles.map((ur: any) => ur.role),
-          };
-        } catch (err) {
-          console.error("Login authorization failed:", err);
-          // Fallback: allow dev login without DB if env flag is set (non-production only)
-          if (
-            process.env.NODE_ENV !== "production" &&
-            process.env.ALLOW_DEV_LOGIN_WITHOUT_DB === "true"
-          ) {
-            const devAccounts: Record<string, { password: string; roles: string[] }> = {
-              "admin@neurokind.local": { password: "admin123", roles: ["ADMIN"] },
-              "parent@neurokind.local": { password: "parent123", roles: ["PARENT"] },
-            };
-            const acct = devAccounts[parsed.data.email];
-            if (acct && acct.password === parsed.data.password) {
-              return {
-                id: parsed.data.email,
-                email: parsed.data.email,
-                name: parsed.data.email,
-                roles: acct.roles,
-              } as any;
+            if (!user) {
+              logger.warn({ email: parsed.data.email.substring(0, 3) + '***' }, 'User not found');
+              return null;
             }
+
+            // Check password
+            const passwordMatch = await bcryptjs.compare(
+              parsed.data.password,
+              user.hashedPassword || ""
+            );
+
+            if (!passwordMatch) {
+              logger.warn({ userId: user.id }, 'Password mismatch');
+              return null;
+            }
+
+            // Update lastLoginAt
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { lastLoginAt: new Date() },
+            });
+
+            logger.info({ userId: user.id, username: user.profile?.username }, 'Login successful');
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.profile?.displayName || user.profile?.username || user.email,
+              username: user.profile?.username,
+              roles: user.userRoles.map((ur: any) => ur.role),
+            };
+          } catch (err) {
+            logger.error({ error: err }, 'Login authorization failed');
+            // Fallback: allow dev login without DB if env flag is set (non-production only)
+            if (
+              process.env.NODE_ENV !== "production" &&
+              process.env.ALLOW_DEV_LOGIN_WITHOUT_DB === "true"
+            ) {
+              const devAccounts: Record<string, { password: string; roles: string[] }> = {
+                "admin@neurokind.local": { password: "admin123", roles: ["ADMIN"] },
+                "parent@neurokind.local": { password: "parent123", roles: ["PARENT"] },
+              };
+              const acct = devAccounts[parsed.data.email];
+              if (acct && acct.password === parsed.data.password) {
+                return {
+                  id: parsed.data.email,
+                  email: parsed.data.email,
+                  name: parsed.data.email,
+                  roles: acct.roles,
+                } as any;
+              }
+            }
+            return null;
           }
+        } catch (outerErr) {
+          logger.error({ error: outerErr }, 'Login outer error');
           return null;
         }
       },
@@ -124,7 +126,7 @@ export const authOptions: NextAuthOptions = {
 
   pages: {
     signIn: "/login",
-    error: "/login",
+    error: "/error",
   },
 
   callbacks: {
