@@ -4,12 +4,15 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendOTPEmail(email: string, otp: string) {
-    try {
-        const { data, error } = await resend.emails.send({
-            from: 'NeuroKid <onboarding@resend.dev>', // Use their test domain initially
-            to: [email],
-            subject: 'Verify your NeuroKid account',
-            html: `
+  try {
+    // Use custom domain if EMAIL_FROM is set, otherwise use Resend's test domain
+    const fromEmail = process.env.EMAIL_FROM || 'NeuroKid <onboarding@resend.dev>';
+
+    const { data, error } = await resend.emails.send({
+      from: fromEmail,
+      to: [email],
+      subject: 'Verify your NeuroKid account',
+      html: `
         <!DOCTYPE html>
         <html>
           <head>
@@ -47,21 +50,21 @@ export async function sendOTPEmail(email: string, otp: string) {
           </body>
         </html>
       `,
-        });
+    });
 
-        if (error) {
-            console.error('Resend error:', error);
-            throw new Error('Failed to send OTP email');
-        }
-
-        return { success: true, data };
-    } catch (error) {
-        console.error('Email sending error:', error);
-        throw error;
+    if (error) {
+      console.error('Resend error:', error);
+      throw new Error('Failed to send OTP email');
     }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Email sending error:', error);
+    throw error;
+  }
 }
 
 // Generate a 6-digit OTP
 export function generateOTP(): string {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
