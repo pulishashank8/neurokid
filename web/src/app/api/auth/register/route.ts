@@ -67,34 +67,8 @@ export const POST = withApiHandler(async (request: NextRequest) => {
     );
   }
 
-  // CHECK: Email must be verified via OTP before registration
-  const emailVerification = await prisma.emailVerification.findFirst({
-    where: {
-      email,
-      verified: true,
-    },
-    orderBy: {
-      verifiedAt: 'desc',
-    },
-  });
-
-  if (!emailVerification) {
-    logger.warn({ email: email.substring(0, 3) + '***' }, 'Registration attempt without email verification');
-    return NextResponse.json(
-      { error: "Email not verified. Please verify your email before registering." },
-      { status: 400 }
-    );
-  }
-
-  // Check if verification is recent (within 30 minutes)
-  const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
-  if (emailVerification.verifiedAt && emailVerification.verifiedAt < thirtyMinutesAgo) {
-    logger.warn({ email: email.substring(0, 3) + '***' }, 'Registration attempt with expired verification');
-    return NextResponse.json(
-      { error: "Email verification expired. Please verify your email again." },
-      { status: 400 }
-    );
-  }
+  // REMOVED: Email verification check to allow direct registration
+  // const emailVerification = ... (removed)
 
   // Hash password
   const hashedPassword = await bcryptjs.hash(password, 10);
