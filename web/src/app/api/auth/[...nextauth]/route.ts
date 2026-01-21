@@ -19,7 +19,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials, req) {
         try {
           logger.info({ email: credentials?.email?.substring(0, 3) + '***' }, 'Login attempt');
-          
+
           if (!credentials?.email || !credentials?.password) {
             logger.warn('Missing credentials');
             return null;
@@ -81,8 +81,8 @@ export const authOptions: NextAuthOptions = {
               process.env.ALLOW_DEV_LOGIN_WITHOUT_DB === "true"
             ) {
               const devAccounts: Record<string, { password: string; roles: string[] }> = {
-                "admin@neurokind.local": { password: "admin123", roles: ["ADMIN"] },
-                "parent@neurokind.local": { password: "parent123", roles: ["PARENT"] },
+                "admin@neurokid.local": { password: "admin123", roles: ["ADMIN"] },
+                "parent@neurokid.local": { password: "parent123", roles: ["PARENT"] },
               };
               const acct = devAccounts[parsed.data.email];
               if (acct && acct.password === parsed.data.password) {
@@ -106,12 +106,12 @@ export const authOptions: NextAuthOptions = {
     // Google OAuth provider (optional, only if env vars are set)
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? [
-          GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            allowDangerousEmailAccountLinking: true,
-          }),
-        ]
+        GoogleProvider({
+          clientId: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          allowDangerousEmailAccountLinking: true,
+        }),
+      ]
       : []),
   ],
 
@@ -144,7 +144,7 @@ export const authOptions: NextAuthOptions = {
             // Generate username from Google name or email
             let baseUsername = user.name?.toLowerCase().replace(/\s+/g, "") || user.email.split("@")[0];
             baseUsername = baseUsername.replace(/[^a-z0-9]/g, "");
-            
+
             // Ensure username is unique
             let username = baseUsername;
             let counter = 1;
@@ -189,7 +189,7 @@ export const authOptions: NextAuthOptions = {
             if (!existingUser.profile) {
               let baseUsername = user.name?.toLowerCase().replace(/\s+/g, "") || user.email.split("@")[0];
               baseUsername = baseUsername.replace(/[^a-z0-9]/g, "");
-              
+
               let username = baseUsername;
               let counter = 1;
               while (true) {

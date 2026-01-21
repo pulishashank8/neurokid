@@ -1,10 +1,10 @@
-# NeuroKind
+# NeuroKid
 
 _Last updated: 2026-01-19_
 
 > **A comprehensive platform supporting families navigating autism spectrum disorder (ASD)**
 
-NeuroKind is a full-stack web application designed to provide evidence-based resources, community support, and professional guidance for families with autistic children. The platform combines autism screening tools, provider directories, AI-powered support, and a thriving community forum.
+NeuroKid is a full-stack web application designed to provide evidence-based resources, community support, and professional guidance for families with autistic children. The platform combines autism screening tools, provider directories, AI-powered support, and a thriving community forum.
 
 ---
 
@@ -90,7 +90,7 @@ NeuroKind is a full-stack web application designed to provide evidence-based res
 ## 📁 Project Structure
 
 ```
-neurokind/
+neurokid/
 ├── prisma/                      # Database schema and migrations
 │   ├── schema.prisma           # Prisma schema definition
 │   └── migrations/             # Database migration files
@@ -242,8 +242,8 @@ neurokind/
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/pulishashank8/neurokind.git
-   cd neurokind
+   git clone https://github.com/pulishashank8/neurokid.git
+   cd neurokid
    ```
 
 2. **Install dependencies**
@@ -262,7 +262,7 @@ neurokind/
    Edit `.env.local` and add:
 
    ```env
-   DATABASE_URL="postgresql://neurokind:neurokind@localhost:5432/neurokind"
+   DATABASE_URL="postgresql://neurokid:neurokid@localhost:5432/neurokid"
    NEXTAUTH_URL="http://localhost:3000"
    NEXTAUTH_SECRET="your-random-secret-min-32-chars"
    GOOGLE_CLIENT_ID="your-google-client-id"
@@ -306,10 +306,10 @@ neurokind/
 
 After seeding the database, you can log in with:
 
-- **Admin**: `admin@neurokind.local` / `admin123`
-- **Moderator**: `moderator@neurokind.local` / `moderator123`
-- **Parent**: `parent@neurokind.local` / `parent123`
-- **Therapist**: `therapist@neurokind.local` / `therapist123`
+- **Admin**: `admin@neurokid.local` / `admin123`
+- **Moderator**: `moderator@neurokid.local` / `moderator123`
+- **Parent**: `parent@neurokid.local` / `parent123`
+- **Therapist**: `therapist@neurokid.local` / `therapist123`
 
 Or use **Google Sign-In** (requires Google OAuth setup)
 
@@ -335,19 +335,20 @@ Or use **Google Sign-In** (requires Google OAuth setup)
 
 ## 🎨 Design System
 
-### **Color Palette**
+### **Color Palette (Sensory-Friendly)**
 
-- **Primary**: `#4A90E2` (Blue)
-- **Accent**: `#50E3C2` (Teal)
-- **Success**: `#7ED321` (Green)
-- **Warning**: `#F5A623` (Orange)
-- **Error**: `#D0021B` (Red)
+- **Primary**: `#10b981` (Emerald Green - Growth & Positivity)
+- **Background**: `#F8FAFB` (Soft White)
+- **Text**: `#2C3E50` (Deep Blue-Grey)
+- **Accent**: `#14b8a6` (Teal)
+- **Warning**: `#f59e0b` (Amber)
+- **Error**: `#ef4444` (Soft Red)
 
 ### **Typography**
 
-- **Font**: System font stack (Inter fallback)
-- **Headings**: Bold, responsive sizing
-- **Body**: Regular weight, readable line-height
+- **Font**: Geist Sans (system font stack fallback)
+- **Headings**: Extra Bold, responsive sizing, centered on landing
+- **Body**: Medium weight, readable line-height (1.6 - 1.7)
 
 ### **Responsive Breakpoints**
 
@@ -491,7 +492,7 @@ This project is proprietary and confidential.
 
 ## 📧 Contact
 
-For questions or support, please contact the NeuroKind team.
+For questions or support, please contact the NeuroKid team.
 
 ---
 

@@ -20,7 +20,7 @@ Write-Host "⚠️  First deploy may fail - that's normal without env vars" -For
 cd C:\Users\User\neurokind\web
 
 # Non-interactive deploy
-vercel --yes --name neurokind
+vercel --yes --name neurokid
 
 Write-Host "`n📋 Step 3: Next steps..." -ForegroundColor Cyan
 Write-Host ""

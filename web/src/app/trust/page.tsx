@@ -21,7 +21,7 @@ export default function TrustPage() {
             Trust & <span className="text-[var(--primary)]">Safety</span>
           </h1>
           <p className="mx-auto max-w-2xl text-lg sm:text-xl text-[var(--muted)] leading-relaxed">
-            Your family's privacy isn't just a policy—it's our core promise. We built NeuroKind to be a safe haven for parents.
+            Your family's privacy isn't just a policy—it's our core promise. We built NeuroKid to be a safe haven for parents.
           </p>
         </div>
       </section>
@@ -73,7 +73,7 @@ export default function TrustPage() {
               <div>
                 <h3 className="text-xl font-bold text-[var(--text)] mb-2">Community Anonymity</h3>
                 <p className="text-[var(--muted)] mb-4 leading-relaxed">
-                  We understand the fear of judgment. In NeuroKind, you can be open about challenges without exposing your family's identity to the public web.
+                  We understand the fear of judgment. In NeuroKid, you can be open about challenges without exposing your family's identity to the public web.
                 </p>
                 <ul className="space-y-2">
                   <li className="flex items-center gap-2 text-sm text-[var(--text)]">

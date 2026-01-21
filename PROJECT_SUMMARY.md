@@ -1,4 +1,4 @@
-# NeuroKind - Complete Project Summary
+# NeuroKid - Complete Project Summary
 
 **Document Version:** 1.0  
 **Last Updated:** January 18, 2026  
@@ -24,9 +24,9 @@
 
 ## 🎯 Project Overview
 
-### What is NeuroKind?
+### What is NeuroKid?
 
-NeuroKind is a **comprehensive digital platform** designed to support families navigating autism spectrum disorder (ASD). It combines:
+NeuroKid is a **comprehensive digital platform** designed to support families navigating autism spectrum disorder (ASD). It combines:
 
 - **Community Forum** - Reddit-style discussion platform
 - **Provider Directory** - Database of autism specialists
@@ -1223,7 +1223,7 @@ const posts = await prisma.post.findMany({
 ### Complete Project Structure
 
 ```
-neurokind/
+neurokid/
 ├── README.md                    # Project documentation
 ├── docker-compose.yml           # PostgreSQL + Redis containers
 ├── PROJECT_SUMMARY.md           # This document
@@ -1430,8 +1430,8 @@ neurokind/
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/pulishashank8/neurokind.git
-cd neurokind
+git clone https://github.com/pulishashank8/neurokid.git
+cd neurokid
 
 # 2. Install dependencies
 cd web
@@ -1728,7 +1728,7 @@ NODE_ENV=production
 
 ### Project Summary
 
-**NeuroKind** is a comprehensive full-stack web application built with modern technologies to support families navigating autism spectrum disorder.
+**NeuroKid** is a comprehensive full-stack web application built with modern technologies to support families navigating autism spectrum disorder.
 
 **What We Built:**
 
