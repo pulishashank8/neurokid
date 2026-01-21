@@ -1,7 +1,7 @@
 # Automated Vercel Deployment Script
 # Run this after initial `vercel login`
 
-Write-Host "🚀 Deploying NeuroKind to Vercel..." -ForegroundColor Green
+Write-Host "🚀 Deploying NeuroKid to Vercel..." -ForegroundColor Green
 
 # Check if logged in
 Write-Host "`n📋 Step 1: Checking Vercel authentication..." -ForegroundColor Cyan

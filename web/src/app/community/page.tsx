@@ -283,31 +283,32 @@ function CommunityPageContent() {
           <aside className="hidden xl:block">
             <div className="sticky top-24 space-y-6">
               {/* Community Guidelines Card */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 p-1 shadow-lg shadow-indigo-500/20">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3"></div>
-                <div className="relative h-full bg-white/10 backdrop-blur-sm rounded-xl p-6 text-white">
+              {/* Community Guidelines Card */}
+              <div className="relative overflow-hidden rounded-2xl bg-[var(--surface)] border border-[var(--border)] p-6 shadow-sm">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3"></div>
+                <div className="relative h-full">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="p-2 bg-white/20 rounded-lg">
-                      <Sparkles className="w-5 h-5 text-yellow-300" />
+                    <div className="p-2 bg-[var(--primary)]/10 rounded-lg">
+                      <Sparkles className="w-5 h-5 text-[var(--primary)]" />
                     </div>
-                    <h3 className="font-bold text-lg">Guidelines</h3>
+                    <h3 className="font-bold text-lg text-[var(--text)]">Guidelines</h3>
                   </div>
 
-                  <p className="text-sm text-indigo-100 mb-6 leading-relaxed">
+                  <p className="text-sm text-[var(--muted)] mb-6 leading-relaxed">
                     We are a supportive family. Please be kind, respectful, and mindful of others' journeys.
                   </p>
 
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 text-sm font-medium text-white/90">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-500/20 text-red-200 text-xs">🚫</span>
+                    <div className="flex items-center gap-3 text-sm font-medium text-[var(--text)]">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs">🚫</span>
                       <span>No medical advice</span>
                     </div>
-                    <div className="flex items-center gap-3 text-sm font-medium text-white/90">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-200 text-xs">❤️</span>
+                    <div className="flex items-center gap-3 text-sm font-medium text-[var(--text)]">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-xs">❤️</span>
                       <span>Be supportive & kind</span>
                     </div>
-                    <div className="flex items-center gap-3 text-sm font-medium text-white/90">
-                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500/20 text-blue-200 text-xs">🔒</span>
+                    <div className="flex items-center gap-3 text-sm font-medium text-[var(--text)]">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs">🔒</span>
                       <span>Respect privacy</span>
                     </div>
                   </div>

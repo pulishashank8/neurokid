@@ -1,5 +1,5 @@
 {
-  "name": "web",
+  "name": "neurokid",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -29,7 +29,7 @@
     "test:health:quick": "powershell -Command \"$response = Invoke-RestMethod 'http://localhost:3000/api/health'; Write-Host ('Status: ' + $response.status) -ForegroundColor Green\"",
     "test:create-post": "node scripts/test-create-post.mjs",
     "test:smoke": "node scripts/test-smoke.mjs",
-    "test:windows": "pwsh -Command \"Write-Host 'Testing NeuroKind API on Windows...' ; Write-Host '✓ Health:' ; Invoke-RestMethod 'http://localhost:3000/api/health' | ConvertTo-Json ; Write-Host '✓ Posts:' ; Invoke-RestMethod 'http://localhost:3000/api/posts?limit=1&sort=new' | ConvertTo-Json\"",
+    "test:windows": "pwsh -Command \"Write-Host 'Testing NeuroKid API on Windows...' ; Write-Host '✓ Health:' ; Invoke-RestMethod 'http://localhost:3000/api/health' | ConvertTo-Json ; Write-Host '✓ Posts:' ; Invoke-RestMethod 'http://localhost:3000/api/posts?limit=1&sort=new' | ConvertTo-Json\"",
     "dev:clear-ratelimit": "node scripts/clear-rate-limit.mjs"
   },
   "dependencies": {
