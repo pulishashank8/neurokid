@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/Button";
+import { Users, Stethoscope, Brain, ClipboardCheck, ArrowRight, Sparkles, Heart } from "lucide-react";
 
 export default function Home() {
   const { status } = useSession();
@@ -20,179 +21,129 @@ export default function Home() {
   // Show loading while checking auth or if authenticated (redirect happening)
   if (status === "loading" || status === "authenticated") {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--background)]">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent"></div>
+          <p className="mt-4 text-[var(--muted)]">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-16">
-      {/* Hero Section - Clean, calm design */}
-      <div className="relative bg-[var(--background)] border-b border-[var(--border)] py-12 sm:py-16 lg:py-20">
-        <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold tracking-tight text-[var(--text)] sm:text-4xl md:text-5xl lg:text-6xl">
-              <span className="text-[var(--primary)]">NeuroKind</span>
-            </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-xl font-semibold text-[var(--text)] sm:text-2xl md:text-3xl">
-              Empowering Autism Awareness, One Family at a Time
-            </p>
-            <p className="mx-auto mt-4 sm:mt-6 max-w-2xl text-base text-[var(--muted)] sm:text-lg md:text-xl px-4">
-              A compassionate digital ecosystem connecting families with community, verified providers,
-              AI support, and resources. Transform confusion into clarity. Replace isolation with inclusion.
-            </p>
-            <div className="mt-6 sm:mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center sm:gap-4 px-4">
-              <Link href="/login" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto min-h-[48px]">Sign In</Button>
-              </Link>
-              <Link href="/register" className="w-full sm:w-auto">
-                <Button size="lg" variant="secondary" className="w-full sm:w-auto min-h-[48px]">
-                  Join Now
-                </Button>
-              </Link>
-            </div>
-            <div className="mt-6">
-              <Link href="/about" className="text-[var(--primary)] hover:text-[var(--primary-hover)] font-medium underline transition-colors">
-                Learn more about NeuroKind →
-              </Link>
-            </div>
+    <div className="min-h-screen pt-16 bg-[var(--background)]">
+      {/* Hero Section - Premium Design */}
+      <div className="relative overflow-hidden border-b border-[var(--border)] bg-[var(--surface)] pt-20 pb-24 sm:pt-24 sm:pb-32">
+        {/* Abstract Background Elements */}
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-[var(--primary)]/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl -translate-x-1/3 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] pointer-events-none"></div>
+
+        <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8 relative z-10 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[var(--surface2)] px-4 py-1.5 text-xs font-bold text-[var(--primary)] uppercase tracking-widest mb-8 border border-[var(--border)] shadow-sm animate-fade-in-up">
+            <Sparkles className="w-3.5 h-3.5" /> Welcome to NeuroKind
+          </div>
+
+          <h1 className="text-5xl font-extrabold tracking-tight text-[var(--text)] sm:text-6xl lg:text-7xl mb-6">
+            <span className="text-[var(--primary)]">NeuroKind</span>
+            <span className="block text-3xl sm:text-5xl mt-2 font-bold text-[var(--muted)]">Empowering Families. Connecting Hearts.</span>
+          </h1>
+
+          <p className="mx-auto mt-6 max-w-2xl text-xl text-[var(--muted)] leading-relaxed px-4">
+            A compassionate digital ecosystem connecting you with community, verified providers, AI support, and resources.
+            Transform confusion into clarity.
+          </p>
+
+          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center px-4">
+            <Link href="/login" className="w-full sm:w-auto">
+              <button className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[var(--primary)] text-white font-bold text-lg shadow-lg shadow-[var(--primary)]/30 hover:shadow-xl hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
+                Sign In <ArrowRight className="w-5 h-5" />
+              </button>
+            </Link>
+            <Link href="/register" className="w-full sm:w-auto">
+              <button className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] font-bold text-lg hover:bg-[var(--surface2)] hover:-translate-y-1 transition-all">
+                Join Now
+              </button>
+            </Link>
+          </div>
+
+          <div className="mt-12 flex items-center justify-center gap-8 text-[var(--muted)] opacity-60 grayscale hover:grayscale-0 transition-all duration-700">
+            <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider"><Users className="w-4 h-4" /> Community First</span>
+            <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider"><Heart className="w-4 h-4" /> Parents Trusted</span>
           </div>
         </div>
       </div>
 
       {/* 4 Pillars Section */}
-      <div className="py-12 sm:py-16 lg:py-20">
+      <div className="py-24 sm:py-32 bg-[var(--background)]">
         <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl font-bold text-[var(--text)] sm:text-3xl md:text-4xl px-4">Everything you need in one place</h2>
-            <p className="mt-3 sm:mt-4 text-base sm:text-lg text-[var(--muted)] px-4">Four pillars of support for autistic families</p>
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-[var(--text)] sm:text-4xl px-4 mb-4">Everything you need in one place</h2>
+            <p className="text-lg text-[var(--muted)] max-w-2xl mx-auto px-4">Comprehensive support tools designed specifically for neurodivergent families.</p>
           </div>
-          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {/* Pillar 1: Community */}
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-shadow">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--primary)] bg-opacity-10">
-                <svg
-                  className="h-6 w-6 text-[var(--primary)]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
+            <div className="group rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 mb-6 group-hover:scale-110 transition-transform">
+                <Users className="w-7 h-7" />
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-[var(--text)]">
-                Community
-              </h3>
-              <p className="mt-2 text-sm font-medium text-[var(--text)]">
-                Ask questions. Share experiences. Feel supported.
+              <h3 className="text-xl font-bold text-[var(--text)] mb-2">Community</h3>
+              <p className="text-sm font-medium text-[var(--primary)] mb-3">Share & Connect</p>
+              <p className="text-[var(--muted)] leading-relaxed text-sm mb-6">
+                A safe, anonymous space to ask questions, share stories, and find strength in shared experiences.
               </p>
-              <p className="mt-2 text-sm text-[var(--muted)]">
-                A Reddit-style community where parents can post questions, and anyone can join the conversation with helpful replies.
-              </p>
-              <Link href="/community" className="mt-4 inline-block text-sm font-medium text-[var(--primary)] hover:text-[var(--primary-hover)] transition-colors">
-                Explore →
+              <Link href="/community" className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface2)] text-sm font-semibold text-[var(--text)] group-hover:bg-[var(--primary)] group-hover:text-white transition-colors">
+                Explore <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
             {/* Pillar 2: Healthcare Providers */}
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-shadow">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--success)] bg-opacity-10">
-                <svg
-                  className="h-6 w-6 text-[var(--success)]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                  />
-                </svg>
+            <div className="group rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 mb-6 group-hover:scale-110 transition-transform">
+                <Stethoscope className="w-7 h-7" />
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-[var(--text)]">
-                Healthcare Providers
-              </h3>
-              <p className="mt-2 text-sm font-medium text-[var(--text)]">
-                Find ABA, OT, Speech, and autism specialists nearby.
+              <h3 className="text-xl font-bold text-[var(--text)] mb-2">Providers</h3>
+              <p className="text-sm font-medium text-rose-500 mb-3">Verify & Locate</p>
+              <p className="text-[var(--muted)] leading-relaxed text-sm mb-6">
+                Find trusted ABA, OT, and Speech specialists nearby with verified credentials and parent reviews.
               </p>
-              <p className="mt-2 text-sm text-[var(--muted)]">
-                Search trusted providers with ratings, reviews, and contact info.
-              </p>
-              <Link href="/providers" className="mt-4 inline-block text-sm font-medium text-[var(--success)] hover:opacity-80 transition-opacity">
-                Explore →
+              <Link href="/providers" className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface2)] text-sm font-semibold text-[var(--text)] group-hover:bg-rose-500 group-hover:text-white transition-colors">
+                Find Care <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
             {/* Pillar 3: AI Support */}
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-shadow">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--info)] bg-opacity-10">
-                <svg
-                  className="h-6 w-6 text-[var(--info)]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                  />
-                </svg>
+            <div className="group rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-100 text-purple-600 mb-6 group-hover:scale-110 transition-transform">
+                <Brain className="w-7 h-7" />
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-[var(--text)]">
-                AI Support
-              </h3>
-              <p className="mt-2 text-sm font-medium text-[var(--text)]">
-                Autism-focused guidance, anytime.
+              <h3 className="text-xl font-bold text-[var(--text)] mb-2">AI Support</h3>
+              <p className="text-sm font-medium text-purple-500 mb-3">24/7 Guidance</p>
+              <p className="text-[var(--muted)] leading-relaxed text-sm mb-6">
+                Instant, compassionate answers to your questions about behavior, IEPs, and daily routines.
               </p>
-              <p className="mt-2 text-sm text-[var(--muted)]">
-                A safe AI assistant to help parents understand behaviors, routines, therapy options, and school support.
-              </p>
-              <Link href="/ai-support" className="mt-4 inline-block text-sm font-medium text-[var(--info)] hover:opacity-80 transition-opacity">
-                Explore →
+              <Link href="/ai-support" className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface2)] text-sm font-semibold text-[var(--text)] group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                Chat Now <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
             {/* Pillar 4: Autism Screening */}
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-shadow">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--warning)] bg-opacity-10">
-                <svg
-                  className="h-6 w-6 text-[var(--warning)]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                  />
-                </svg>
+            <div className="group rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-green-100 text-green-600 mb-6 group-hover:scale-110 transition-transform">
+                <ClipboardCheck className="w-7 h-7" />
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-[var(--text)]">
-                Autism Screening
-              </h3>
-              <p className="mt-2 text-sm font-medium text-[var(--text)]">
-                A quick parent-friendly screening flow.
+              <h3 className="text-xl font-bold text-[var(--text)] mb-2">Screening</h3>
+              <p className="text-sm font-medium text-green-500 mb-3">M-CHAT-R/F™ Tools</p>
+              <p className="text-[var(--muted)] leading-relaxed text-sm mb-6">
+                Validated screening tools to help you understand developmental milestones and next steps.
               </p>
-              <p className="mt-2 text-sm text-[var(--muted)]">
-                Answer simple questions and get a clear score-style result with next-step guidance. Not a diagnosis.
-              </p>
-              <Link href="/screening" className="mt-4 inline-block text-sm font-medium text-[var(--warning)] hover:opacity-80 transition-opacity">
-                Explore →
+              <Link href="/screening" className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface2)] text-sm font-semibold text-[var(--text)] group-hover:bg-green-500 group-hover:text-white transition-colors">
+                Start Screen <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -200,40 +151,49 @@ export default function Home() {
       </div>
 
       {/* Call to Action */}
-      <div className="bg-[var(--primary)] py-12 sm:py-16 lg:py-20">
-        <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl md:text-4xl px-4">
-            Ready to get started?
+      <div className="relative py-24 sm:py-32 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-blue-600 opacity-90"></div>
+        {/* Pattern */}
+        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10"></div>
+
+        <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8 text-center relative z-10">
+          <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl px-4 mb-6">
+            Your Journey, Supported.
           </h2>
-          <p className="mx-auto mt-3 sm:mt-4 max-w-2xl text-base sm:text-lg text-white opacity-90 px-4">
-            Join our community today and connect with others on the neurodivergent spectrum.
+          <p className="mx-auto mt-3 max-w-2xl text-lg sm:text-xl text-blue-50 px-4 mb-10 leading-relaxed">
+            Join thousands of parents and professionals building a world where neurodiversity is celebrated.
           </p>
-          <Link href="/register" className="mt-6 sm:mt-8 inline-block px-4">
-            <Button size="lg" className="bg-white text-[var(--primary)] hover:bg-opacity-90 min-h-[48px] w-full sm:w-auto">
-              Create Account
-            </Button>
+          <Link href="/register" className="inline-block px-4">
+            <button className="px-8 py-4 rounded-xl bg-white text-[var(--primary)] font-bold text-lg shadow-xl hover:bg-blue-50 hover:-translate-y-1 transition-all">
+              Create Free Account
+            </button>
           </Link>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="border-t border-[var(--border)] bg-[var(--surface)] py-6 sm:py-8">
+      <div className="border-t border-[var(--border)] bg-[var(--surface)] py-12">
         <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-3 sm:gap-4 sm:flex-row">
-            <p className="text-sm text-[var(--muted)]">
-              © 2026 NeuroKind. A safe space for neurodivergent communities.
-            </p>
-            <div className="flex gap-6">
-              <Link href="/resources" className="text-sm text-[var(--muted)] hover:text-[var(--primary)] transition-colors">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold text-[var(--primary)]">NeuroKind</span>
+              <span className="text-sm text-[var(--muted)] pl-4 border-l border-[var(--border)]">© 2026</span>
+            </div>
+
+            <div className="flex gap-8">
+              <Link href="/about" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--primary)] transition-colors">
+                About Us
+              </Link>
+              <Link href="/resources" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--primary)] transition-colors">
                 Resources
               </Link>
-              <Link href="/settings" className="text-sm text-[var(--muted)] hover:text-[var(--primary)] transition-colors">
-                Settings
+              <Link href="/privacy" className="text-sm font-medium text-[var(--muted)] hover:text-[var(--primary)] transition-colors">
+                Privacy
               </Link>
             </div>
           </div>
 
-          <div className="mt-8 border-t border-[var(--border)] pt-4 text-center">
+          <div className="border-t border-[var(--border)] pt-8 text-center">
             <p className="text-[10px] text-[var(--muted)] opacity-60 leading-relaxed max-w-3xl mx-auto uppercase tracking-wide">
               DISCLAIMER: NeuroKind is a personal project by Shashank Puli, created as an MVP for educational and demonstration purposes only.
               The content provided is not intended to replace professional medical advice, diagnosis, or treatment.
