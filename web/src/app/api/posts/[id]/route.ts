@@ -36,9 +36,8 @@ export const GET = withApiHandler(async (
 
   const { id } = await params;
 
-  // Validate UUID format to prevent injection
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(id)) {
+  // Validate ID format (basic check to ensure it's not a path traversal attempt)
+  if (!id || id.includes('/') || id.includes('\\')) {
     logger.warn({ id }, 'Invalid post ID format');
     return NextResponse.json({ error: "Invalid post ID format" }, { status: 400 });
   }
