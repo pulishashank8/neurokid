@@ -4,7 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { createCommentSchema } from "@/lib/validations/community";
 import { canModerate } from "@/lib/rbac";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from 'sanitize-html';
 import { invalidateCache } from "@/lib/redis";
 import { rateLimitResponse, RATE_LIMITERS } from "@/lib/rateLimit";
 import { createLogger } from "@/lib/logger";
@@ -73,15 +73,15 @@ export async function GET(
         updatedAt: comment.updatedAt,
         author: comment.isAnonymous
           ? {
-              id: "anonymous",
-              username: "Anonymous",
-              avatarUrl: null,
-            }
+            id: "anonymous",
+            username: "Anonymous",
+            avatarUrl: null,
+          }
           : {
-              id: comment.author.id,
-              username: comment.author.profile?.username || "Unknown",
-              avatarUrl: comment.author.profile?.avatarUrl || null,
-            },
+            id: comment.author.id,
+            username: comment.author.profile?.username || "Unknown",
+            avatarUrl: comment.author.profile?.avatarUrl || null,
+          },
         voteScore: comment.voteScore,
         isAnonymous: comment.isAnonymous,
         parentCommentId: comment.parentCommentId,
@@ -125,7 +125,7 @@ export async function POST(
 
     const { id } = await params;
     const body = await request.json();
-    
+
     // Add postId to body for validation
     const validation = createCommentSchema.safeParse({ ...body, postId: id });
 
@@ -194,9 +194,11 @@ export async function POST(
 
     // Sanitize content
     const sanitizedContent = enforceSafeLinks(
-      DOMPurify.sanitize(content, {
-        ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "a", "code"],
-        ALLOWED_ATTR: ["href", "target", "rel"],
+      sanitizeHtml(content, {
+        allowedTags: ["p", "br", "strong", "em", "u", "a", "code"],
+        allowedAttributes: {
+          'a': ['href', 'target', 'rel']
+        }
       })
     );
 
@@ -233,15 +235,15 @@ export async function POST(
       updatedAt: comment.updatedAt,
       author: comment.isAnonymous
         ? {
-            id: "anonymous",
-            username: "Anonymous",
-            avatarUrl: null,
-          }
+          id: "anonymous",
+          username: "Anonymous",
+          avatarUrl: null,
+        }
         : {
-            id: comment.author.id,
-            username: comment.author.profile?.username || "Unknown",
-            avatarUrl: comment.author.profile?.avatarUrl || null,
-          },
+          id: comment.author.id,
+          username: comment.author.profile?.username || "Unknown",
+          avatarUrl: comment.author.profile?.avatarUrl || null,
+        },
       voteScore: comment.voteScore,
       isAnonymous: comment.isAnonymous,
       parentCommentId: comment.parentCommentId,

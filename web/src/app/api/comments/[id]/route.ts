@@ -4,7 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { updateCommentSchema } from "@/lib/validations/community";
 import { canModerate } from "@/lib/rbac";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from 'sanitize-html';
 
 function enforceSafeLinks(html: string): string {
   return html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
@@ -72,9 +72,11 @@ export async function PATCH(
 
     // Sanitize content
     const sanitizedContent = enforceSafeLinks(
-      DOMPurify.sanitize(content, {
-        ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "a", "code"],
-        ALLOWED_ATTR: ["href", "target", "rel"],
+      sanitizeHtml(content, {
+        allowedTags: ["p", "br", "strong", "em", "u", "a", "code"],
+        allowedAttributes: {
+          'a': ['href', 'target', 'rel']
+        }
       })
     );
 

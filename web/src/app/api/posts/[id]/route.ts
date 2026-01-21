@@ -4,7 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { updatePostSchema } from "@/lib/validations/community";
 import { canModerate } from "@/lib/rbac";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from 'sanitize-html';
 
 function enforceSafeLinks(html: string): string {
   return html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
@@ -21,7 +21,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    
+
     const post = await prisma.post.findUnique({
       where: { id },
       include: {
@@ -75,17 +75,17 @@ export async function GET(
       tags: post.tags,
       author: post.isAnonymous || !post.author
         ? {
-            id: "anonymous",
-            username: "Anonymous",
-            avatarUrl: null,
-            bio: null,
-          }
+          id: "anonymous",
+          username: "Anonymous",
+          avatarUrl: null,
+          bio: null,
+        }
         : {
-            id: post.author.id,
-            username: post.author.profile?.username || "Unknown",
-            avatarUrl: post.author.profile?.avatarUrl || null,
-            bio: post.author.profile?.bio || null,
-          },
+          id: post.author.id,
+          username: post.author.profile?.username || "Unknown",
+          avatarUrl: post.author.profile?.avatarUrl || null,
+          bio: post.author.profile?.bio || null,
+        },
       voteScore: post.voteScore,
       commentCount: post._count.comments,
       isPinned: post.isPinned,
@@ -149,9 +149,11 @@ export async function PATCH(
     if (title) updateData.title = title;
     if (content) {
       updateData.content = enforceSafeLinks(
-        DOMPurify.sanitize(content, {
-          ALLOWED_TAGS: ["p", "br", "strong", "em", "u", "a", "ul", "ol", "li", "blockquote", "code", "pre"],
-          ALLOWED_ATTR: ["href", "target", "rel"],
+        sanitizeHtml(content, {
+          allowedTags: ["p", "br", "strong", "em", "u", "a", "ul", "ol", "li", "blockquote", "code", "pre"],
+          allowedAttributes: {
+            'a': ['href', 'target', 'rel']
+          }
         })
       );
     }
