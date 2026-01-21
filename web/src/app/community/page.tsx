@@ -13,6 +13,7 @@ import { SortTabs } from "@/components/community/SortTabs";
 import { PostCardSkeleton, LoadingSpinner } from "@/components/community/LoadingSkeletons";
 import { EmptyState } from "@/components/community/EmptyState";
 import { useQuery } from "@tanstack/react-query";
+import { Sparkles, AlertTriangle } from "lucide-react";
 
 interface Post {
   id: string;
@@ -255,8 +256,8 @@ function CommunityPageContent() {
                             key={pageNum}
                             onClick={() => setPage(pageNum)}
                             className={`w-10 h-10 rounded-xl font-medium transition-all ${page === pageNum
-                                ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20"
-                                : "text-[var(--muted)] hover:bg-[var(--surface2)]"
+                              ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20"
+                              : "text-[var(--muted)] hover:bg-[var(--surface2)]"
                               }`}
                           >
                             {pageNum}
@@ -281,23 +282,47 @@ function CommunityPageContent() {
           {/* Right Sidebar */}
           <aside className="hidden xl:block">
             <div className="sticky top-24 space-y-6">
-              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
-                <h3 className="font-bold text-lg mb-2">Community Guidelines</h3>
-                <p className="text-sm text-indigo-100 mb-4">
-                  We are a supportive family. Please be kind, respectful, and mindful of others' journeys.
-                </p>
-                <div className="text-xs bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-                  🚫 No medical advice<br />
-                  ❤️ Be supportive<br />
-                  🔒 Respect privacy
+              {/* Community Guidelines Card */}
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 p-1 shadow-lg shadow-indigo-500/20">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3"></div>
+                <div className="relative h-full bg-white/10 backdrop-blur-sm rounded-xl p-6 text-white">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <Sparkles className="w-5 h-5 text-yellow-300" />
+                    </div>
+                    <h3 className="font-bold text-lg">Guidelines</h3>
+                  </div>
+
+                  <p className="text-sm text-indigo-100 mb-6 leading-relaxed">
+                    We are a supportive family. Please be kind, respectful, and mindful of others' journeys.
+                  </p>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-sm font-medium text-white/90">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-500/20 text-red-200 text-xs">🚫</span>
+                      <span>No medical advice</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-medium text-white/90">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-200 text-xs">❤️</span>
+                      <span>Be supportive & kind</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-medium text-white/90">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500/20 text-blue-200 text-xs">🔒</span>
+                      <span>Respect privacy</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {/* Disclaimer Mini */}
-              <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6">
-                <p className="text-[10px] text-[var(--muted)]">
-                  Disclaimer: Content shared by users is for informational purposes only. NeuroKind does not endorse specific treatments.
-                </p>
+              <div className="bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/20 p-5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/2"></div>
+                <div className="flex gap-3 relative z-10">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0" />
+                  <p className="text-xs text-amber-900/80 dark:text-amber-200/80 leading-relaxed font-medium">
+                    <strong>Disclaimer:</strong> Content shared by users is for informational purposes only. NeuroKind does not endorse specific treatments. Always consult a professional.
+                  </p>
+                </div>
               </div>
             </div>
           </aside>
