@@ -124,16 +124,16 @@ function CommunityPageContent() {
       {/* Premium Header */}
       <div className="relative overflow-hidden bg-gradient-to-b from-[var(--surface)] to-[var(--background)] border-b border-[var(--border)] pt-8 pb-12">
         {/* Abstract Shapes */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
 
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
             <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-bold uppercase tracking-wider w-fit mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider w-fit mb-4">
                 Community Hub
               </div>
               <h1 className="text-4xl font-extrabold text-[var(--text)] tracking-tight mb-4">
-                NeuroKid <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Community</span>
+                NeuroKid <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">Community</span>
               </h1>
               <p className="text-lg text-[var(--muted)] leading-relaxed">
                 A safe space to share experiences, ask questions, and connect with other parents. In NeuroKid, anonymity isn't hiding — it's healing.

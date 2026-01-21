@@ -106,8 +106,8 @@ export default function RegisterPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2">Registration Successful!</h2>
-          <p className="text-[var(--text-secondary)]">Your account has been created. Redirecting to login...</p>
+          <h2 className="text-2xl font-bold text-[var(--text)] mb-2">Registration Successful!</h2>
+          <p className="text-[var(--muted)]">Your account has been created. Redirecting to login...</p>
         </Card>
       </div>
     );
@@ -116,105 +116,105 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen pt-20 pb-12 px-4">
       <Card className="max-w-md mx-auto" hover={false}>
-      <div className="text-center mb-6 sm:mb-8">
-        <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-[var(--radius-lg)] bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center">
-          <span className="text-white font-bold text-xl sm:text-2xl">N</span>
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-[var(--radius-lg)] bg-gradient-to-br from-[var(--primary)] to-[var(--primary-hover)] flex items-center justify-center">
+            <span className="text-white font-bold text-xl sm:text-2xl">NK</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)] mb-2">
+            Create Account
+          </h1>
+          <p className="text-[var(--muted)] text-sm sm:text-base">Join the NeuroKid community</p>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] mb-2">
-          Create Account
-        </h1>
-        <p className="text-[var(--text-secondary)] text-sm sm:text-base">Join the NeuroKind community</p>
-      </div>
 
-      {error && (
-        <div className="mb-6 p-4 bg-[var(--error-light)] border border-[var(--error)] rounded-[var(--radius-md)]">
-          <p className="text-[var(--error)] text-sm">{error}</p>
-        </div>
-      )}
+        {error && (
+          <div className="mb-6 p-4 bg-[var(--error-light)] border border-[var(--error)] rounded-[var(--radius-md)]">
+            <p className="text-[var(--error)] text-sm">{error}</p>
+          </div>
+        )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <Input
-          id="email"
-          type="email"
-          name="email"
-          label="Email Address"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="you@example.com"
-          error={fieldErrors.email}
-          required
-        />
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <Input
+            id="email"
+            type="email"
+            name="email"
+            label="Email Address"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="you@example.com"
+            error={fieldErrors.email}
+            required
+          />
 
-        <Input
-          id="username"
-          type="text"
-          name="username"
-          label="Username"
-          value={formData.username}
-          onChange={handleChange}
-          placeholder="your_username"
-          error={fieldErrors.username}
-          required
-        />
+          <Input
+            id="username"
+            type="text"
+            name="username"
+            label="Username"
+            value={formData.username}
+            onChange={handleChange}
+            placeholder="your_username"
+            error={fieldErrors.username}
+            required
+          />
 
-        <Input
-          id="displayName"
-          type="text"
-          name="displayName"
-          label="Display Name"
-          value={formData.displayName}
-          onChange={handleChange}
-          placeholder="Your Full Name"
-          error={fieldErrors.displayName}
-          required
-        />
+          <Input
+            id="displayName"
+            type="text"
+            name="displayName"
+            label="Display Name"
+            value={formData.displayName}
+            onChange={handleChange}
+            placeholder="Your Full Name"
+            error={fieldErrors.displayName}
+            required
+          />
 
-        <Input
-          id="password"
-          type="password"
-          name="password"
-          label="Password"
-          value={formData.password}
-          onChange={handleChange}
-          placeholder="••••••••"
-          error={fieldErrors.password}
-          required
-        />
+          <Input
+            id="password"
+            type="password"
+            name="password"
+            label="Password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="••••••••"
+            error={fieldErrors.password}
+            required
+          />
 
-        <Input
-          id="confirmPassword"
-          type="password"
-          name="confirmPassword"
-          label="Confirm Password"
-          value={formData.confirmPassword}
-          onChange={handleChange}
-          placeholder="••••••••"
-          error={fieldErrors.confirmPassword}
-          required
-        />
+          <Input
+            id="confirmPassword"
+            type="password"
+            name="confirmPassword"
+            label="Confirm Password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            placeholder="••••••••"
+            error={fieldErrors.confirmPassword}
+            required
+          />
 
-        <Button
-          type="submit"
-          disabled={isLoading}
-          variant="primary"
-          className="w-full mt-6"
-        >
-          {isLoading ? "Creating Account..." : "Create Account"}
-        </Button>
-      </form>
-
-      <div className="mt-6 text-center">
-        <p className="text-[var(--text-secondary)] text-sm">
-          Already have an account?{" "}
-          <Link
-            href="/login"
-            className="text-[var(--primary)] hover:text-[var(--primary-hover)] font-semibold"
+          <Button
+            type="submit"
+            disabled={isLoading}
+            variant="primary"
+            className="w-full mt-6"
           >
-            Sign In
-          </Link>
-        </p>
-      </div>
-    </Card>
+            {isLoading ? "Creating Account..." : "Create Account"}
+          </Button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <p className="text-[var(--muted)] text-sm">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="text-[var(--primary)] hover:text-[var(--primary-hover)] font-semibold"
+            >
+              Sign In
+            </Link>
+          </p>
+        </div>
+      </Card>
     </div>
   );
 }

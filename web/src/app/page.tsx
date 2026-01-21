@@ -36,7 +36,7 @@ export default function Home() {
       <div className="relative overflow-hidden border-b border-[var(--border)] bg-[var(--surface)] pt-20 pb-24 sm:pt-24 sm:pb-32">
         {/* Abstract Background Elements */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-[var(--primary)]/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl -translate-x-1/3 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl -translate-x-1/3 pointer-events-none"></div>
         <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] pointer-events-none"></div>
 
         <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8 relative z-10 text-center">
@@ -57,7 +57,7 @@ export default function Home() {
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center px-4">
             <Link href="/login" className="w-full sm:w-auto">
               <button className="w-full sm:w-auto px-8 py-4 rounded-xl bg-[var(--primary)] text-white font-bold text-lg shadow-lg shadow-[var(--primary)]/30 hover:shadow-xl hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
-                Sign In <ArrowRight className="w-5 h-5" />
+                Start Screening <ArrowRight className="w-5 h-5" />
               </button>
             </Link>
             <Link href="/register" className="w-full sm:w-auto">
@@ -85,8 +85,8 @@ export default function Home() {
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {/* Pillar 1: Community */}
             <div className="group rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 mb-6 group-hover:scale-110 transition-transform">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 mb-6 group-hover:scale-110 transition-transform">
                 <Users className="w-7 h-7" />
               </div>
               <h3 className="text-xl font-bold text-[var(--text)] mb-2">Community</h3>
@@ -94,7 +94,7 @@ export default function Home() {
               <p className="text-[var(--muted)] leading-relaxed text-sm mb-6">
                 A safe, anonymous space to ask questions, share stories, and find strength in shared experiences.
               </p>
-              <Link href="/community" className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface2)] text-sm font-semibold text-[var(--text)] group-hover:bg-[var(--primary)] group-hover:text-white transition-colors">
+              <Link href="/community" className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface2)] text-sm font-semibold text-[var(--text)] group-hover:bg-emerald-500 group-hover:text-white transition-colors">
                 Explore <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -152,7 +152,7 @@ export default function Home() {
 
       {/* Call to Action */}
       <div className="relative py-24 sm:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-blue-600 opacity-90"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-emerald-700 opacity-95"></div>
         {/* Pattern */}
         <div className="absolute inset-0 bg-[url('/noise.png')] opacity-10"></div>
 
@@ -160,11 +160,11 @@ export default function Home() {
           <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl px-4 mb-6">
             Your Journey, Supported.
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-lg sm:text-xl text-blue-50 px-4 mb-10 leading-relaxed">
+          <p className="mx-auto mt-3 max-w-2xl text-lg sm:text-xl text-emerald-50 px-4 mb-10 leading-relaxed">
             Join thousands of parents and professionals building a world where neurodiversity is celebrated.
           </p>
           <Link href="/register" className="inline-block px-4">
-            <button className="px-8 py-4 rounded-xl bg-white text-[var(--primary)] font-bold text-lg shadow-xl hover:bg-blue-50 hover:-translate-y-1 transition-all">
+            <button className="px-8 py-4 rounded-xl bg-white text-[var(--primary)] font-bold text-lg shadow-xl hover:bg-emerald-50 hover:-translate-y-1 transition-all">
               Create Free Account
             </button>
           </Link>

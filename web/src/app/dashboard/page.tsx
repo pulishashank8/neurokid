@@ -41,7 +41,7 @@ export default function DashboardPage() {
       description: "A safe space to share stories, ask questions, and find strength in numbers.",
       href: "/community",
       icon: <Users className="w-8 h-8" />,
-      color: "bg-blue-500",
+      color: "bg-emerald-500",
       stats: "Active Discussions",
     },
     {
@@ -79,7 +79,7 @@ export default function DashboardPage() {
       <div className="relative overflow-hidden bg-gradient-to-b from-[var(--surface)] to-[var(--background)] border-b border-[var(--border)] pt-10 pb-16">
         {/* Abstract Shapes for premium feel */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-[var(--primary)]/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-        <div className="absolute top-10 left-10 w-32 h-32 bg-blue-400/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div className="absolute top-10 left-10 w-32 h-32 bg-teal-400/10 rounded-full blur-2xl pointer-events-none"></div>
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -155,7 +155,7 @@ export default function DashboardPage() {
           {/* Quick Stats Widget */}
           <div className="lg:col-span-2 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-sm)]">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+              <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
                 <Activity className="w-5 h-5" />
               </div>
               <h3 className="text-lg font-bold text-[var(--text)]">Your Activity</h3>
@@ -167,8 +167,8 @@ export default function DashboardPage() {
                 <span className="text-sm font-bold text-[var(--text)] group-hover:text-white">My Screenings</span>
               </Link>
 
-              <Link href="/community" className="flex flex-col items-center justify-center rounded-xl bg-[var(--surface2)] p-4 text-center transition-all hover:bg-indigo-500 hover:text-white group">
-                <MessagesSquare className="w-6 h-6 mb-2 text-indigo-500 group-hover:text-white" />
+              <Link href="/community" className="flex flex-col items-center justify-center rounded-xl bg-[var(--surface2)] p-4 text-center transition-all hover:bg-emerald-500 hover:text-white group">
+                <MessagesSquare className="w-6 h-6 mb-2 text-emerald-500 group-hover:text-white" />
                 <span className="text-sm font-bold text-[var(--text)] group-hover:text-white">My Posts</span>
               </Link>
 
@@ -178,8 +178,8 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            <div className="mt-6 p-4 rounded-xl bg-indigo-50 border border-indigo-100 dark:bg-slate-800 dark:border-slate-700">
-              <p className="text-sm font-medium text-center text-indigo-900 dark:text-indigo-200">
+            <div className="mt-6 p-4 rounded-xl bg-emerald-50 border border-emerald-100 dark:bg-slate-800 dark:border-slate-700">
+              <p className="text-sm font-medium text-center text-emerald-900 dark:text-emerald-200">
                 "Every step forward is a victory to be celebrated."
               </p>
             </div>

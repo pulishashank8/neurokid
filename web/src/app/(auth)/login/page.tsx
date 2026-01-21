@@ -57,13 +57,13 @@ function LoginContent() {
   return (
     <Card className="max-w-md mx-auto" hover={false}>
       <div className="text-center mb-6 sm:mb-8">
-        <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-[var(--radius-lg)] bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center">
-          <span className="text-white font-bold text-xl sm:text-2xl">N</span>
+        <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 rounded-[var(--radius-lg)] bg-gradient-to-br from-[var(--primary)] to-[var(--primary-hover)] flex items-center justify-center">
+          <span className="text-white font-bold text-xl sm:text-2xl">NK</span>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)] mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)] mb-2">
           Welcome Back
         </h1>
-        <p className="text-[var(--text-secondary)] text-sm sm:text-base">Sign in to your account</p>
+        <p className="text-[var(--muted)] text-sm sm:text-base">Sign in to NeuroKid</p>
       </div>
 
       {error && (
@@ -110,7 +110,7 @@ function LoginContent() {
             <div className="w-full border-t border-[var(--border-light)]"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-3 bg-white dark:bg-[var(--bg-surface)] text-[var(--text-muted)]">Or continue with</span>
+            <span className="px-3 bg-[var(--surface)] text-[var(--muted)]">Or continue with</span>
           </div>
         </div>
 
@@ -142,7 +142,7 @@ function LoginContent() {
       </div>
 
       <div className="mt-6 text-center">
-        <p className="text-[var(--text-secondary)] text-sm">
+        <p className="text-[var(--muted)] text-sm">
           Don't have an account?{" "}
           <Link
             href="/register"
@@ -156,8 +156,8 @@ function LoginContent() {
       <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-[var(--border-light)]">
         <div className="text-center text-xs text-[var(--text-muted)]">
           <p className="mb-2">Demo credentials for testing:</p>
-          <p className="font-mono bg-[var(--bg-elevated)] px-2 sm:px-3 py-2 rounded-[var(--radius-sm)] text-[var(--text-secondary)] text-xs break-all">
-            admin@neurokind.local / admin123
+          <p className="font-mono bg-[var(--surface2)] px-2 sm:px-3 py-2 rounded-[var(--radius-sm)] text-[var(--muted)] text-xs break-all">
+            admin@neurokid.local / admin123
           </p>
         </div>
       </div>
