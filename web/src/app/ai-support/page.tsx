@@ -94,20 +94,20 @@ export default function AiSupportPage() {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-6 sm:pt-24 sm:pb-12">
+    <div className="min-h-screen pt-20 pb-6 sm:pt-24 sm:pb-12 bg-[var(--background)]">
       <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">AI Support</h1>
-          <p className="mt-2 text-base sm:text-lg text-gray-600">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text)]">AI Support</h1>
+          <p className="mt-2 text-base sm:text-lg text-[var(--muted)]">
             Chat with our AI companion for general guidance and suggestions.
           </p>
         </div>
 
         {/* Disclaimer Banner */}
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+        <div className="mb-6 rounded-lg border border-[var(--warning)] bg-[var(--warning-bg)] p-4">
           <div className="flex gap-3">
             <svg
-              className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600"
+              className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--warning)]"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -118,8 +118,8 @@ export default function AiSupportPage() {
               />
             </svg>
             <div>
-              <h3 className="font-semibold text-amber-900">Important Notice</h3>
-              <p className="mt-1 text-sm text-amber-800">
+              <h3 className="font-semibold text-[var(--text)]">Important Notice</h3>
+              <p className="mt-1 text-sm text-[var(--muted)]">
                 This AI companion provides general guidance only and is not a substitute
                 for professional medical advice. For emergencies or serious health
                 concerns, contact a qualified healthcare provider immediately.
@@ -129,59 +129,87 @@ export default function AiSupportPage() {
         </div>
 
         {/* Chat Container */}
-        <div className="flex flex-col rounded-lg border border-gray-200 bg-white shadow-sm h-[400px] sm:h-[500px] md:h-[600px]">
+        <div className="flex flex-col rounded-lg border border-[var(--border)] bg-[var(--background)] shadow-[var(--shadow-md)] h-[400px] sm:h-[500px] md:h-[600px]">
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto space-y-4 p-4 sm:p-6">
+          <div className="flex-1 overflow-y-auto">
             {messages.map((m, idx) => (
               <div
                 key={idx}
-                className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+                className={`w-full py-6 px-4 sm:px-6 ${m.role === "assistant"
+                    ? "bg-[var(--surface)]"
+                    : "bg-[var(--background)]"
+                  }`}
               >
-                <div
-                  className={`max-w-[85%] sm:max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 break-words ${
-                  m.role === "user"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-900"
-                }`}
-              >
-                <p className="text-sm">{m.content}</p>
+                {m.role === "assistant" ? (
+                  // AI Message - Full width with avatar on left
+                  <div className="max-w-3xl mx-auto flex gap-4 sm:gap-6">
+                    {/* Avatar */}
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-emerald-500 text-white text-sm sm:text-base font-semibold">
+                        🧠
+                      </div>
+                    </div>
+
+                    {/* Message Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm sm:text-base leading-7 font-normal text-[var(--text)]">
+                        {m.content}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  // User Message - Right-aligned bubble
+                  <div className="max-w-3xl mx-auto flex justify-end">
+                    <div className="max-w-[70%] rounded-3xl bg-[#2f2f2f] text-white px-5 py-3">
+                      <div className="text-sm sm:text-base leading-6">
+                        {m.content}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
-          {loading && (
-            <div className="flex justify-start">
-              <div className="rounded-lg bg-gray-100 px-4 py-2">
-                <div className="flex space-x-2">
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
-                  <div
-                    className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
-                    style={{ animationDelay: "0.1s" }}
-                  ></div>
-                  <div
-                    className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
-                    style={{ animationDelay: "0.2s" }}
-                  ></div>
+            ))}
+            {loading && (
+              <div className="w-full py-6 px-4 sm:px-6 bg-[var(--background)]">
+                <div className="max-w-3xl mx-auto flex gap-4 sm:gap-6">
+                  <div className="flex-shrink-0">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-emerald-500 text-white text-sm sm:text-base">
+                      🧠
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0 pt-2">
+                    <div className="flex space-x-2">
+                      <div className="h-2 w-2 animate-bounce rounded-full bg-[var(--primary)]"></div>
+                      <div
+                        className="h-2 w-2 animate-bounce rounded-full bg-[var(--primary)]"
+                        style={{ animationDelay: "0.1s" }}
+                      ></div>
+                      <div
+                        className="h-2 w-2 animate-bounce rounded-full bg-[var(--primary)]"
+                        style={{ animationDelay: "0.2s" }}
+                      ></div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
 
           {/* Input Area */}
-          <div className="border-t border-gray-200 bg-white p-4 sm:p-6">
+          <div className="border-t border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6">
             <div className="flex gap-2">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type your message..."
-                className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[44px]"
+                className="flex-1 rounded-md border border-[var(--border)] bg-[var(--background)] text-[var(--text)] px-3 py-2 text-sm shadow-sm focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)] min-h-[44px] placeholder:text-[var(--muted)]"
               />
               <button
                 onClick={send}
                 disabled={loading || !input.trim()}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[44px] min-w-[70px]"
+                className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] shadow-sm hover:bg-[var(--primary-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[44px] min-w-[70px]"
               >
                 {loading ? "..." : "Send"}
               </button>
@@ -190,8 +218,8 @@ export default function AiSupportPage() {
         </div>
 
         {/* Footer Info */}
-        <div className="mt-6 rounded-lg bg-blue-50 p-4 border border-blue-200">
-          <p className="text-xs sm:text-sm text-blue-800">
+        <div className="mt-6 rounded-lg bg-[var(--info-bg)] p-4 border border-[var(--info)]">
+          <p className="text-xs sm:text-sm text-[var(--text)]">
             💡 Tip: Use clear questions and provide context for better guidance.
             Our AI learns from your feedback to improve responses.
           </p>

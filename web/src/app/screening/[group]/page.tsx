@@ -5,34 +5,38 @@ import { useEffect, useMemo, useState } from "react";
 
 type QA = { id: number; text: string };
 
+// Official M-CHAT-R/F Questions for Toddlers (16-30 months)
+// © 2009 Diana Robins, Deborah Fein, & Marianne Barton
+// Free for clinical, research, and educational purposes
+// Download from: www.mchatscreen.com
 const TODDLER_QUESTIONS: QA[] = [
-  { id: 1, text: "Does your child respond to their name most of the time?" },
-  { id: 2, text: "Does your child make consistent eye contact during interaction?" },
-  { id: 3, text: "Does your child try to get your attention to share enjoyment (not only to request help)?" },
-  { id: 4, text: "Does your child point to show you something interesting (not just to request)?" },
-  { id: 5, text: "Does your child look back and forth between you and an object to share attention?" },
-  { id: 6, text: "Does your child copy your actions (clapping, brushing hair, making faces)?" },
-  { id: 7, text: "Does your child bring objects to you to show them (not only to get help)?" },
-  { id: 8, text: "Does your child use gestures like waving bye-bye or nodding/shaking head?" },
-  { id: 9, text: "Does your child enjoy simple interactive games (peek-a-boo, pat-a-cake)?" },
-  { id: 10, text: "Does your child use words or meaningful sounds to communicate needs?" },
-  { id: 11, text: "Does your child combine two words meaningfully (example: 'want water')?" },
-  { id: 12, text: "Does your child engage in pretend play (feeding doll, talking on toy phone)?" },
-  { id: 13, text: "Does your child show interest in other children (watching, approaching, copying)?" },
-  { id: 14, text: "Does your child show a wide range of facial expressions (happy, sad, surprise)?" },
-  { id: 15, text: "Does your child have repetitive movements (hand flapping, rocking, finger flicking)?" },
-  { id: 16, text: "Does your child become very distressed with small changes in routine?" },
-  { id: 17, text: "Does your child repeatedly line up objects or focus on parts (wheels, buttons)?" },
-  { id: 18, text: "Does your child have unusually strong sensory reactions (sound, textures, lights)?" },
-  { id: 19, text: "Does your child seem unusually focused on one object/topic for long periods?" },
-  { id: 20, text: "Does your child often have difficulty calming down after upset (frequent intense meltdowns)?" },
+  { id: 1, text: "If you point at something across the room, does your child look at it? (For example, if you point at a toy or an animal, does your child look at the toy or animal?)" },
+  { id: 2, text: "Have you ever wondered if your child might be deaf?" },
+  { id: 3, text: "Does your child play pretend or make-believe? (For example, pretend to drink from an empty cup, pretend to talk on a phone, or pretend to feed a doll or stuffed animal?)" },
+  { id: 4, text: "Does your child like climbing on things? (For example, furniture, playground equipment, or stairs)" },
+  { id: 5, text: "Does your child make unusual finger movements near his or her eyes? (For example, does your child wiggle his or her fingers close to his or her eyes?)" },
+  { id: 6, text: "Does your child point with one finger to ask for something or to get help? (For example, pointing to a snack or toy that is out of reach)" },
+  { id: 7, text: "Does your child point with one finger to show you something interesting? (For example, pointing to an airplane in the sky or a big truck in the road)" },
+  { id: 8, text: "Is your child interested in other children? (For example, does your child watch other children, smile at them, or go to them?)" },
+  { id: 9, text: "Does your child show you things by bringing them to you or holding them up for you to see – not to get help, but just to share? (For example, showing you a flower, a stuffed animal, or a toy truck)" },
+  { id: 10, text: "Does your child respond when you call his or her name? (For example, does he or she look up, talk or babble, or stop what he or she is doing when you call his or her name?)" },
+  { id: 11, text: "When you smile at your child, does he or she smile back at you?" },
+  { id: 12, text: "Does your child get upset by everyday noises? (For example, does your child scream or cry to noise such as a vacuum cleaner or loud music?)" },
+  { id: 13, text: "Does your child walk?" },
+  { id: 14, text: "Does your child look you in the eye when you are talking to him or her, playing with him or her, or dressing him or her?" },
+  { id: 15, text: "Does your child try to copy what you do? (For example, wave bye-bye, clap, or make a funny noise when you do)" },
+  { id: 16, text: "If you turn your head to look at something, does your child look around to see what you are looking at?" },
+  { id: 17, text: "Does your child try to get you to watch him or her? (For example, does your child look at you for praise, or say \"look\" or \"watch me\"?)" },
+  { id: 18, text: "Does your child understand when you tell him or her to do something? (For example, if you don't point, can your child understand \"put the book on the chair\" or \"bring me the blanket\"?)" },
+  { id: 19, text: "If something new happens, does your child look at your face to see how you feel about it? (For example, if he or she hears a strange or funny noise, or sees a new toy, will he or she look at your face?)" },
+  { id: 20, text: "Does your child like movement activities? (For example, being swung or bounced on your knee)" },
 ];
 
 const CHILD_QUESTIONS: QA[] = [
   { id: 1, text: "Does your child struggle to make or keep friends?" },
   { id: 2, text: "Does your child have difficulty starting conversations with peers?" },
   { id: 3, text: "Does your child avoid eye contact or use it inconsistently?" },
-  { id: 4, text: "Does your child struggle to understand others’ feelings or perspectives?" },
+  { id: 4, text: "Does your child struggle to understand others' feelings or perspectives?" },
   { id: 5, text: "Does your child miss social cues (tone of voice, facial expression, body language)?" },
   { id: 6, text: "Does your child have difficulty with back-and-forth conversation?" },
   { id: 7, text: "Does your child speak in an unusual way (very formal, monotone, scripted)?" },
@@ -50,9 +54,6 @@ const CHILD_QUESTIONS: QA[] = [
   { id: 19, text: "Does your child struggle with personal space/social boundaries?" },
   { id: 20, text: "Have teachers/caregivers expressed concerns about social communication/behavior?" },
 ];
-
-const WEIGHTS = Array(6).fill(3).concat(Array(8).fill(2), Array(6).fill(1)); // 20
-const MAX_RAW = WEIGHTS.reduce((a, b) => a + b, 0); // 40
 
 export default function ScreeningFlowPage() {
   const router = useRouter();
@@ -77,83 +78,129 @@ export default function ScreeningFlowPage() {
       next[index] = value;
       return next;
     });
+
+    // Auto-advance to next question after a short delay
+    setTimeout(() => {
+      if (index < 19) {
+        setIndex((i) => Math.min(19, i + 1));
+      }
+    }, 300);
   };
 
   const computeScore = () => {
-    // risk mapping: Q1–Q14 NO = risk; Q15–Q20 YES = risk
-    const raw = answers.reduce((sum, a, i) => {
-      if (a === null) return sum;
-      const risk = i <= 13 ? a === "no" : a === "yes";
-      return sum + (risk ? WEIGHTS[i] : 0);
-    }, 0);
-    const score = Math.round((raw / MAX_RAW) * 100);
-    let category: "Low" | "Mild" | "Moderate" | "High" = "Low";
-    if (score >= 75) category = "High";
-    else if (score >= 50) category = "Moderate";
-    else if (score >= 25) category = "Mild";
+    if (group === "toddler") {
+      // Official M-CHAT-R/F Scoring Algorithm
+      // © 2009 Diana Robins, Deborah Fein, & Marianne Barton
+      // Questions 2, 5, 12 are reverse-scored (YES = 1 point)
+      // All other questions: NO = 1 point
+      let score = 0;
+      const reverseScored = [1, 4, 11]; // indices for questions 2, 5, 12 (0-indexed)
 
-    // Breakdown
-    const socialRaw = answers.slice(0, 14).reduce((sum, a, i) => {
-      if (a === null) return sum;
-      const risk = a === "no";
-      return sum + (risk ? WEIGHTS[i] : 0);
-    }, 0);
-    const repSensRaw = answers.slice(14, 19).reduce((sum, a, j) => {
-      if (a === null) return sum;
-      const i = 14 + j;
-      const risk = a === "yes";
-      return sum + (risk ? WEIGHTS[i] : 0);
-    }, 0);
-    const regulationRaw = answers[19] === "yes" ? WEIGHTS[19] : 0;
+      answers.forEach((answer, i) => {
+        if (answer === null) return;
 
-    const summary = {
-      score,
-      category,
-      group,
-      totals: { socialRaw, repSensRaw, regulationRaw, maxRaw: MAX_RAW },
-      createdAt: new Date().toISOString(),
-    };
-    try {
-      sessionStorage.setItem("nk-screening-summary", JSON.stringify(summary));
-    } catch {}
-    router.push("/screening/result");
+        if (reverseScored.includes(i)) {
+          // For questions 2, 5, 12: YES = risk
+          if (answer === "yes") score++;
+        } else {
+          // For all other questions: NO = risk
+          if (answer === "no") score++;
+        }
+      });
+
+      // M-CHAT-R/F Risk Categories:
+      // 0-2: Low Risk
+      // 3-7: Moderate Risk (Follow-up recommended)
+      // 8-20: High Risk (Immediate referral)
+      let category: "Low" | "Moderate" | "High" = "Low";
+      if (score >= 8) category = "High";
+      else if (score >= 3) category = "Moderate";
+
+      const summary = {
+        score,
+        category,
+        group,
+        rawScore: score,
+        maxScore: 20,
+        createdAt: new Date().toISOString(),
+        interpretation: score <= 2
+          ? "Low risk. Continue monitoring development. Re-screen at future well-child visits."
+          : score <= 7
+            ? "Moderate risk. Follow-up screening recommended. Discuss results with your pediatrician."
+            : "High risk. Immediate referral for diagnostic evaluation and early intervention services is recommended.",
+      };
+
+      try {
+        sessionStorage.setItem("nk-screening-summary", JSON.stringify(summary));
+      } catch { }
+      router.push("/screening/result");
+    } else {
+      // Child screening (3-12 years) - simplified scoring
+      // All "yes" answers indicate areas of concern
+      let score = 0;
+      answers.forEach((answer) => {
+        if (answer === "yes") score++;
+      });
+
+      const percentage = Math.round((score / 20) * 100);
+      let category: "Low" | "Moderate" | "High" = "Low";
+      if (percentage >= 50) category = "High";
+      else if (percentage >= 25) category = "Moderate";
+
+      const summary = {
+        score: percentage,
+        category,
+        group,
+        rawScore: score,
+        maxScore: 20,
+        createdAt: new Date().toISOString(),
+        interpretation: percentage < 25
+          ? "Low concern level. Continue monitoring and discuss at routine check-ups."
+          : percentage < 50
+            ? "Moderate concern level. Consider consultation with healthcare provider or developmental specialist."
+            : "Higher concern level. Professional evaluation by a developmental specialist is recommended.",
+      };
+
+      try {
+        sessionStorage.setItem("nk-screening-summary", JSON.stringify(summary));
+      } catch { }
+      router.push("/screening/result");
+    }
   };
 
   const progressPct = Math.round(((index + 1) / questions.length) * 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-indigo-50">
+    <div className="min-h-screen bg-[var(--background)] pt-16">
       <div className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">Autism Screening — {group === "toddler" ? "Toddler (18–36 months)" : "Child (3–12 years)"}</h1>
-          <span className="text-sm text-gray-600">{index + 1}/20</span>
+          <h1 className="text-xl font-bold text-[var(--text)]">Autism Screening — {group === "toddler" ? "Toddler (18–36 months)" : "Child (3–12 years)"}</h1>
+          <span className="text-sm text-[var(--muted)]">{index + 1}/20</span>
         </div>
 
         {/* Progress */}
-        <div className="mb-6 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+        <div className="mb-6 h-2 w-full overflow-hidden rounded-full bg-[var(--border)]">
           <div
-            className="h-full bg-indigo-600 transition-all"
+            className="h-full bg-[var(--primary)] transition-all"
             style={{ width: `${progressPct}%` }}
           ></div>
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl border border-indigo-100 bg-white p-6 shadow-sm">
-          <p className="text-lg font-medium text-gray-900">{questions[index].text}</p>
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-md)]">
+          <p className="text-lg font-medium text-[var(--text)]">{questions[index].text}</p>
           <div className="mt-6 flex gap-3">
             <button
               onClick={() => setAnswer("yes")}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold border ${
-                answers[index] === "yes" ? "bg-indigo-600 text-white" : "bg-white"
-              }`}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold border border-[var(--border)] transition-all min-h-[44px] ${answers[index] === "yes" ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface2)]"
+                }`}
             >
               Yes
             </button>
             <button
               onClick={() => setAnswer("no")}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold border ${
-                answers[index] === "no" ? "bg-indigo-600 text-white" : "bg-white"
-              }`}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold border border-[var(--border)] transition-all min-h-[44px] ${answers[index] === "no" ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface2)]"
+                }`}
             >
               No
             </button>
@@ -162,14 +209,14 @@ export default function ScreeningFlowPage() {
           <div className="mt-8 flex justify-between">
             <button
               onClick={() => setIndex((i) => Math.max(0, i - 1))}
-              className="rounded-lg border px-4 py-2 text-sm hover:bg-gray-50"
+              className="rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] px-4 py-2 text-sm hover:bg-[var(--surface2)] transition-colors min-h-[44px]"
             >
               Back
             </button>
             {index < 19 ? (
               <button
                 onClick={() => setIndex((i) => Math.min(19, i + 1))}
-                className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+                className="rounded-lg bg-[var(--primary)] px-5 py-2 text-sm font-semibold text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] transition-colors min-h-[44px] disabled:opacity-50"
                 disabled={answers[index] === null}
               >
                 Next
@@ -177,7 +224,7 @@ export default function ScreeningFlowPage() {
             ) : (
               <button
                 onClick={computeScore}
-                className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+                className="rounded-lg bg-[var(--primary)] px-5 py-2 text-sm font-semibold text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] transition-colors min-h-[44px] disabled:opacity-50"
                 disabled={answers.some((a) => a === null)}
               >
                 See Results
@@ -185,7 +232,7 @@ export default function ScreeningFlowPage() {
             )}
           </div>
 
-          <p className="mt-6 text-xs text-gray-500">
+          <p className="mt-6 text-xs text-[var(--muted)]">
             Disclaimer: This screening does not diagnose autism. It only indicates whether a professional evaluation may be helpful.
           </p>
         </div>
