@@ -5,8 +5,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendOTPEmail(email: string, otp: string) {
   try {
-    // Use custom domain if EMAIL_FROM is set, otherwise use Resend's test domain
-    const fromEmail = process.env.EMAIL_FROM || 'NeuroKid <onboarding@resend.dev>';
+    // Use custom domain if EMAIL_FROM is set, otherwise use verified domain
+    const fromEmail = process.env.EMAIL_FROM || 'NeuroKind <verify@neurokind.shop>';
 
     const { data, error } = await resend.emails.send({
       from: fromEmail,
@@ -53,8 +53,8 @@ export async function sendOTPEmail(email: string, otp: string) {
     });
 
     if (error) {
-      console.error('Resend error:', error);
-      throw new Error('Failed to send OTP email');
+      console.error('Resend API error:', JSON.stringify(error, null, 2));
+      throw new Error(`Failed to send OTP email: ${JSON.stringify(error)}`);
     }
 
     return { success: true, data };

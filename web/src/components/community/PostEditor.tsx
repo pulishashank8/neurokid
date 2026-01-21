@@ -76,7 +76,7 @@ export function PostEditor({
             setError(key as any, { message: result.fieldErrors[key] });
           });
         }
-        throw new Error(result.error || "Failed to create post");
+        throw new Error(result.message || result.error || "Failed to create post");
       }
 
       toast.success("Post created successfully!");
@@ -154,13 +154,12 @@ export function PostEditor({
                   type="button"
                   onClick={() => handleTagToggle(tag.id)}
                   disabled={isDisabled}
-                  className={`px-3 py-2 rounded-full text-xs font-medium transition-all ${
-                    isSelected
+                  className={`px-3 py-2 rounded-full text-xs font-medium transition-all ${isSelected
                       ? "bg-[var(--primary)] text-white"
                       : isDisabled
-                      ? "bg-[var(--bg-elevated)] text-[var(--text-muted)] opacity-50 cursor-not-allowed"
-                      : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated-hover)]"
-                  }`}
+                        ? "bg-[var(--bg-elevated)] text-[var(--text-muted)] opacity-50 cursor-not-allowed"
+                        : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated-hover)]"
+                    }`}
                 >
                   #{tag.name}
                 </button>

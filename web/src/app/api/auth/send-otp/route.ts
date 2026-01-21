@@ -55,9 +55,15 @@ export async function POST(req: NextRequest) {
 
         // Send email
         try {
+            console.log('🔵 Attempting to send OTP to:', email);
+            console.log('🔵 Using API key:', process.env.RESEND_API_KEY?.substring(0, 10) + '...');
             await sendOTPEmail(email, otp);
-        } catch (emailError) {
-            console.error('Failed to send OTP email:', emailError);
+            console.log('✅ OTP sent successfully!');
+        } catch (emailError: any) {
+            console.error('❌ Failed to send OTP email. Error details:');
+            console.error('Error message:', emailError?.message);
+            console.error('Error stack:', emailError?.stack);
+            console.error('Full error:', JSON.stringify(emailError, null, 2));
             return NextResponse.json(
                 { error: 'Failed to send verification email. Please try again.' },
                 { status: 500 }
