@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 import { ShoppingBag, Star, Filter, Search, ArrowLeft, ExternalLink, Moon, Sun, Shirt, Headphones, Gamepad2, Timer, Scissors, Utensils, Watch, Puzzle, Smile, Zap, Layers, Anchor, Heart, MessageSquare, Clipboard, Bell, Lock, Shield, Mic, LayoutGrid, Speaker, Gift, Coffee, BookOpen, Music, Trees, Ticket } from "lucide-react";
 
 // CONFIGURATION: Replace this with your actual Amazon Associate Tag!
-const AMAZON_AFFILIATE_TAG = "neurokind-20";
+const AMAZON_AFFILIATE_TAG = "neurokid-20";
 
 // Helper: Adds tag to ANY Amazon link
 const getAffiliateLink = (url: string) => {
