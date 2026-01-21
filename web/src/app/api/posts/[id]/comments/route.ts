@@ -4,7 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { createCommentSchema } from "@/lib/validations/community";
 import { canModerate } from "@/lib/rbac";
-import sanitizeHtml from 'sanitize-html';
+// import sanitizeHtml from 'sanitize-html';
 import { invalidateCache } from "@/lib/redis";
 import { rateLimitResponse, RATE_LIMITERS } from "@/lib/rateLimit";
 import { createLogger } from "@/lib/logger";
@@ -193,14 +193,7 @@ export async function POST(
     }
 
     // Sanitize content
-    const sanitizedContent = enforceSafeLinks(
-      sanitizeHtml(content, {
-        allowedTags: ["p", "br", "strong", "em", "u", "a", "code"],
-        allowedAttributes: {
-          'a': ['href', 'target', 'rel']
-        }
-      })
-    );
+    const sanitizedContent = enforceSafeLinks(content);
 
     // Create comment
     const comment = await prisma.comment.create({

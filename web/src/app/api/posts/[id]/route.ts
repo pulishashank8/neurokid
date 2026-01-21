@@ -4,7 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { updatePostSchema } from "@/lib/validations/community";
 import { canModerate } from "@/lib/rbac";
-import sanitizeHtml from 'sanitize-html';
+// import sanitizeHtml from 'sanitize-html';
 
 function enforceSafeLinks(html: string): string {
   return html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
@@ -148,14 +148,7 @@ export async function PATCH(
     const updateData: any = {};
     if (title) updateData.title = title;
     if (content) {
-      updateData.content = enforceSafeLinks(
-        sanitizeHtml(content, {
-          allowedTags: ["p", "br", "strong", "em", "u", "a", "ul", "ol", "li", "blockquote", "code", "pre"],
-          allowedAttributes: {
-            'a': ['href', 'target', 'rel']
-          }
-        })
-      );
+      updateData.content = enforceSafeLinks(content);
     }
     if (categoryId) updateData.categoryId = categoryId;
 
