@@ -2,37 +2,43 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { Users, Shield, Brain, Heart, CheckCircle2, Quote } from "lucide-react";
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+    <div className="min-h-screen bg-[var(--background)]">
       {/* Hero Section */}
-      <section className="border-b border-blue-100 bg-white py-12 sm:py-16 lg:py-20">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-            About <span className="text-blue-600">NeuroKind</span>
+      <section className="border-b border-[var(--border)] bg-[var(--surface)] py-12 sm:py-20 lg:py-24 relative overflow-hidden">
+        {/* Background blobs */}
+        <div className="absolute top-0 right-0 -mr-24 -mt-24 w-96 h-96 bg-[var(--primary)] opacity-5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -ml-24 -mb-24 w-80 h-80 bg-blue-500 opacity-5 rounded-full blur-3xl"></div>
+
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <h1 className="text-4xl font-bold tracking-tight text-[var(--text)] sm:text-5xl lg:text-6xl mb-6">
+            About <span className="text-[var(--primary)]">NeuroKind</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-xl text-gray-600">
-            Empowering Autism Awareness, One Family at a Time
+          <p className="mx-auto max-w-2xl text-xl text-[var(--muted)] leading-relaxed">
+            Empowering Autism Awareness, One Family at a Time.
           </p>
         </div>
       </section>
 
       {/* Founder Section */}
-      <section className="py-12 sm:py-16 lg:py-20">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-8 sm:grid-cols-2 items-center">
-            {/* Founder Photo */}
-            <div className="flex justify-center">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-green-400 rounded-2xl blur-2xl opacity-20"></div>
-                <div className="relative rounded-2xl border border-blue-200 bg-white p-1 overflow-hidden">
+      <section className="py-16 sm:py-24 border-b border-[var(--border)]">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-12 md:grid-cols-2 items-center">
+            {/* Founder Photo - Adjusted container for better fit */}
+            <div className="flex justify-center md:justify-end">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-blue-500 rounded-2xl blur-2xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                <div className="relative rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-2 shadow-xl">
+                  {/* Using standard img tag if Image component has issues, or assume path works */}
                   <Image
                     src="/founder-v2.jpg"
                     alt="Shashank Puli, Founder of NeuroKind"
-                    width={360}
-                    height={430}
-                    className="w-full h-auto rounded-xl object-cover"
+                    width={400}
+                    height={480}
+                    className="w-full max-w-xs md:max-w-sm rounded-xl object-cover grayscale-0 transition-all duration-500 hover:scale-[1.01]"
                     priority
                   />
                 </div>
@@ -41,36 +47,36 @@ export default function AboutPage() {
 
             {/* Founder Story */}
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Shashank Puli</h2>
-              <p className="text-sm font-medium text-blue-600 mb-4">Founder & Visionary</p>
-              <blockquote className="mb-6 pl-4 border-l-4 border-blue-600">
-                <p className="text-lg font-medium italic text-gray-700">
+              <div className="inline-flex items-center gap-2 rounded-full bg-[var(--surface2)] px-3 py-1 text-xs font-semibold text-[var(--primary)] mb-4">
+                <Users className="w-3 h-3" /> Founder & Visionary
+              </div>
+              <h2 className="text-3xl font-bold text-[var(--text)] mb-2">Shashank Puli</h2>
+
+              <blockquote className="my-6 pl-4 border-l-4 border-[var(--primary)] py-1">
+                <p className="text-lg font-medium italic text-[var(--text)] opacity-90">
                   "Autism is not a disorder to be cured, but a difference to be understood."
                 </p>
               </blockquote>
-              <p className="mb-4 text-gray-600 leading-relaxed">
-                I'm not just building a business; I'm building a global infrastructure of hope — a system where families don't have to search for help, because help finds them.
-              </p>
-              <div className="mb-6 rounded-xl border border-blue-100 bg-blue-50/80 p-4 shadow-sm">
-                <p className="text-sm font-semibold text-blue-900">Reach Shashank directly</p>
-                <a
-                  className="mt-2 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-                  href="mailto:pulishashank8@gmail.com"
-                >
-                  pulishashank8@gmail.com
-                </a>
-                <p className="mt-2 text-xs text-blue-800/80">Partnerships, product feedback, or provider collaboration are always welcome.</p>
+
+              <div className="space-y-4 text-[var(--muted)] leading-relaxed">
+                <p>
+                  I'm not just building a business; I'm building a global infrastructure of hope — a system where families don't have to search for help, because help finds them.
+                </p>
+                <p>
+                  NeuroKind was born not as a startup, but as a <strong>movement</strong>. Every parent I spoke with shared the same story: confusion, guilt, and isolation. The real problem isn't autism itself — it's the absence of a system connecting awareness with action.
+                </p>
+                <p>
+                  We strive to bridge compassion and technology to transform confusion into clarity, stigma into empowerment, and isolation into community.
+                </p>
               </div>
-              <div className="space-y-4 text-gray-600 text-sm leading-relaxed">
-                <p>
-                  NeuroKind was born not as a startup, but as a <strong>movement</strong>. Every parent I spoke with shared the same story: confusion, guilt, and isolation.
-                </p>
-                <p>
-                  The real problem isn't autism itself — it's the absence of a system connecting awareness with action. Parents navigate an endless maze of therapists, special educators, insurance claims, and unverified online information. Families collapse under financial strain while children with extraordinary potential are labeled "difficult."
-                </p>
-                <p>
-                  NeuroKind bridges compassion and technology to transform confusion into clarity, stigma into empowerment, and isolation into community.
-                </p>
+
+              <div className="mt-8">
+                <div className="inline-block rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)]">
+                  <p className="text-xs font-bold text-[var(--text)] mb-2">Connect Directly</p>
+                  <a href="mailto:pulishashank8@gmail.com" className="flex items-center gap-2 text-sm font-medium text-[var(--primary)] hover:underline">
+                    pulishashank8@gmail.com
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -78,23 +84,28 @@ export default function AboutPage() {
       </section>
 
       {/* Mission & Vision */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-white border-y border-blue-100">
+      <section className="py-16 sm:py-24 bg-[var(--surface)] border-b border-[var(--border)]">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">Our Mission & Vision</h2>
-          <div className="grid gap-8 sm:grid-cols-2">
+          <div className="grid gap-8 md:grid-cols-2">
             {/* Mission Card */}
-            <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-8">
-              <h3 className="mb-4 text-xl font-bold text-blue-900">Mission</h3>
-              <p className="text-gray-700 leading-relaxed">
-                To make autism guidance, therapy, and community support accessible, affordable, and stigma-free for every family regardless of geography, culture, or income. We strive to replace confusion with clarity, isolation with inclusion, and fear with informed confidence.
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--background)] p-8 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all">
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                <Heart className="w-6 h-6" />
+              </div>
+              <h3 className="mb-4 text-xl font-bold text-[var(--text)]">Our Mission</h3>
+              <p className="text-[var(--muted)] leading-relaxed">
+                To empower parents and caregivers with evidence-based information, professional access, peer support, and validated screening tools. We aim to replace confusion with clarity and fear with informed confidence.
               </p>
             </div>
 
             {/* Vision Card */}
-            <div className="rounded-2xl border border-green-100 bg-gradient-to-br from-green-50 to-white p-8">
-              <h3 className="mb-4 text-xl font-bold text-green-900">Vision</h3>
-              <p className="text-gray-700 leading-relaxed">
-                To build a world where neurodiversity is recognized as human diversity — where parents no longer feel guilt or fear when raising an autistic child, but instead feel understanding, pride, and purpose. An inclusive future where empathy and technology coexist.
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--background)] p-8 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all">
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-green-600">
+                <Quote className="w-6 h-6" />
+              </div>
+              <h3 className="mb-4 text-xl font-bold text-[var(--text)]">Our Vision</h3>
+              <p className="text-[var(--muted)] leading-relaxed">
+                To be the most trusted and comprehensive resource platform for autism families worldwide. Building a future where neurodiversity is recognized as human diversity, and families feel pride and purpose.
               </p>
             </div>
           </div>
@@ -102,137 +113,50 @@ export default function AboutPage() {
       </section>
 
       {/* Three Pillars */}
-      <section className="py-12 sm:py-16 lg:py-20">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">Our Three Pillars</h2>
-          <div className="grid gap-8 sm:grid-cols-3">
-            {/* Community */}
-            <div className="group rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100/50 p-8 text-center transition-all hover:shadow-lg hover:-translate-y-1">
-              <div className="mb-4 flex justify-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600">
-                  <span className="text-2xl">👥</span>
+      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-3xl font-bold text-[var(--text)] text-center mb-12">Our Core Pillars</h2>
+          <div className="grid gap-6 sm:grid-cols-3">
+            {[
+              {
+                icon: <Users className="h-6 w-6" />,
+                color: "bg-blue-500",
+                title: "Community",
+                desc: "A safe digital haven where parents connect anonymously. In NeuroKind, anonymity isn't hiding — it's healing."
+              },
+              {
+                icon: <Shield className="h-6 w-6" />,
+                color: "bg-rose-500",
+                title: "Trusted Providers",
+                desc: "Connect with verified professionals and access vetted resources tailored specifically to your family's needs."
+              },
+              {
+                icon: <Brain className="h-6 w-6" />,
+                color: "bg-purple-500",
+                title: "AI Support",
+                desc: "24/7 personalized guidance powered by AI to answer questions and help navigate the complex journey of specialized care."
+              }
+            ].map((item, i) => (
+              <div key={i} className="group rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 text-center transition-all hover:-translate-y-1 hover:shadow-lg">
+                <div className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${item.color} text-white shadow-lg shadow-${item.color}/30`}>
+                  {item.icon}
                 </div>
+                <h3 className="mb-2 text-lg font-bold text-[var(--text)]">{item.title}</h3>
+                <p className="text-sm text-[var(--muted)] leading-relaxed">{item.desc}</p>
               </div>
-              <h3 className="mb-3 text-xl font-bold text-gray-900">Community</h3>
-              <p className="text-sm text-gray-700">
-                A safe digital haven where parents, caregivers, and autistic adults connect anonymously. In NeuroKind's community, anonymity isn't hiding — it's healing.
-              </p>
-            </div>
-
-            {/* Providers */}
-            <div className="group rounded-2xl border border-coral-200 bg-gradient-to-br from-rose-50 to-rose-100/50 p-8 text-center transition-all hover:shadow-lg hover:-translate-y-1">
-              <div className="mb-4 flex justify-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-rose-600">
-                  <span className="text-2xl">⚕️</span>
-                </div>
-              </div>
-              <h3 className="mb-3 text-xl font-bold text-gray-900">Find Providers</h3>
-              <p className="text-sm text-gray-700">
-                Connect with verified healthcare professionals, therapists, and specialists. Access vetted resources tailored to your family's needs.
-              </p>
-            </div>
-
-            {/* AI Support */}
-            <div className="group rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100/50 p-8 text-center transition-all hover:shadow-lg hover:-translate-y-1">
-              <div className="mb-4 flex justify-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-purple-600">
-                  <span className="text-2xl">🧠</span>
-                </div>
-              </div>
-              <h3 className="mb-3 text-xl font-bold text-gray-900">Autism AI Support</h3>
-              <p className="text-sm text-gray-700">
-                Personalized guidance powered by AI. Get answers to common questions, access educational resources, and understand your options.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Trust & Safety Section */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-white border-y border-blue-100">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">Trust & Safety First</h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Privacy */}
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
-              <div className="mb-3 text-2xl">🔒</div>
-              <h3 className="mb-2 font-bold text-gray-900">Privacy-First Design</h3>
-              <p className="text-sm text-gray-600">
-                End-to-end encryption and role-based access control protect every conversation and every family's data.
-              </p>
-            </div>
-
-            {/* Data Minimization */}
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
-              <div className="mb-3 text-2xl">📋</div>
-              <h3 className="mb-2 font-bold text-gray-900">Data Minimization</h3>
-              <p className="text-sm text-gray-600">
-                We collect only what's necessary. Your personal identifiers stay hidden — even in community posts.
-              </p>
-            </div>
-
-            {/* Transparency */}
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
-              <div className="mb-3 text-2xl">👁️</div>
-              <h3 className="mb-2 font-bold text-gray-900">Complete Transparency</h3>
-              <p className="text-sm text-gray-600">
-                Audit logs and data transparency screens show exactly who accessed your information and why.
-              </p>
-            </div>
-
-            {/* Multi-Factor Auth */}
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
-              <div className="mb-3 text-2xl">🔐</div>
-              <h3 className="mb-2 font-bold text-gray-900">Multi-Factor Auth</h3>
-              <p className="text-sm text-gray-600">
-                Additional security layers protect your account and ensure only you can access your data.
-              </p>
-            </div>
-
-            {/* AI Safety */}
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
-              <div className="mb-3 text-2xl">⚠️</div>
-              <h3 className="mb-2 font-bold text-gray-900">AI Safety</h3>
-              <p className="text-sm text-gray-600">
-                Our AI provides support, not medical advice. Always consult healthcare professionals for medical decisions.
-              </p>
-            </div>
-
-            {/* Community Values */}
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-6">
-              <div className="mb-3 text-2xl">💚</div>
-              <h3 className="mb-2 font-bold text-gray-900">Community Care</h3>
-              <p className="text-sm text-gray-600">
-                Moderation and kindness principles ensure a safe, supportive environment for everyone.
-              </p>
-            </div>
-          </div>
-
-          {/* Learn More Link */}
-          <div className="mt-8 text-center">
-            <Link
-              href="/trust"
-              className="inline-block text-blue-600 hover:text-blue-700 font-medium underline"
-            >
-              Learn more about our Trust & Safety commitment →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-r from-blue-600 to-green-600">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">Ready to Join the Movement?</h2>
-          <p className="mb-8 text-lg text-blue-100">
-            Connect with a supportive community of parents, caregivers, and neurodivergent individuals.
+      {/* Educational Purpose Disclaimer */}
+      <section className="py-8 bg-[var(--surface2)] border-t border-[var(--border)]">
+        <div className="mx-auto max-w-3xl px-6 text-center">
+          <p className="text-xs text-[var(--muted)] leading-relaxed">
+            <strong>DISCLAIMER:</strong> This is a personal project created for educational and demonstration purposes only.
+            The information provided on this platform is not intended to replace professional medical advice, diagnosis, or treatment.
+            Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
           </p>
-          <Link
-            href="/community"
-            className="inline-block rounded-lg bg-white px-8 py-3 font-semibold text-blue-600 transition-all hover:shadow-lg hover:scale-105"
-          >
-            Join the Community
-          </Link>
         </div>
       </section>
     </div>
