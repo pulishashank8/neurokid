@@ -256,7 +256,7 @@ export default function ProvidersPage() {
               <h4 className="text-sm font-bold text-orange-700 dark:text-orange-300 mb-1">Standard Disclaimer</h4>
               <p className="text-sm text-orange-700/80 dark:text-orange-300/80 leading-relaxed">
                 This directory uses data from the official US National Provider Identifier (NPI) database maintained by CMS.
-                NeuroKind does not endorse specific providers and does not provide medical advice.
+                NeuroKid does not endorse specific providers and does not provide medical advice.
                 Always verify credentials, services, availability, and insurance coverage directly with providers before scheduling appointments.
               </p>
             </div>

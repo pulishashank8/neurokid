@@ -28,14 +28,14 @@ export default function ScreeningDisclaimer() {
                     <h3 className="font-semibold mb-2">NO DOCTOR-PATIENT RELATIONSHIP</h3>
                     <p>
                         Use of this screening tool does not create a doctor-patient or professional-client
-                        relationship between you and NeuroKind, its creators, or any affiliated parties.
+                        relationship between you and NeuroKid, its creators, or any affiliated parties.
                     </p>
                 </section>
 
                 <section>
                     <h3 className="font-semibold mb-2">LIMITATION OF LIABILITY</h3>
                     <p>
-                        NeuroKind and its affiliates are not liable for any direct, indirect, incidental,
+                        NeuroKid and its affiliates are not liable for any direct, indirect, incidental,
                         consequential, or punitive damages resulting from your use of, or reliance on,
                         this screening tool or its results. You assume full responsibility for any actions
                         taken based on the information provided.

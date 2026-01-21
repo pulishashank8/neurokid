@@ -1284,7 +1284,7 @@ export default function MarketplacePage() {
                             <div>
                                 <h1 className="text-xl font-bold text-[var(--text)] flex items-center gap-2">
                                     <ShoppingBag className="w-6 h-6 text-orange-500" />
-                                    NeuroKind Store
+                                    NeuroKid Store
                                 </h1>
                             </div>
                         </div>
@@ -1378,10 +1378,10 @@ export default function MarketplacePage() {
             <div className="border-t border-[var(--border)] bg-[var(--surface2)] py-8 mt-12">
                 <div className="mx-auto max-w-7xl px-4 text-center space-y-4">
                     <p className="text-xs text-[var(--muted)] opacity-80">
-                        NeuroKind is a participant in the Amazon Services LLC Associates Program, an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com. As an Amazon Associate, I earn from qualifying purchases.
+                        NeuroKid is a participant in the Amazon Services LLC Associates Program, an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com. As an Amazon Associate, I earn from qualifying purchases.
                     </p>
                     <p className="text-[10px] text-[var(--muted)] opacity-60 uppercase tracking-wide max-w-2xl mx-auto">
-                        DISCLAIMER: This marketplace is a curated collection for educational demonstration. NeuroKind is a personal project by Shashank Puli (MVP). Content provides no medical advice.
+                        DISCLAIMER: This marketplace is a curated collection for educational demonstration. NeuroKid is a personal project by Shashank Puli (MVP). Content provides no medical advice.
                     </p>
                 </div>
             </div>

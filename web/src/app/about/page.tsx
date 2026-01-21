@@ -42,7 +42,7 @@ export default function AboutPage() {
                 <div className="relative rounded-3xl overflow-hidden border border-[var(--border)] bg-[var(--surface)] shadow-2xl transition-transform duration-500 group-hover:-translate-y-1">
                   <Image
                     src="/founder-v2.jpg"
-                    alt="Shashank Puli, Founder of NeuroKind"
+                    alt="Shashank Puli, Founder of NeuroKid"
                     width={450}
                     height={550}
                     className="w-full max-w-sm object-cover grayscale transition-all duration-700 hover:grayscale-0 hover:scale-105"
@@ -60,12 +60,12 @@ export default function AboutPage() {
             {/* Founder Story */}
             <div className="space-y-8">
               <div>
-                <h2 className="text-3xl font-bold text-[var(--text)] mb-6">The "Why" Behind NeuroKind</h2>
+                <h2 className="text-3xl font-bold text-[var(--text)] mb-6">The "Why" Behind NeuroKid</h2>
                 <div className="w-20 h-1.5 bg-[var(--primary)] rounded-full mb-8"></div>
 
                 <div className="prose prose-lg dark:prose-invert text-[var(--muted)] leading-relaxed space-y-6">
                   <p>
-                    I'm not just building a business; I'm building a global infrastructure of hope. NeuroKind was born not as a startup, but as a <strong className="text-[var(--text)]">movement</strong>.
+                    I'm not just building a business; I'm building a global infrastructure of hope. NeuroKid was born not as a startup, but as a <strong className="text-[var(--text)]">movement</strong>.
                   </p>
                   <p>
                     Every parent I spoke with shared the same story: confusion, guilt, and isolation. The real problem isn't autism itself — it's the absence of a system connecting awareness with action.
@@ -142,7 +142,7 @@ export default function AboutPage() {
                 icon: <Users className="h-6 w-6" />,
                 color: "bg-blue-500",
                 title: "Community",
-                desc: "A safe digital haven where parents connect anonymously. In NeuroKind, anonymity isn't hiding — it's healing."
+                desc: "A safe digital haven where parents connect anonymously. In NeuroKid, anonymity isn't hiding — it's healing."
               },
               {
                 icon: <Shield className="h-6 w-6" />,
@@ -173,12 +173,12 @@ export default function AboutPage() {
       <section className="py-12 bg-[var(--surface2)] border-t border-[var(--border)]">
         <div className="mx-auto max-w-4xl px-6 text-center">
           <p className="text-[10px] text-[var(--muted)] opacity-60 leading-relaxed max-w-3xl mx-auto uppercase tracking-wide">
-            DISCLAIMER: NeuroKind is a personal project by Shashank Puli, created as an MVP for educational and demonstration purposes only.
+            DISCLAIMER: NeuroKid is a personal project by Shashank Puli, created as an MVP for educational and demonstration purposes only.
             The content provided is not intended to replace professional medical advice, diagnosis, or treatment.
             Always seek the advice of a qualified health provider with any questions regarding a medical condition.
           </p>
           <p className="mt-2 text-[10px] text-[var(--muted)] opacity-40">
-            © 2026 NeuroKind.
+            © 2026 NeuroKid.
           </p>
         </div>
       </section>

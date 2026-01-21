@@ -133,10 +133,10 @@ function CommunityPageContent() {
                 Community Hub
               </div>
               <h1 className="text-4xl font-extrabold text-[var(--text)] tracking-tight mb-4">
-                NeuroKind <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Community</span>
+                NeuroKid <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Community</span>
               </h1>
               <p className="text-lg text-[var(--muted)] leading-relaxed">
-                A safe space to share experiences, ask questions, and connect with other parents. In NeuroKind, anonymity isn't hiding — it's healing.
+                A safe space to share experiences, ask questions, and connect with other parents. In NeuroKid, anonymity isn't hiding — it's healing.
               </p>
             </div>
 
@@ -320,7 +320,7 @@ function CommunityPageContent() {
                 <div className="flex gap-3 relative z-10">
                   <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0" />
                   <p className="text-xs text-amber-900/80 dark:text-amber-200/80 leading-relaxed font-medium">
-                    <strong>Disclaimer:</strong> Content shared by users is for informational purposes only. NeuroKind does not endorse specific treatments. Always consult a professional.
+                    <strong>Disclaimer:</strong> Content shared by users is for informational purposes only. NeuroKid does not endorse specific treatments. Always consult a professional.
                   </p>
                 </div>
               </div>

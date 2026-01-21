@@ -17,7 +17,7 @@ export default function AiSupportPage() {
     {
       role: "assistant",
       content:
-        "Hello! I am your NeuroKind companion. I'm here to help answer questions, suggest resources, or just listen. How can I support you and your family today?",
+        "Hello! I am your NeuroKid companion. I'm here to help answer questions, suggest resources, or just listen. How can I support you and your family today?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -108,7 +108,7 @@ export default function AiSupportPage() {
               <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl text-white shadow-lg shadow-purple-500/20">
                 <Brain className="w-6 h-6" />
               </div>
-              NeuroKind AI
+              NeuroKid AI
             </h1>
             <p className="mt-2 text-[var(--muted)]">Your 24/7 personalized support companion.</p>
           </div>
@@ -138,8 +138,8 @@ export default function AiSupportPage() {
 
                 {/* Bubble */}
                 <div className={`max-w-[85%] sm:max-w-[75%] px-5 py-3.5 rounded-2xl shadow-sm text-sm sm:text-base leading-relaxed ${m.role === "assistant"
-                    ? "bg-[var(--surface2)] text-[var(--text)] rounded-tl-none border border-[var(--border)]"
-                    : "bg-[var(--primary)] text-white rounded-tr-none"
+                  ? "bg-[var(--surface2)] text-[var(--text)] rounded-tl-none border border-[var(--border)]"
+                  : "bg-[var(--primary)] text-white rounded-tr-none"
                   }`}>
                   <p className="whitespace-pre-wrap">{m.content}</p>
                 </div>

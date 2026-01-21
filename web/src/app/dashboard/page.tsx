@@ -223,12 +223,12 @@ export default function DashboardPage() {
       <div className="mt-20 border-t border-[var(--border)] bg-[var(--surface)] py-8">
         <div className="mx-auto max-w-7xl px-4 text-center">
           <p className="text-[10px] text-[var(--muted)] opacity-60 leading-relaxed max-w-3xl mx-auto uppercase tracking-wide">
-            DISCLAIMER: NeuroKind is a personal project by Shashank Puli, created as an MVP for educational and demonstration purposes only.
+            DISCLAIMER: NeuroKid is a personal project by Shashank Puli, created as an MVP for educational and demonstration purposes only.
             The content provided is not intended to replace professional medical advice, diagnosis, or treatment.
             Always seek the advice of a qualified health provider with any questions regarding a medical condition.
           </p>
           <p className="mt-2 text-[10px] text-[var(--muted)] opacity-40">
-            © 2026 NeuroKind.
+            © 2026 NeuroKid.
           </p>
         </div>
       </div>

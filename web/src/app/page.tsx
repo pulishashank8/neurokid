@@ -41,11 +41,11 @@ export default function Home() {
 
         <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8 relative z-10 text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-[var(--surface2)] px-4 py-1.5 text-xs font-bold text-[var(--primary)] uppercase tracking-widest mb-8 border border-[var(--border)] shadow-sm animate-fade-in-up">
-            <Sparkles className="w-3.5 h-3.5" /> Welcome to NeuroKind
+            <Sparkles className="w-3.5 h-3.5" /> Welcome to NeuroKid
           </div>
 
           <h1 className="text-5xl font-extrabold tracking-tight text-[var(--text)] sm:text-6xl lg:text-7xl mb-6">
-            <span className="text-[var(--primary)]">NeuroKind</span>
+            <span className="text-[var(--primary)]">NeuroKid</span>
             <span className="block text-3xl sm:text-5xl mt-2 font-bold text-[var(--muted)]">Empowering Families. Connecting Hearts.</span>
           </h1>
 
@@ -176,7 +176,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-[var(--primary)]">NeuroKind</span>
+              <span className="text-xl font-bold text-[var(--primary)]">NeuroKid</span>
               <span className="text-sm text-[var(--muted)] pl-4 border-l border-[var(--border)]">© 2026</span>
             </div>
 
@@ -195,7 +195,7 @@ export default function Home() {
 
           <div className="border-t border-[var(--border)] pt-8 text-center">
             <p className="text-[10px] text-[var(--muted)] opacity-60 leading-relaxed max-w-3xl mx-auto uppercase tracking-wide">
-              DISCLAIMER: NeuroKind is a personal project by Shashank Puli, created as an MVP for educational and demonstration purposes only.
+              DISCLAIMER: NeuroKid is a personal project by Shashank Puli, created as an MVP for educational and demonstration purposes only.
               The content provided is not intended to replace professional medical advice, diagnosis, or treatment.
               Always seek the advice of a qualified health provider with any questions regarding a medical condition.
             </p>

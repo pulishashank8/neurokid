@@ -49,7 +49,7 @@ export default function NavBar() {
                 NK
               </div>
               <span className="hidden text-lg font-semibold sm:inline">
-                NeuroKind
+                NeuroKid
               </span>
             </Link>
 
@@ -59,11 +59,10 @@ export default function NavBar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    pathname === item.href
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${pathname === item.href
                       ? "bg-[var(--surface2)] text-[var(--primary)]"
                       : "text-[var(--muted)] hover:bg-[var(--surface2)] hover:text-[var(--text)]"
-                  }`}
+                    }`}
                 >
                   {item.label}
                 </Link>
@@ -139,17 +138,16 @@ export default function NavBar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                    pathname === item.href
+                  className={`block px-3 py-2 rounded-md text-base font-medium transition-colors ${pathname === item.href
                       ? "bg-[var(--surface2)] text-[var(--primary)]"
                       : "text-[var(--muted)] hover:bg-[var(--surface2)] hover:text-[var(--text)]"
-                  }`}
+                    }`}
                   onClick={() => setMobileOpen(false)}
                 >
                   {item.label}
                 </Link>
               ))}
-              
+
               {/* Mobile Theme Toggle + Sign Out */}
               {session && (
                 <div className="border-t border-[var(--border)] mt-2 pt-2 flex flex-col gap-2">

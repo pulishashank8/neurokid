@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NeuroKind",
+  title: "NeuroKid",
   description: "A community platform for neurodivergent individuals and their families",
 };
 
