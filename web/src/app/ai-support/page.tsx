@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { Brain, Sparkles, Send, Bot, User, Info, AlertTriangle } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -16,7 +17,7 @@ export default function AiSupportPage() {
     {
       role: "assistant",
       content:
-        "Hi! I'm your NeuroKind support companion. I can offer general guidance and helpful suggestions. Please remember this is not medical advice—for emergencies or serious concerns, contact a qualified professional.",
+        "Hello! I am your NeuroKind companion. I'm here to help answer questions, suggest resources, or just listen. How can I support you and your family today?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -27,28 +28,27 @@ export default function AiSupportPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Effect to scroll to bottom - MUST be called before any conditional returns
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Redirect to login if not authenticated - AFTER all hooks
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login?callbackUrl=/ai-support");
     }
   }, [status, router]);
 
-  // Show loading while checking authentication
   if (status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
+      <div className="flex items-center justify-center min-h-screen bg-[var(--background)]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent"></div>
+          <p className="text-[var(--muted)] animate-pulse">Initializing AI...</p>
+        </div>
       </div>
     );
   }
 
-  // Don't render if not authenticated
   if (!session) {
     return null;
   }
@@ -78,7 +78,7 @@ export default function AiSupportPage() {
         ...m,
         {
           role: "assistant",
-          content: "Sorry, I couldn't process that. Please try again later.",
+          content: "I apologize, but I'm having trouble connecting right now. Please try again in a moment.",
         },
       ]);
     } finally {
@@ -94,102 +94,78 @@ export default function AiSupportPage() {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-6 sm:pt-24 sm:pb-12 bg-[var(--background)]">
-      <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text)]">AI Support</h1>
-          <p className="mt-2 text-base sm:text-lg text-[var(--muted)]">
-            Chat with our AI companion for general guidance and suggestions.
-          </p>
-        </div>
+    <div className="min-h-screen bg-[var(--background)] pt-20 pb-12 sm:pt-24 relative overflow-hidden">
+      {/* Background Decorative Elements */}
+      <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-[var(--primary)]/5 to-transparent pointer-events-none"></div>
+      <div className="absolute top-20 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
-        {/* Disclaimer Banner */}
-        <div className="mb-6 rounded-lg border border-[var(--warning)] bg-[var(--warning-bg)] p-4">
-          <div className="flex gap-3">
-            <svg
-              className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--warning)]"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <div>
-              <h3 className="font-semibold text-[var(--text)]">Important Notice</h3>
-              <p className="mt-1 text-sm text-[var(--muted)]">
-                This AI companion provides general guidance only and is not a substitute
-                for professional medical advice. For emergencies or serious health
-                concerns, contact a qualified healthcare provider immediately.
-              </p>
-            </div>
+      <div className="mx-auto max-w-5xl px-4 md:px-6 lg:px-8 relative z-10 h-[calc(100vh-140px)] flex flex-col gap-6">
+
+        {/* Header */}
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-[var(--text)] flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl text-white shadow-lg shadow-purple-500/20">
+                <Brain className="w-6 h-6" />
+              </div>
+              NeuroKind AI
+            </h1>
+            <p className="mt-2 text-[var(--muted)]">Your 24/7 personalized support companion.</p>
+          </div>
+
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-amber-200 bg-amber-50 dark:bg-amber-900/10 dark:border-amber-900/30 text-xs sm:text-sm text-amber-700 dark:text-amber-400">
+            <AlertTriangle className="w-4 h-4" />
+            <span>Not medical advice. For emergencies, call 911.</span>
           </div>
         </div>
 
-        {/* Chat Container */}
-        <div className="flex flex-col rounded-lg border border-[var(--border)] bg-[var(--background)] shadow-[var(--shadow-md)] h-[400px] sm:h-[500px] md:h-[600px]">
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto">
+        {/* Chat Interface */}
+        <div className="flex-1 flex flex-col rounded-3xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl overflow-hidden relative backdrop-blur-sm">
+
+          {/* Main Chat Area */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scroll-smooth">
             {messages.map((m, idx) => (
               <div
                 key={idx}
-                className={`w-full py-6 px-4 sm:px-6 ${m.role === "assistant"
-                    ? "bg-[var(--surface)]"
-                    : "bg-[var(--background)]"
-                  }`}
+                className={`flex gap-4 ${m.role === "assistant" ? "justify-start" : "justify-end"}`}
               >
-                {m.role === "assistant" ? (
-                  // AI Message - Full width with avatar on left
-                  <div className="max-w-3xl mx-auto flex gap-4 sm:gap-6">
-                    {/* Avatar */}
-                    <div className="flex-shrink-0">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-emerald-500 text-white text-sm sm:text-base font-semibold">
-                        🧠
-                      </div>
-                    </div>
-
-                    {/* Message Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm sm:text-base leading-7 font-normal text-[var(--text)]">
-                        {m.content}
-                      </div>
-                    </div>
+                {/* Avatar (Left for AI) */}
+                {m.role === "assistant" && (
+                  <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-md mt-1">
+                    <Bot className="w-5 h-5" />
                   </div>
-                ) : (
-                  // User Message - Right-aligned bubble
-                  <div className="max-w-3xl mx-auto flex justify-end">
-                    <div className="max-w-[70%] rounded-3xl bg-[#2f2f2f] text-white px-5 py-3">
-                      <div className="text-sm sm:text-base leading-6">
-                        {m.content}
-                      </div>
-                    </div>
+                )}
+
+                {/* Bubble */}
+                <div className={`max-w-[85%] sm:max-w-[75%] px-5 py-3.5 rounded-2xl shadow-sm text-sm sm:text-base leading-relaxed ${m.role === "assistant"
+                    ? "bg-[var(--surface2)] text-[var(--text)] rounded-tl-none border border-[var(--border)]"
+                    : "bg-[var(--primary)] text-white rounded-tr-none"
+                  }`}>
+                  <p className="whitespace-pre-wrap">{m.content}</p>
+                </div>
+
+                {/* Avatar (Right for User) */}
+                {m.role === "user" && (
+                  <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--surface2)] border border-[var(--border)] flex items-center justify-center text-[var(--muted)] mt-1">
+                    {session?.user?.image ? (
+                      <img src={session.user.image} alt="User" className="w-full h-full rounded-full" />
+                    ) : (
+                      <User className="w-5 h-5" />
+                    )}
                   </div>
                 )}
               </div>
             ))}
+
             {loading && (
-              <div className="w-full py-6 px-4 sm:px-6 bg-[var(--background)]">
-                <div className="max-w-3xl mx-auto flex gap-4 sm:gap-6">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-emerald-500 text-white text-sm sm:text-base">
-                      🧠
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0 pt-2">
-                    <div className="flex space-x-2">
-                      <div className="h-2 w-2 animate-bounce rounded-full bg-[var(--primary)]"></div>
-                      <div
-                        className="h-2 w-2 animate-bounce rounded-full bg-[var(--primary)]"
-                        style={{ animationDelay: "0.1s" }}
-                      ></div>
-                      <div
-                        className="h-2 w-2 animate-bounce rounded-full bg-[var(--primary)]"
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
-                    </div>
-                  </div>
+              <div className="flex gap-4 justify-start">
+                <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-md mt-1">
+                  <Sparkles className="w-5 h-5 animate-pulse" />
+                </div>
+                <div className="bg-[var(--surface2)] px-5 py-4 rounded-2xl rounded-tl-none border border-[var(--border)] flex items-center gap-1.5">
+                  <div className="h-2 w-2 bg-[var(--muted)] rounded-full animate-bounce"></div>
+                  <div className="h-2 w-2 bg-[var(--muted)] rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                  <div className="h-2 w-2 bg-[var(--muted)] rounded-full animate-bounce [animation-delay:0.4s]"></div>
                 </div>
               </div>
             )}
@@ -197,32 +173,34 @@ export default function AiSupportPage() {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6">
-            <div className="flex gap-2">
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type your message..."
-                className="flex-1 rounded-md border border-[var(--border)] bg-[var(--background)] text-[var(--text)] px-3 py-2 text-sm shadow-sm focus:border-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)] min-h-[44px] placeholder:text-[var(--muted)]"
-              />
+          <div className="p-4 sm:p-5 bg-[var(--surface2)]/50 border-t border-[var(--border)]">
+            <div className="relative flex items-center gap-3 max-w-4xl mx-auto">
+              <div className="relative flex-1">
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask anything..."
+                  className="w-full pl-5 pr-12 py-3.5 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] outline-none shadow-sm transition-all text-[var(--text)] placeholder:text-[var(--muted)]"
+                  disabled={loading}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <span className="text-[10px] text-[var(--muted)] border border-[var(--border)] rounded px-1.5 py-0.5 hidden sm:block">↵ Enter</span>
+                </div>
+              </div>
+
               <button
                 onClick={send}
                 disabled={loading || !input.trim()}
-                className="rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-[var(--primary-foreground)] shadow-sm hover:bg-[var(--primary-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[44px] min-w-[70px]"
+                className="flex-shrink-0 p-3.5 bg-[var(--primary)] text-white rounded-xl shadow-lg hover:bg-[var(--primary-hover)] hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:shadow-none transition-all"
               >
-                {loading ? "..." : "Send"}
+                <Send className="w-5 h-5" />
               </button>
             </div>
+            <p className="text-center text-[10px] text-[var(--muted)] mt-3">
+              AI can make mistakes. Please verify important information.
+            </p>
           </div>
-        </div>
-
-        {/* Footer Info */}
-        <div className="mt-6 rounded-lg bg-[var(--info-bg)] p-4 border border-[var(--info)]">
-          <p className="text-xs sm:text-sm text-[var(--text)]">
-            💡 Tip: Use clear questions and provide context for better guidance.
-            Our AI learns from your feedback to improve responses.
-          </p>
         </div>
       </div>
     </div>

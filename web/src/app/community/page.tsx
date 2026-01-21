@@ -117,70 +117,81 @@ function CommunityPageContent() {
     return null;
   }
 
+
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] pt-16">
-      {/* Header - NOT sticky, just a regular section */}
-      <div className="bg-[var(--bg-surface)] border-b border-[var(--border-light)] shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 sm:py-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">
-                Community
+    <div className="min-h-screen bg-[var(--background)] pt-16">
+      {/* Premium Header */}
+      <div className="relative overflow-hidden bg-gradient-to-b from-[var(--surface)] to-[var(--background)] border-b border-[var(--border)] pt-8 pb-12">
+        {/* Abstract Shapes */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-bold uppercase tracking-wider w-fit mb-4">
+                Community Hub
+              </div>
+              <h1 className="text-4xl font-extrabold text-[var(--text)] tracking-tight mb-4">
+                NeuroKind <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">Community</span>
               </h1>
-              <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1">
-                Share, discuss, and connect with other parents
+              <p className="text-lg text-[var(--muted)] leading-relaxed">
+                A safe space to share experiences, ask questions, and connect with other parents. In NeuroKind, anonymity isn't hiding — it's healing.
               </p>
             </div>
-            <Link href="/community/new" className="hidden sm:block">
-              <Button size="md" variant="primary">
-                ✨ New Post
-              </Button>
+
+            <Link href="/community/new" className="hidden sm:block flex-shrink-0">
+              <button className="flex items-center gap-2 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white px-6 py-3 font-semibold shadow-lg shadow-[var(--primary)]/25 hover:shadow-[var(--primary)]/40 hover:-translate-y-0.5 transition-all">
+                ✨ Start Discussion
+              </button>
             </Link>
           </div>
 
-          {/* Search Bar */}
-          <SearchBar onSearch={handleSearch} />
-
-          {/* Sort & Mobile Filter Button */}
-          <div className="flex items-center gap-3 mt-4 justify-between">
-            <div className="flex-1 overflow-x-auto">
-              <SortTabs selectedSort={sort} onSort={setSort} />
+          <div className="bg-[var(--surface)]/80 backdrop-blur-md rounded-2xl border border-[var(--border)] p-4 shadow-sm">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <SearchBar onSearch={handleSearch} />
+              </div>
+              <div className="flex-shrink-0 overflow-x-auto">
+                <SortTabs selectedSort={sort} onSort={setSort} />
+              </div>
+              <button
+                onClick={() => setShowFiltersDrawer(true)}
+                className="md:hidden px-4 py-2 rounded-xl bg-[var(--surface2)] text-[var(--muted)] border border-[var(--border)] font-medium"
+              >
+                Filters
+              </button>
             </div>
-            <button
-              onClick={() => setShowFiltersDrawer(true)}
-              className="min-h-[44px] px-4 rounded-[var(--radius-md)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated-hover)] font-medium transition-all md:hidden flex-shrink-0"
-              aria-label="Open filters"
-            >
-              🎚️ Filters
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Main Content - Stable Grid Layout */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] xl:grid-cols-[260px_1fr_320px] gap-6">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] xl:grid-cols-[280px_1fr_320px] gap-8">
           {/* Desktop Sidebar */}
           <aside className="hidden lg:block">
-            <div className="sticky top-20 bg-[var(--bg-surface)] rounded-[var(--radius-lg)] border border-[var(--border-light)] p-4 sm:p-6">
-              <CategorySidebar
-                categories={categories}
-                selectedId={selectedCategory}
-                onSelect={setSelectedCategory}
-              />
+            <div className="sticky top-24 space-y-6">
+              <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6 shadow-sm">
+                <h3 className="text-xs font-bold text-[var(--muted)] uppercase tracking-wider mb-4">Categories</h3>
+                <CategorySidebar
+                  categories={categories}
+                  selectedId={selectedCategory}
+                  onSelect={setSelectedCategory}
+                />
+              </div>
             </div>
           </aside>
 
-          {/* Posts Feed - Center Column with min-w-0 to prevent overflow */}
-          <main className="min-w-0 space-y-4 sm:space-y-6">
+          {/* Posts Feed */}
+          <main className="min-w-0 space-y-6">
             {isLoading && (
-              <>
+              <div className="space-y-4">
                 <PostCardSkeleton />
                 <PostCardSkeleton />
                 <PostCardSkeleton />
-              </>
+              </div>
             )}
-            
+
             {!isLoading && isError && (
               <EmptyState
                 icon="⚠️"
@@ -188,7 +199,7 @@ function CommunityPageContent() {
                 description="Something went wrong. Please try again."
               />
             )}
-            
+
             {!isLoading && !isError && posts.length === 0 && (
               <EmptyState
                 icon="📝"
@@ -204,25 +215,27 @@ function CommunityPageContent() {
                 }}
               />
             )}
-            
+
             {!isLoading && !isError && posts.length > 0 && (
               <>
-                {posts.map((post) => (
-                  <PostCard key={post.id} post={post} />
-                ))}
+                <div className="grid gap-4">
+                  {posts.map((post) => (
+                    <PostCard key={post.id} post={post} />
+                  ))}
+                </div>
 
                 {/* Pagination */}
                 {pagination && pagination.totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-2 mt-8">
+                  <div className="flex items-center justify-center gap-2 mt-8 pt-8 border-t border-[var(--border)]">
                     <button
                       onClick={() => setPage(Math.max(1, page - 1))}
                       disabled={page === 1}
-                      className="min-h-[44px] px-4 rounded-[var(--radius-md)] bg-[var(--bg-surface)] text-[var(--text-secondary)] border border-[var(--border-light)] hover:bg-[var(--bg-elevated)] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      className="px-4 py-2 rounded-xl bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)] hover:bg-[var(--surface2)] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                       ← Previous
                     </button>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       {Array.from(
                         { length: Math.min(5, pagination.totalPages) },
                         (_, i) => {
@@ -241,11 +254,10 @@ function CommunityPageContent() {
                           <button
                             key={pageNum}
                             onClick={() => setPage(pageNum)}
-                            className={`min-h-[44px] min-w-[44px] rounded-[var(--radius-md)] font-medium transition-all ${
-                              page === pageNum
-                                ? "bg-[var(--primary)] text-white"
-                                : "bg-[var(--bg-surface)] text-[var(--text-secondary)] border border-[var(--border-light)] hover:bg-[var(--bg-elevated)]"
-                            }`}
+                            className={`w-10 h-10 rounded-xl font-medium transition-all ${page === pageNum
+                                ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20"
+                                : "text-[var(--muted)] hover:bg-[var(--surface2)]"
+                              }`}
                           >
                             {pageNum}
                           </button>
@@ -256,7 +268,7 @@ function CommunityPageContent() {
                     <button
                       onClick={() => setPage(Math.min(pagination.totalPages, page + 1))}
                       disabled={page === pagination.totalPages}
-                      className="min-h-[44px] px-4 rounded-[var(--radius-md)] bg-[var(--bg-surface)] text-[var(--text-secondary)] border border-[var(--border-light)] hover:bg-[var(--bg-elevated)] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      className="px-4 py-2 rounded-xl bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)] hover:bg-[var(--surface2)] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                       Next →
                     </button>
@@ -266,15 +278,27 @@ function CommunityPageContent() {
             )}
           </main>
 
-          {/* Right Sidebar - Placeholder for XL screens */}
+          {/* Right Sidebar */}
           <aside className="hidden xl:block">
-            <div className="sticky top-20 bg-[var(--bg-surface)] rounded-[var(--radius-lg)] border border-[var(--border-light)] p-4">
-              <h3 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-wide mb-4">
-                Community Info
-              </h3>
-              <p className="text-sm text-[var(--text-secondary)]">
-                Welcome to the NeuroKind community! Share experiences, ask questions, and connect.
-              </p>
+            <div className="sticky top-24 space-y-6">
+              <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
+                <h3 className="font-bold text-lg mb-2">Community Guidelines</h3>
+                <p className="text-sm text-indigo-100 mb-4">
+                  We are a supportive family. Please be kind, respectful, and mindful of others' journeys.
+                </p>
+                <div className="text-xs bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+                  🚫 No medical advice<br />
+                  ❤️ Be supportive<br />
+                  🔒 Respect privacy
+                </div>
+              </div>
+
+              {/* Disclaimer Mini */}
+              <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-6">
+                <p className="text-[10px] text-[var(--muted)]">
+                  Disclaimer: Content shared by users is for informational purposes only. NeuroKind does not endorse specific treatments.
+                </p>
+              </div>
             </div>
           </aside>
         </div>
@@ -285,7 +309,7 @@ function CommunityPageContent() {
         isOpen={showFiltersDrawer}
         onClose={() => setShowFiltersDrawer(false)}
         position="left"
-        title="Filters"
+        title="Filter Topics"
       >
         <div className="p-4">
           <CategorySidebar
@@ -302,7 +326,7 @@ function CommunityPageContent() {
       {/* Mobile Floating Action Button */}
       <Link
         href="/community/new"
-        className="md:hidden fixed bottom-6 right-6 z-30 min-h-[56px] min-w-[56px] rounded-full bg-[var(--primary)] text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center text-2xl"
+        className="md:hidden fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/30 hover:scale-110 transition-all flex items-center justify-center text-2xl"
         title="Create new post"
       >
         ✨
