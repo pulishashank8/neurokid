@@ -5,8 +5,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendOTPEmail(email: string, otp: string) {
   try {
-    // Use custom domain if EMAIL_FROM is set, otherwise use Resend's test domain
-    const fromEmail = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+    // For now, strictly use Resend's testing domain to ensure delivery works
+    const fromEmail = 'onboarding@resend.dev';
 
     const { data, error } = await resend.emails.send({
       from: fromEmail,
