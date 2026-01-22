@@ -91,13 +91,18 @@ export function createMockSession(user: TestUser): Session {
  */
 export async function createTestCategory(
   name: string = 'Test Category',
-  slug: string = 'test-category'
+  slug: string = 'test-category',
+  description: string = 'Test category description',
+  icon?: string,
+  order?: number
 ) {
   return await prisma.category.create({
     data: {
       name,
       slug,
-      description: 'Test category description',
+      description,
+      icon,
+      order,
     },
   });
 }
@@ -107,12 +112,14 @@ export async function createTestCategory(
  */
 export async function createTestTag(
   name: string = 'test-tag',
-  slug: string = 'test-tag'
+  slug: string = 'test-tag',
+  color?: string
 ) {
   return await prisma.tag.create({
     data: {
       name,
       slug,
+      color,
     },
   });
 }
@@ -178,4 +185,34 @@ export async function createTestComment(
       },
     },
   });
+}
+
+/**
+ * Get a seeded category by slug (avoids creating duplicates)
+ */
+export async function getSeededCategory(slug: string = 'general-discussion') {
+  const category = await prisma.category.findFirst({
+    where: { slug }
+  });
+
+  if (!category) {
+    throw new Error(`Seeded category '${slug}' not found. Available: general-discussion', diagnosis, therapies, education`);
+  }
+
+  return category;
+}
+
+/**
+ * Get a seeded tag by slug (avoids creating duplicates)
+ */
+export async function getSeededTag(slug: string = 'autism') {
+  const tag = await prisma.tag.findFirst({
+    where: { slug }
+  });
+
+  if (!tag) {
+    throw new Error(`Seeded tag '${slug}' not found. Available: autism, adhd, sensory, education, behavior`);
+  }
+
+  return tag;
 }

@@ -4,8 +4,8 @@ import { GET as getPost, PATCH, DELETE } from '@/app/api/posts/[id]/route';
 import {
   createTestUser,
   createMockSession,
-  createTestCategory,
   createTestPost,
+  getSeededCategory,
 } from '../helpers/auth';
 import { createMockRequest, parseResponse } from '../helpers/api';
 import { getTestPrisma } from '../helpers/database';
@@ -29,9 +29,12 @@ describe('Posts API Integration Tests', () => {
   let mockSession: any;
 
   beforeEach(async () => {
-    // Create test user and category
+    // Create test user
     testUser = await createTestUser('post-test@example.com', 'password123', 'posttester');
-    testCategory = await createTestCategory('General Discussion', 'general-discussion');
+
+    // Use existing seeded category
+    testCategory = await getSeededCategory('general-discussion');
+
     mockSession = createMockSession(testUser);
   });
 
