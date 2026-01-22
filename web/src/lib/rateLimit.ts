@@ -189,6 +189,8 @@ export const RATE_LIMITERS = {
   report: new RateLimiter("report", 5, 60), // 5/min per user
   aiChat: new RateLimiter("aiChat", 5, 60), // 5/min per user
   readComments: new RateLimiter("readComments", 60, 60), // 60/min per IP
+  readPost: new RateLimiter("readPost", 60, 60), // 60/min per IP
+  updateProfile: new RateLimiter("updateProfile", 10, 60), // 10/min per user
 };
 
 /**
