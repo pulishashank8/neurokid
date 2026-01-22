@@ -62,7 +62,7 @@ function LoginContent() {
           <span className="text-white font-bold text-xl sm:text-2xl">NK</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)] mb-2">
-          Welcome Back
+          Welcome Back!
         </h1>
         <p className="text-[var(--muted)] text-sm sm:text-base">Sign in to NeuroKid</p>
       </div>
