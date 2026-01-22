@@ -1,4 +1,5 @@
 "use client";
+// Force redeploy - removing demo credentials
 
 import { useState, FormEvent, Suspense } from "react";
 import { signIn } from "next-auth/react";
