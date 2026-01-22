@@ -153,14 +153,7 @@ function LoginContent() {
         </p>
       </div>
 
-      <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-[var(--border-light)]">
-        <div className="text-center text-xs text-[var(--text-muted)]">
-          <p className="mb-2">Demo credentials for testing:</p>
-          <p className="font-mono bg-[var(--surface2)] px-2 sm:px-3 py-2 rounded-[var(--radius-sm)] text-[var(--muted)] text-xs break-all">
-            admin@neurokid.local / admin123
-          </p>
-        </div>
-      </div>
+
     </Card>
   );
 }
