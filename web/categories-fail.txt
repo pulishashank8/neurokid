@@ -1,0 +1,112 @@
+﻿
+> web@0.1.0 test
+> dotenv -e .env.test -- vitest run src/__tests__/integration/categories.test.ts
+
+
+[1m[46m RUN [49m[22m [36mv4.0.17 [39m[90mC:/Users/User/neurokind/web[39m
+
+[90mstdout[2m | src/__tests__/integration/categories.test.ts
+[22m[39mSetting up test database...
+
+[90mstdout[2m | src/__tests__/integration/categories.test.ts
+[22m[39mΓ£ô Test database schema pushed
+
+[90mstdout[2m | src/__tests__/integration/categories.test.ts
+[22m[39mΓ£ô Essential data seeded (categories and tags)
+
+node.exe : [90mstderr[2m | 
+src/__tests__/integration/cat
+egories.test.ts[2m > 
+[22m[2mCategories API 
+Integration Tests[2m > 
+[22m[2mGET /api/categories 
+- List All Categories[2m > 
+[22m[2mshould list all 
+categories
+At C:\Program 
+Files\nodejs\npm.ps1:29 
+char:3
++   & $NODE_EXE $NPM_CLI_JS 
+$args
++   
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: ([90mst  
+  derr[2m... all categori   
+ es:String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+[22m[39mRedis getCached 
+disabled for categories:all: 
+Stream isn't writeable and 
+enableOfflineQueue options 
+is false
+
+ [31mΓ¥»[39m src/__tests__/integration/categories.test.ts [2m([22m[2m5 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 21224[2mms[22m[39m
+       [33m[2mΓ£ô[22m[39m should list all categories [33m 4918[2mms[22m[39m
+       [33m[2mΓ£ô[22m[39m should return categories with all required fields [33m 2187[2mms[22m[39m
+[31m       [31m├ù[31m should return categories sorted by order field[39m[33m 2551[2mms[22m[39m
+       [33m[2mΓ£ô[22m[39m should work without authentication [33m 2267[2mms[22m[39m
+       [33m[2mΓ£ô[22m[39m should include post count for each category [33m 2192[2mms[22m[39m
+
+[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3
+9m[1m[41m Failed Tests 1 [
+49m[22m[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»Γ
+Ä»ΓÄ»[39m
+
+[41m[1m FAIL [22m[49m src
+/__tests__/integration/catego
+ries.test.ts[2m > 
+[22mCategories API 
+Integration Tests[2m > 
+[22mGET /api/categories - 
+List All Categories[2m > 
+[22mshould return 
+categories sorted by order 
+field
+[31m[1mTypeError[22m: 
+actual value must be number 
+or bigint, received 
+"undefined"[39m
+[36m [2mΓ¥»[22m src/__test
+s__/integration/categories.te
+st.ts:[2m44:40[22m[39m
+    [90m 42| [39m          
+      [35mconst[39m curr 
+[33m=[39m data[33m.[39mca
+tegories[i][33m;[39m
+    [90m 43| [39m          
+      [35mif[39m 
+(prev[33m.[39morder 
+[33m!==[39m [35mnull[39m 
+[33m&&[39m 
+curr[33m.[39morder 
+[33m!==[39m 
+[35mnull[39m) {
+    [90m 44| [39m          
+          [34mexpect[39m(pr
+ev[33m.[39morder)[33m.[39
+m[34mtoBeLessThanOrEqual[39
+m(curr[33m.[39morder)[33m;
+[39m
+    [90m   | [39m          
+                             
+[31m^[39m
+    [90m 45| [39m          
+      }
+    [90m 46| [39m          
+  }
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ
+»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»Γ
+Ä»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]Γ
+Ä»[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (5)[39m
+[2m   Start at [22m 09:09:46
+[2m   Duration [22m 21.80s[2m (transform 115ms, setup 106ms, import 236ms, tests 21.22s, environment 0ms)[22m
+
