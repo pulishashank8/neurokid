@@ -3,7 +3,7 @@ import { GET, POST } from '@/app/api/posts/[id]/comments/route';
 import {
   createTestUser,
   createMockSession,
-  createTestCategory,
+  getSeededCategory,
   createTestPost,
   createTestComment,
 } from '../helpers/auth';
@@ -31,7 +31,7 @@ describe('Comments API Integration Tests', () => {
 
   beforeEach(async () => {
     testUser = await createTestUser('comment-test@example.com', 'password123', 'commenttester');
-    testCategory = await createTestCategory('Test Category', 'test-category');
+    testCategory = await getSeededCategory('general-discussion');
     testPost = await createTestPost(testUser.id, testCategory.id, {
       title: 'Test Post for Comments',
       content: '<p>Content</p>',

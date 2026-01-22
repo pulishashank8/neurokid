@@ -3,7 +3,7 @@ import { POST } from '@/app/api/votes/route';
 import {
   createTestUser,
   createMockSession,
-  createTestCategory,
+  getSeededCategory,
   createTestPost,
   createTestComment,
 } from '../helpers/auth';
@@ -32,7 +32,7 @@ describe('Votes API Integration Tests', () => {
 
   beforeEach(async () => {
     testUser = await createTestUser('vote-test@example.com', 'password123', 'votetester');
-    testCategory = await createTestCategory('Vote Test Category', 'vote-test-category');
+    testCategory = await getSeededCategory('general-discussion');
     testPost = await createTestPost(testUser.id, testCategory.id, {
       title: 'Test Post for Voting',
       content: '<p>Content</p>',

@@ -179,76 +179,25 @@ export class RateLimiter {
 
 /**
  * Pre-configured rate limiters for common endpoints
- * OWASP Best Practices: Implement rate limiting on ALL public endpoints
  */
 export const RATE_LIMITERS = {
-  // Authentication endpoints - strict limits
   register: new RateLimiter("register", 5, 3600), // 5/hour per IP
   login: new RateLimiter("login", 10, 60), // 10/min per IP
-
-  // Content creation - reasonable limits to prevent spam
   createPost: new RateLimiter("createPost", 5, 60), // 5/min per user
   createComment: new RateLimiter("createComment", 10, 60), // 10/min per user
-
-  // Voting - higher limit for genuine engagement
   vote: new RateLimiter("vote", 60, 60), // 60/min per user
-
-  // Reporting - prevent abuse
   report: new RateLimiter("report", 5, 60), // 5/min per user
-
-  // AI features - protect API costs
   aiChat: new RateLimiter("aiChat", 5, 60), // 5/min per user
-
-  // Read operations - generous limits, prevent scraping/DoS
-  readPosts: new RateLimiter("readPosts", 100, 60), // 100/min per IP
-  readPost: new RateLimiter("readPost", 200, 60), // 200/min per IP
-  readComments: new RateLimiter("readComments", 100, 60), // 100/min per IP
-  readResources: new RateLimiter("readResources", 100, 60), // 100/min per IP
-
-  // User profile operations
-  updateProfile: new RateLimiter("updateProfile", 10, 60), // 10/min per user
-  changePassword: new RateLimiter("changePassword", 3, 3600), // 3/hour per user
-  deleteAccount: new RateLimiter("deleteAccount", 1, 3600), // 1/hour per user
-
-  // Bookmark operations
-  toggleBookmark: new RateLimiter("toggleBookmark", 30, 60), // 30/min per user
-
-  // Moderation actions - prevent abuse
-  moderateContent: new RateLimiter("moderateContent", 30, 60), // 30/min per moderator
-
-  // Update operations
-  updatePost: new RateLimiter("updatePost", 10, 60), // 10/min per user
-  updateComment: new RateLimiter("updateComment", 10, 60), // 10/min per user
-
-  // Delete operations
-  deletePost: new RateLimiter("deletePost", 10, 60), // 10/min per user
-  deleteComment: new RateLimiter("deleteComment", 10, 60), // 10/min per user
+  readComments: new RateLimiter("readComments", 60, 60), // 60/min per IP
 };
 
 /**
  * Extract IP from request (works behind proxies)
- * OWASP: Properly extract client IP considering proxy headers
  */
 export function getClientIp(request: Request): string {
-  // Check multiple headers in order of preference
   const forwarded = request.headers.get("x-forwarded-for");
-  const realIp = request.headers.get("x-real-ip");
-  const cfConnectingIp = request.headers.get("cf-connecting-ip"); // Cloudflare
-
-  // x-forwarded-for can contain multiple IPs, take the first (original client)
-  if (forwarded) {
-    return forwarded.split(",")[0].trim();
-  }
-
-  if (cfConnectingIp) {
-    return cfConnectingIp;
-  }
-
-  if (realIp) {
-    return realIp;
-  }
-
-  return "unknown";
+  const ip = forwarded ? forwarded.split(",")[0] : request.headers.get("x-real-ip");
+  return ip || "unknown";
 }
 
 /**
@@ -270,20 +219,17 @@ export async function checkRateLimit(
 
 /**
  * Create rate limit error response
- * OWASP: Return proper 429 status with Retry-After header
  */
 export function rateLimitResponse(retryAfterSeconds: number) {
   return NextResponse.json(
     {
-      error: "Too many requests. Please slow down.",
+      error: "Rate limit exceeded",
       retryAfterSeconds,
-      message: `Please wait ${retryAfterSeconds} seconds before trying again.`
     },
     {
       status: 429,
       headers: {
         "Retry-After": String(retryAfterSeconds),
-        "X-RateLimit-Reset": String(Math.floor(Date.now() / 1000) + retryAfterSeconds),
       },
     }
   );

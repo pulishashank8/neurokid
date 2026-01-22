@@ -1,7 +1,7 @@
 # Automated Vercel Deployment Script
 # Run this after initial `vercel login`
 
-Write-Host "🚀 Deploying NeuroKid to Vercel..." -ForegroundColor Green
+Write-Host "🚀 Deploying NeuroKind to Vercel..." -ForegroundColor Green
 
 # Check if logged in
 Write-Host "`n📋 Step 1: Checking Vercel authentication..." -ForegroundColor Cyan
@@ -20,7 +20,7 @@ Write-Host "⚠️  First deploy may fail - that's normal without env vars" -For
 cd C:\Users\User\neurokind\web
 
 # Non-interactive deploy
-vercel --yes --name neurokid
+vercel --yes --name neurokind
 
 Write-Host "`n📋 Step 3: Next steps..." -ForegroundColor Cyan
 Write-Host ""

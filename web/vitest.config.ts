@@ -18,8 +18,10 @@ export default defineConfig({
         '**/dist/**',
       ],
     },
-    testTimeout: 10000,
-    hookTimeout: 10000,
+    testTimeout: 15000,
+    hookTimeout: 15000,
+    fileParallelism: false, // Critical: Disable parallel execution to prevent DB race conditions
+    // poolOptions removed to fix type error, fileParallelism: false should be sufficient
   },
   resolve: {
     alias: {

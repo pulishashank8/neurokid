@@ -383,6 +383,22 @@ export const POST = withApiHandler(async (request: NextRequest) => {
   // Invalidate feed cache
   await invalidateCache("posts:*", { prefix: "posts" });
 
+  // Format validation response to match GET response structure (hide author if anonymous)
+  const safePost = {
+    ...post,
+    author: post.isAnonymous
+      ? {
+        id: "anonymous",
+        username: "Anonymous",
+        avatarUrl: null,
+      }
+      : {
+        id: post.author?.id || session.user.id,
+        username: post.author?.profile?.username || "Unknown",
+        avatarUrl: post.author?.profile?.avatarUrl || null,
+      }
+  };
+
   logger.info({ postId: post.id, userId: session.user.id }, 'Post created successfully');
-  return NextResponse.json(post, { status: 201 });
+  return NextResponse.json(safePost, { status: 201 });
 }, { method: 'POST', routeName: '/api/posts' });
