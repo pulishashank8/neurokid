@@ -484,7 +484,79 @@ npx prisma migrate   # Create new migration
 
 ---
 
-## 📄 License
+## � Resources
+
+### Autism & Healthcare Resources
+
+1. [Autism Speaks](https://www.autismspeaks.org/) - Leading autism advocacy organization
+2. [CDC - Autism Spectrum Disorder](https://www.cdc.gov/ncbddd/autism/index.html) - Official CDC autism information
+3. [Autism Society](https://autismsociety.org/) - Community support and resources
+4. [National Autistic Society](https://www.autism.org.uk/) - UK-based autism charity
+5. [ASAN - Autistic Self Advocacy Network](https://autisticadvocacy.org/) - Autism advocacy by autistic people
+6. [Interactive Autism Network](https://iancommunity.org/) - Research and community network
+7. [Autism Research Institute](https://www.autism.org/) - Research-focused organization
+8. [Organization for Autism Research](https://researchautism.org/) - Applied autism research
+9. [NIMH - Autism Spectrum Disorder](https://www.nimh.nih.gov/health/topics/autism-spectrum-disorders-asd) - National Institute of Mental Health resources
+10. [Autism Navigator](https://autismnavigator.com/) - Evidence-based tools and resources
+
+### Development Frameworks & Tools
+
+11. [Next.js Documentation](https://nextjs.org/docs) - Official Next.js docs
+12. [React Documentation](https://react.dev/) - Official React docs
+13. [TypeScript Handbook](https://www.typescriptlang.org/docs/) - TypeScript official guide
+14. [Tailwind CSS](https://tailwindcss.com/docs) - Utility-first CSS framework
+15. [Prisma Documentation](https://www.prisma.io/docs) - Next-generation ORM
+16. [NextAuth.js](https://next-auth.js.org/) - Authentication for Next.js
+17. [TanStack Query](https://tanstack.com/query/latest) - Powerful data synchronization
+18. [Zod](https://zod.dev/) - TypeScript-first schema validation
+19. [Lucide Icons](https://lucide.dev/) - Beautiful & consistent icons
+20. [Vercel](https://vercel.com/docs) - Deployment platform for Next.js
+
+### Database & Backend
+
+21. [PostgreSQL Documentation](https://www.postgresql.org/docs/) - Official PostgreSQL docs
+22. [Redis Documentation](https://redis.io/docs/) - In-memory data structure store
+23. [Supabase](https://supabase.com/docs) - Open source Firebase alternative
+24. [Neon](https://neon.tech/docs) - Serverless Postgres
+25. [PlanetScale](https://planetscale.com/docs) - MySQL-compatible serverless database
+26. [Prisma Studio](https://www.prisma.io/studio) - Visual database editor
+27. [Docker Documentation](https://docs.docker.com/) - Containerization platform
+28. [Docker Compose](https://docs.docker.com/compose/) - Multi-container Docker applications
+
+### Deployment & DevOps
+
+29. [Vercel Deployment Guide](https://vercel.com/docs/deployments/overview) - Deploy Next.js apps
+30. [Netlify Documentation](https://docs.netlify.com/) - Modern web deployment
+31. [Railway](https://docs.railway.app/) - Deploy infrastructure instantly
+32. [Render](https://render.com/docs) - Cloud application platform
+33. [GitHub Actions](https://docs.github.com/en/actions) - CI/CD automation
+34. [Cloudflare Pages](https://developers.cloudflare.com/pages/) - JAMstack platform
+35. [AWS Amplify](https://docs.amplify.aws/) - Full-stack development platform
+
+### Testing & Quality
+
+36. [Vitest](https://vitest.dev/) - Blazing fast unit test framework
+37. [Jest](https://jestjs.io/docs/getting-started) - JavaScript testing framework
+38. [React Testing Library](https://testing-library.com/react) - React component testing
+39. [Playwright](https://playwright.dev/) - End-to-end testing
+40. [ESLint](https://eslint.org/docs/latest/) - JavaScript linter
+41. [Prettier](https://prettier.io/docs/en/) - Code formatter
+
+### Learning Resources
+
+42. [MDN Web Docs](https://developer.mozilla.org/) - Web development documentation
+43. [freeCodeCamp](https://www.freecodecamp.org/) - Free coding education
+44. [Web.dev](https://web.dev/) - Google's web development guidance
+45. [JavaScript.info](https://javascript.info/) - Modern JavaScript tutorial
+46. [TypeScript Deep Dive](https://basarat.gitbook.io/typescript/) - TypeScript guide
+47. [React Patterns](https://reactpatterns.com/) - React design patterns
+48. [Next.js Learn](https://nextjs.org/learn) - Interactive Next.js tutorial
+49. [Prisma's Data Guide](https://www.prisma.io/dataguide) - Database concepts
+50. [Web Accessibility Initiative (WAI)](https://www.w3.org/WAI/) - Web accessibility standards
+
+---
+
+## �📄 License
 
 This project is proprietary and confidential.
 

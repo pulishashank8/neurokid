@@ -87,6 +87,9 @@ export default function ScreeningFlowPage() {
     }, 300);
   };
 
+  // Check if all questions have been answered
+  const allAnswered = answers.every((a) => a !== null);
+
   const computeScore = () => {
     if (group === "toddler") {
       // Official M-CHAT-R/F Scoring Algorithm
@@ -225,7 +228,7 @@ export default function ScreeningFlowPage() {
               <button
                 onClick={computeScore}
                 className="rounded-lg bg-[var(--primary)] px-5 py-2 text-sm font-semibold text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] transition-colors min-h-[44px] disabled:opacity-50"
-                disabled={answers.some((a) => a === null)}
+                disabled={!allAnswered}
               >
                 See Results
               </button>

@@ -5,7 +5,7 @@ import Link from "next/link";
 
 type Summary = {
   score: number;
-  category: "Low" | "Mild" | "Moderate" | "High";
+  category: "Low" | "Moderate" | "High";
   group: "toddler" | "child";
   rawScore?: number;
   maxScore?: number;
@@ -19,8 +19,6 @@ const categoryColor = (c: Summary["category"]) => {
   switch (c) {
     case "Low":
       return { bg: "bg-green-100", text: "text-green-700", stroke: "#16a34a" };
-    case "Mild":
-      return { bg: "bg-yellow-100", text: "text-yellow-700", stroke: "#eab308" };
     case "Moderate":
       return { bg: "bg-orange-100", text: "text-orange-700", stroke: "#f97316" };
     case "High":
@@ -140,7 +138,7 @@ export default function ScreeningResultPage() {
                   <div className="mt-1 h-2.5 w-2.5 rounded-full bg-orange-500 flex-shrink-0" />
                   <div>
                     <span className="block text-xs font-bold text-[var(--text)]">Moderate Probability</span>
-                    <p className="text-[10px] text-[var(--muted)] leading-tight">Some traits consistant with autism. Professional consultation advised.</p>
+                    <p className="text-[10px] text-[var(--muted)] leading-tight">Some traits consistent with autism. Professional consultation advised.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -165,7 +163,7 @@ export default function ScreeningResultPage() {
 
         {/* Next steps - Compact Row */}
         <div className="mt-6 grid gap-4 grid-cols-1 sm:grid-cols-3">
-          <Link href={{ pathname: "/community/new", query: { title: "Screening results", body: `Score ${summary.score}/100 (${summary.category}).` } }} className="group flex items-center gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all">
+          <Link href={{ pathname: "/community/new", query: { title: "Screening results", body: `Score ${summary.group === "toddler" ? `${summary.rawScore || summary.score}/20` : `${summary.score}/100`} (${summary.category}).` } }} className="group flex items-center gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all">
             <div className="text-xl bg-[var(--surface2)] p-2 rounded-lg group-hover:scale-110 transition-transform">👥</div>
             <div>
               <div className="font-bold text-sm text-[var(--text)]">Community</div>
