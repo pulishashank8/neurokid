@@ -230,9 +230,12 @@ export const authOptions: NextAuthOptions = {
             // Store user ID for JWT
             user.id = existingUser.id;
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error("Error creating/updating Google user:", err);
-          return false;
+          const errorCode = err?.code ? `DB_ERR_${err.code}` : "DB_UNKNOWN_ERROR";
+          const errorMessage = err?.message ? encodeURIComponent(err.message.substring(0, 100)) : "UnknownError";
+          // Redirect to error page with details to help debug
+          return `/error?error=${errorCode}_${errorMessage}`;
         }
       }
       return true;
