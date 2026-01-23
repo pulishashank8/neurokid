@@ -317,10 +317,7 @@ export const POST = withApiHandler(async (request: NextRequest) => {
   // Sanitize content to prevent XSS
   // sanitize-html removes malicious scripts and handling safe links
   const dirty = enforceSafeLinks(content);
-  const sanitizedContent = DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: ['p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'br', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre'],
-    ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
-  });
+  const sanitizedContent = DOMPurify.sanitize(dirty);
 
   // Verify category exists
   const category = await prisma.category.findUnique({
