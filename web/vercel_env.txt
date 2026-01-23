@@ -1,0 +1,35 @@
+﻿node.exe : Vercel CLI 50.4.8
+At C:\Users\User\AppData\Roam
+ing\npm\vercel.ps1:24 char:5
++     & "node$exe"  "$basedir
+/node_modules/vercel/dist/vc.
+js" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (Vercel   
+  CLI 50.4.8:String) [], R   
+ emoteException
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+Retrieving projectΓÇª
+> Environment Variables 
+found for pulishashank8s-proj
+ects/neurokid [180ms]
+
+ name                       value               environments                        created    
+ NEXT_PUBLIC_APP_URL        Encrypted           Production, Preview, Development    11h ago    
+ EMAIL_FROM                 Encrypted           Production, Preview, Development    11h ago    
+ DATABASE_URL               Encrypted           Production                          18h ago    
+ NEXTAUTH_URL               Encrypted           Production                          18h ago    
+ GOOGLE_CLIENT_SECRET       Encrypted           Production                          18h ago    
+ GOOGLE_CLIENT_ID           Encrypted           Production                          18h ago    
+ RESEND_API_KEY             Encrypted           Production, Preview, Development    2d ago     
+ AUTONOMA_CLIENT_ID         Encrypted           Production, Preview, Development    2d ago     
+ AUTONOMA_SECRET_ID         Encrypted           Production, Preview, Development    2d ago     
+ DIRECT_URL                 Encrypted           Production                          4d ago     
+ GROQ_API_KEY               Encrypted           Production, Preview, Development    4d ago     
+ NEXTAUTH_SECRET            Encrypted           Production, Preview, Development    4d ago     
+

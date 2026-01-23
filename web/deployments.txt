@@ -1,0 +1,150 @@
+﻿node.exe : Vercel CLI 50.4.8
+At C:\Users\User\AppData\Roam
+ing\npm\vercel.ps1:24 char:5
++     & "node$exe"  "$basedir
+/node_modules/vercel/dist/vc.
+js" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (Vercel   
+  CLI 50.4.8:String) [], R   
+ emoteException
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+Fetching deployments in 
+pulishashank8s-projects
+> Deployments for pulishashan
+k8s-projects/neurokid [184ms]
+
+  Age     Deployment         
+                             
+                  Status     
+  Environment     Duration   
+  Username          
+  9m      https://neurokid-hl
+aledbjm-pulishashank8s-projec
+ts.vercel.app     ΓùÅ Error  
+    Production      29s      
+    pulishashank8     
+  8h      https://neurokid-qw
+j99d1ve-pulishashank8s-projec
+ts.vercel.app     ΓùÅ Ready  
+    Production      42s      
+    pulishashank8     
+  8h      https://neurokid-sb
+recihvo-pulishashank8s-projec
+ts.vercel.app     Canceled   
+  Production      ?          
+  pulishashank8     
+  8h      https://neurokid-9q
+yxv1wct-pulishashank8s-projec
+ts.vercel.app     Canceled   
+  Production      ?          
+  pulishashank8     
+  8h      https://neurokid-gi
+mfqhwlz-pulishashank8s-projec
+ts.vercel.app     ΓùÅ Ready  
+    Preview         1m       
+    pulishashank8     
+  8h      https://neurokid-3g
+vikyt0z-pulishashank8s-projec
+ts.vercel.app     Canceled   
+  Production      ?          
+  pulishashank8     
+  8h      https://neurokid-7a
+qns73zi-pulishashank8s-projec
+ts.vercel.app     Canceled   
+  Production      ?          
+  pulishashank8     
+  8h      https://neurokid-rm
+zujczob-pulishashank8s-projec
+ts.vercel.app     Canceled   
+  Production      ?          
+  pulishashank8     
+  8h      https://neurokid-oq
+dteq9kb-pulishashank8s-projec
+ts.vercel.app     Canceled   
+  Production      ?          
+  pulishashank8     
+  8h      https://neurokid-pw
+t79430f-pulishashank8s-projec
+ts.vercel.app     Canceled   
+  Production      ?          
+  pulishashank8     
+  8h      https://neurokid-ca
+9g7lass-pulishashank8s-projec
+ts.vercel.app     Canceled   
+  Production      ?          
+  pulishashank8     
+  9h      https://neurokid-b1
+hw2w2xn-pulishashank8s-projec
+ts.vercel.app     ΓùÅ Ready  
+    Production      1m       
+    pulishashank8     
+  9h      https://neurokid-b0
+6mu8yv1-pulishashank8s-projec
+ts.vercel.app     ΓùÅ Ready  
+    Production      1m       
+    pulishashank8     
+  9h      https://neurokid-4i
+zktu98n-pulishashank8s-projec
+ts.vercel.app     Canceled   
+  Production      ?          
+  pulishashank8     
+  9h      https://neurokid-54
+bo6b2r1-pulishashank8s-projec
+ts.vercel.app     Canceled   
+  Production      ?          
+  pulishashank8     
+  9h      https://neurokid-h8
+0w74bqq-pulishashank8s-projec
+ts.vercel.app     ΓùÅ Ready  
+    Production      1m       
+    pulishashank8     
+  9h      https://neurokid-98
+hrefrz2-pulishashank8s-projec
+ts.vercel.app     Canceled   
+  Production      ?          
+  pulishashank8     
+  9h      https://neurokid-mt
+rarfi9z-pulishashank8s-projec
+ts.vercel.app     Canceled   
+  Production      ?          
+  pulishashank8     
+  9h      https://neurokid-2s
+h0nqhda-pulishashank8s-projec
+ts.vercel.app     Canceled   
+  Production      ?          
+  pulishashank8     
+  9h      https://neurokid-2u
+7izb8gp-pulishashank8s-projec
+ts.vercel.app     Canceled   
+  Production      ?          
+  pulishashank8     
+
+https://neurokid-hlaledbjm-pulishashank8s-projects.vercel.app
+https://neurokid-qwj99d1ve-pulishashank8s-projects.vercel.app
+https://neurokid-sbrecihvo-pulishashank8s-projects.vercel.app
+https://neurokid-9qyxv1wct-pulishashank8s-projects.vercel.app
+https://neurokid-gimfqhwlz-pulishashank8s-projects.vercel.app
+https://neurokid-3gvikyt0z-pulishashank8s-projects.vercel.app
+https://neurokid-7aqns73zi-pulishashank8s-projects.vercel.app
+https://neurokid-rmzujczob-pulishashank8s-projects.vercel.app
+https://neurokid-oqdteq9kb-pulishashank8s-projects.vercel.app
+https://neurokid-pwt79430f-pulishashank8s-projects.vercel.app
+https://neurokid-ca9g7lass-pulishashank8s-projects.vercel.app
+https://neurokid-b1hw2w2xn-pulishashank8s-projects.vercel.app
+https://neurokid-b06mu8yv1-pulishashank8s-projects.vercel.app
+https://neurokid-4izktu98n-pulishashank8s-projects.vercel.app
+https://neurokid-54bo6b2r1-pulishashank8s-projects.vercel.app
+https://neurokid-h80w74bqq-pulishashank8s-projects.vercel.app
+https://neurokid-98hrefrz2-pulishashank8s-projects.vercel.app
+https://neurokid-mtrarfi9z-pulishashank8s-projects.vercel.app
+https://neurokid-2sh0nqhda-pulishashank8s-projects.vercel.app
+https://neurokid-2u7izb8gp-pulishashank8s-projects.vercel.app
+> To display the next page, 
+run `vercel ls neurokid 
+--next 1769141679688`

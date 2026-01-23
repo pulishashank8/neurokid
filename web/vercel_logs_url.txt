@@ -1,0 +1,22 @@
+﻿node.exe : Vercel CLI 50.4.8
+At C:\Users\User\AppData\Roam
+ing\npm\vercel.ps1:24 char:5
++     & "node$exe"  "$basedir
+/node_modules/vercel/dist/vc.
+js" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (Vercel   
+  CLI 50.4.8:String) [], R   
+ emoteException
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+Fetching deployment "neurokid
+-hlaledbjm-pulishashank8s-pro
+jects.vercel.app" in 
+pulishashank8s-projects
+Error: Deployment not ready. 
+Currently: ΓùÅ Error.
