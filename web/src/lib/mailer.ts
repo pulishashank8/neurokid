@@ -1,12 +1,11 @@
 import { Resend } from 'resend';
 
-const emailFrom = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+const emailFrom = (process.env.EMAIL_FROM || 'onboarding@resend.dev').replace(/[<>]/g, '');
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.neurokid.help';
 
 export async function sendVerificationEmail(email: string, token: string): Promise<void> {
   const resendApiKey = process.env.RESEND_API_KEY;
 
-  // Initialize Resend lazily
   if (!resendApiKey) {
     console.warn('RESEND_API_KEY is not set. Skipping email sending.');
     console.log(`Verification URL for ${email}: ${appUrl}/verify-email?token=${token}`);
@@ -14,12 +13,12 @@ export async function sendVerificationEmail(email: string, token: string): Promi
   }
 
   const resend = new Resend(resendApiKey);
-
   const verificationUrl = `${appUrl}/verify-email?token=${token}`;
 
   try {
+    console.log(`Attempting to send verification email to: ${email} from: ${emailFrom}`);
     const { data, error } = await resend.emails.send({
-      from: emailFrom,
+      from: `NeuroKind <${emailFrom}>`,
       to: email,
       subject: 'Welcome to NeuroKind! Please verify your email',
       html: `
@@ -152,7 +151,6 @@ export async function sendVerificationEmail(email: string, token: string): Promi
 export async function sendPasswordResetEmail(email: string, token: string): Promise<void> {
   const resendApiKey = process.env.RESEND_API_KEY;
 
-  // Initialize Resend lazily
   if (!resendApiKey) {
     console.warn('RESEND_API_KEY is not set. Skipping email sending.');
     console.log(`Reset URL for ${email}: ${appUrl}/reset-password?token=${token}`);
@@ -160,12 +158,12 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
   }
 
   const resend = new Resend(resendApiKey);
-
   const resetUrl = `${appUrl}/reset-password?token=${token}`;
 
   try {
+    console.log(`Attempting to send password reset email to: ${email} from: ${emailFrom}`);
     const { data, error } = await resend.emails.send({
-      from: emailFrom,
+      from: `NeuroKind <${emailFrom}>`,
       to: email,
       subject: 'Reset your NeuroKind password',
       html: `
