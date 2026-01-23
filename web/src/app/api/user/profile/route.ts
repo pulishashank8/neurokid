@@ -81,7 +81,7 @@ export const PUT = withApiHandler(async (request: NextRequest) => {
   const { username, displayName, bio, avatarUrl, location, website } = validation.data;
 
   // Sanitize bio
-  const sanitizedBio = bio ? DOMPurify.sanitize(bio, { ALLOWED_TAGS: ['p', 'b', 'i', 'em', 'strong', 'br'], ALLOWED_ATTR: [] }) : bio;
+  const sanitizedBio = bio ? DOMPurify.sanitize(bio) : bio;
 
   logger.debug({ userId: session.user.id, username }, 'Updating profile');
 
