@@ -168,7 +168,7 @@ function LoginContent() {
         />
 
         <div className="flex justify-end mt-1">
-          <Link href="/forgot-password" className="text-sm font-medium text-[var(--primary)] hover:underline">
+          <Link href="/forgot-password" style={{ color: '#ff8c00', fontWeight: 'bold' }} className="text-sm hover:underline">
             Forgot password?
           </Link>
         </div>
