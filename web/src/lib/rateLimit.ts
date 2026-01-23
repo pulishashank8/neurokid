@@ -188,6 +188,8 @@ export const RATE_LIMITERS = {
   vote: new RateLimiter("vote", 60, 60), // 60/min per user
   report: new RateLimiter("report", 5, 60), // 5/min per user
   aiChat: new RateLimiter("aiChat", 5, 60), // 5/min per user
+  updateProfile: new RateLimiter("updateProfile", 10, 60), // 10/min per user
+  readComments: new RateLimiter("readComments", 100, 60), // 100/min per IP
 };
 
 /**
@@ -240,7 +242,7 @@ export function rateLimitResponse(retryAfterSeconds: number) {
 export async function clearRateLimit(limiterName: string, identifier: string): Promise<void> {
   const key = `ratelimit:${limiterName}:${identifier}`;
   const redis = await getRedisClient();
-  
+
   if (redis) {
     await redis.del(key);
   } else {
