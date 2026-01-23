@@ -14,6 +14,8 @@ function enforceSafeLinks(html: string): string {
   });
 }
 
+import DOMPurify from 'isomorphic-dompurify';
+
 // PATCH /api/comments/[id] - Update comment
 export async function PATCH(
   request: NextRequest,
@@ -71,7 +73,11 @@ export async function PATCH(
     const { content } = validation.data;
 
     // Sanitize content
-    const sanitizedContent = enforceSafeLinks(content);
+    const dirty = enforceSafeLinks(content);
+    const sanitizedContent = DOMPurify.sanitize(dirty, {
+      ALLOWED_TAGS: ['p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'br', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre'],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+    });
 
     const updatedComment = await prisma.comment.update({
       where: { id },

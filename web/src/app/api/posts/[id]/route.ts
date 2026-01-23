@@ -18,107 +18,95 @@ function enforceSafeLinks(html: string): string {
 }
 
 // GET /api/posts/[id] - Get single post
-export async function GET(
+export const GET = withApiHandler(async (
   request: NextRequest,
-  props: any
-) {
-  const params = await props.params;
+  { params }: { params: Promise<{ id: string }> }
+) => {
+  const { id } = await params;
 
-  try {
-    const { id } = params;
+  if (!id) {
+    return NextResponse.json({ error: "Post ID missing" }, { status: 400 });
+  }
 
-    if (!id) {
-      console.error("GET /api/posts/[id]: ID is missing");
-      return NextResponse.json({ error: "Post ID missing" }, { status: 400 });
-    }
+  // Validate ID format (CUIDs are alphanumeric collision-resistant specific ids)
+  if (id.length > 50) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
 
-    // Validate ID format (CUIDs are alphanumeric collision-resistant specific ids)
-    // Basic sanity check to avoid database errors
-    if (id.length > 50) {
-      return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
-    }
-
-    console.log(`Fetching post with ID: ${id}`);
-
-    const post = await prisma.post.findUnique({
-      where: { id },
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            description: true,
-          },
+  const post = await prisma.post.findUnique({
+    where: { id },
+    include: {
+      category: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          description: true,
         },
-        tags: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
+      },
+      tags: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
         },
-        author: {
-          select: {
-            id: true,
-            profile: {
-              select: {
-                username: true,
-                avatarUrl: true,
-                bio: true,
-              },
+      },
+      author: {
+        select: {
+          id: true,
+          profile: {
+            select: {
+              username: true,
+              avatarUrl: true,
+              bio: true,
             },
           },
         },
-        _count: {
-          select: {
-            comments: true,
-          },
+      },
+      _count: {
+        select: {
+          comments: true,
         },
       },
-    });
+    },
+  });
 
-    if (!post) {
-      console.warn(`Post not found in DB: ${id}`);
-      return NextResponse.json({ error: "Post not found" }, { status: 404 });
-    }
-
-    // Format response - hide author if anonymous
-    const formattedPost = {
-      id: post.id,
-      title: post.title,
-      content: post.content,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-      category: post.category,
-      tags: post.tags,
-      author: post.isAnonymous || !post.author
-        ? {
-          id: "anonymous",
-          username: "Anonymous",
-          avatarUrl: null,
-          bio: null,
-        }
-        : {
-          id: post.author.id,
-          username: post.author.profile?.username || "Unknown",
-          avatarUrl: post.author.profile?.avatarUrl || null,
-          bio: post.author.profile?.bio || null,
-        },
-      voteScore: post.voteScore,
-      commentCount: post._count.comments,
-      isPinned: post.isPinned,
-      isLocked: post.isLocked,
-      status: post.status,
-      isAnonymous: post.isAnonymous,
-    };
-
-    return NextResponse.json(formattedPost);
-  } catch (error: any) {
-    console.error("Error in GET /api/posts/[id]:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  if (!post) {
+    return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
-}
+
+  // Format response - hide author if anonymous
+  const formattedPost = {
+    id: post.id,
+    title: post.title,
+    content: post.content,
+    createdAt: post.createdAt,
+    updatedAt: post.updatedAt,
+    category: post.category,
+    tags: post.tags,
+    author: post.isAnonymous || !post.author
+      ? {
+        id: "anonymous",
+        username: "Anonymous",
+        avatarUrl: null,
+        bio: null,
+      }
+      : {
+        id: post.author.id,
+        username: post.author.profile?.username || "Unknown",
+        avatarUrl: post.author.profile?.avatarUrl || null,
+        bio: post.author.profile?.bio || null,
+      },
+    voteScore: post.voteScore,
+    commentCount: post._count.comments,
+    isPinned: post.isPinned,
+    isLocked: post.isLocked,
+    status: post.status,
+    isAnonymous: post.isAnonymous,
+  };
+
+  return NextResponse.json(formattedPost);
+});
 
 // PATCH /api/posts/[id] - Update post
 export async function PATCH(

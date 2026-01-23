@@ -127,150 +127,142 @@ export const GET = withApiHandler(async (
 }, { method: 'GET', routeName: '/api/posts/[id]/comments' });
 
 // POST /api/posts/[id]/comments - Create a comment
-export async function POST(
+export const POST = withApiHandler(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+) => {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const body = await request.json();
+
+  // Add postId to body for validation
+  const validation = createCommentSchema.safeParse({ ...body, postId: id });
+
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: "Invalid input", details: validation.error.errors },
+      { status: 400 }
+    );
+  }
+
+  // Rate limit: 10 comments per minute per user
+  const canComment = await RATE_LIMITERS.createComment.checkLimit(
+    session.user.id
+  );
+  if (!canComment) {
+    const retryAfter = await RATE_LIMITERS.createComment.getRetryAfter(
+      session.user.id
+    );
+    return rateLimitResponse(retryAfter);
+  }
+
+  const { content, parentCommentId, isAnonymous } = validation.data;
+
+  // Check if post exists and is not locked
+  const post = await prisma.post.findUnique({
+    where: { id },
+    select: { isLocked: true },
+  });
+
+  if (!post) {
+    return NextResponse.json({ error: "Post not found" }, { status: 404 });
+  }
+
+  // If post is locked, only moderators can comment
+  if (post.isLocked) {
+    const isModerator = await canModerate(session.user.id);
+    if (!isModerator) {
+      return NextResponse.json(
+        { error: "This post is locked. Only moderators can comment." },
+        { status: 403 }
+      );
+    }
+  }
+
+  // If replying to a comment, verify parent exists
+  if (parentCommentId) {
+    const parentComment = await prisma.comment.findUnique({
+      where: { id: parentCommentId },
+      select: { postId: true },
+    });
+
+    if (!parentComment) {
+      return NextResponse.json(
+        { error: "Parent comment not found" },
+        { status: 404 }
+      );
     }
 
-    const { id } = await params;
-    const body = await request.json();
-
-    // Add postId to body for validation
-    const validation = createCommentSchema.safeParse({ ...body, postId: id });
-
-    if (!validation.success) {
+    if (parentComment.postId !== id) {
       return NextResponse.json(
-        { error: "Invalid input", details: validation.error.errors },
+        { error: "Parent comment does not belong to this post" },
         { status: 400 }
       );
     }
+  }
 
-    // Rate limit: 10 comments per minute per user
-    const canComment = await RATE_LIMITERS.createComment.checkLimit(
-      session.user.id
-    );
-    if (!canComment) {
-      const retryAfter = await RATE_LIMITERS.createComment.getRetryAfter(
-        session.user.id
-      );
-      return rateLimitResponse(retryAfter);
-    }
+  // Sanitize content
+  const dirty = enforceSafeLinks(content);
+  const sanitizedContent = DOMPurify.sanitize(dirty, {
+    ALLOWED_TAGS: ['p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'br', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre'],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
+  });
 
-    const { content, parentCommentId, isAnonymous } = validation.data;
-
-    // Check if post exists and is not locked
-    const post = await prisma.post.findUnique({
-      where: { id },
-      select: { isLocked: true },
-    });
-
-    if (!post) {
-      return NextResponse.json({ error: "Post not found" }, { status: 404 });
-    }
-
-    // If post is locked, only moderators can comment
-    if (post.isLocked) {
-      const isModerator = await canModerate(session.user.id);
-      if (!isModerator) {
-        return NextResponse.json(
-          { error: "This post is locked. Only moderators can comment." },
-          { status: 403 }
-        );
-      }
-    }
-
-    // If replying to a comment, verify parent exists
-    if (parentCommentId) {
-      const parentComment = await prisma.comment.findUnique({
-        where: { id: parentCommentId },
-        select: { postId: true },
-      });
-
-      if (!parentComment) {
-        return NextResponse.json(
-          { error: "Parent comment not found" },
-          { status: 404 }
-        );
-      }
-
-      if (parentComment.postId !== id) {
-        return NextResponse.json(
-          { error: "Parent comment does not belong to this post" },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Sanitize content
-    const dirty = enforceSafeLinks(content);
-    const sanitizedContent = DOMPurify.sanitize(dirty, {
-      ALLOWED_TAGS: ['p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'br', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre'],
-      ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
-    });
-
-    // Create comment
-    const comment = await prisma.comment.create({
-      data: {
-        content: sanitizedContent,
-        authorId: session.user.id,
-        postId: id,
-        parentCommentId: parentCommentId || null,
-        isAnonymous,
-        status: "ACTIVE", // Auto-approve
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            profile: {
-              select: {
-                username: true,
-                avatarUrl: true,
-              },
+  // Create comment
+  const comment = await prisma.comment.create({
+    data: {
+      content: sanitizedContent,
+      authorId: session.user.id,
+      postId: id,
+      parentCommentId: parentCommentId || null,
+      isAnonymous,
+      status: "ACTIVE", // Auto-approve
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          profile: {
+            select: {
+              username: true,
+              avatarUrl: true,
             },
           },
         },
       },
-    });
+    },
+  });
 
-    // Format response
-    const formattedComment = {
-      id: comment.id,
-      content: comment.content,
-      createdAt: comment.createdAt,
-      updatedAt: comment.updatedAt,
-      author: comment.isAnonymous
-        ? {
-          id: "anonymous",
-          username: "Anonymous",
-          avatarUrl: null,
-        }
-        : {
-          id: comment.author.id,
-          username: comment.author.profile?.username || "Unknown",
-          avatarUrl: comment.author.profile?.avatarUrl || null,
-        },
-      voteScore: comment.voteScore,
-      isAnonymous: comment.isAnonymous,
-      postId: comment.postId,
-      parentCommentId: comment.parentCommentId,
-      children: [],
-    };
+  // Format response
+  const formattedComment = {
+    id: comment.id,
+    content: comment.content,
+    createdAt: comment.createdAt,
+    updatedAt: comment.updatedAt,
+    author: comment.isAnonymous
+      ? {
+        id: "anonymous",
+        username: "Anonymous",
+        avatarUrl: null,
+      }
+      : {
+        id: comment.author.id,
+        username: comment.author.profile?.username || "Unknown",
+        avatarUrl: comment.author.profile?.avatarUrl || null,
+      },
+    voteScore: comment.voteScore,
+    isAnonymous: comment.isAnonymous,
+    postId: comment.postId,
+    parentCommentId: comment.parentCommentId,
+    children: [],
+  };
 
-    // Invalidate post comments cache
-    await invalidateCache(`comments:${id}:*`, { prefix: "posts" });
+  // Invalidate post comments cache
+  await invalidateCache(`comments:${id}:*`, { prefix: "posts" });
 
-    return NextResponse.json(formattedComment, { status: 201 });
-  } catch (error) {
-    console.error("Error creating comment:", error);
-    return NextResponse.json(
-      { error: "Failed to create comment" },
-      { status: 500 }
-    );
-  }
-}
+  return NextResponse.json(formattedComment, { status: 201 });
+});
