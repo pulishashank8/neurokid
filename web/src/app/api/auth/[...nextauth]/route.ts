@@ -232,12 +232,9 @@ export const authOptions: NextAuthOptions = {
           }
         } catch (err: any) {
           console.error("Error creating/updating Google user:", err);
-          const dbUrl = process.env.DATABASE_URL || "";
-          const dbUrlStart = dbUrl.substring(0, 10);
-          const dbUrlLength = dbUrl.length;
-          const errorCode = err?.code ? `DB_ERR_${err.code}` : "DB_VAL_ERR";
-          const details = `START:${dbUrlStart}_LEN:${dbUrlLength}_MSG:${err?.message?.substring(0, 100)}`;
-          return `/error?error=${errorCode}_${encodeURIComponent(details)}`;
+          const errorCode = err?.code ? `DB_ERR_${err.code}` : "DB_UNKNOWN_ERROR";
+          const errorMessage = err?.message ? encodeURIComponent(err.message.substring(0, 100)) : "UnknownError";
+          return `/error?error=${errorCode}_${errorMessage}`;
         }
       }
       return true;
