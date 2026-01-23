@@ -4,7 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { updateCommentSchema } from "@/lib/validations/community";
 import { canModerate } from "@/lib/rbac";
-// import sanitizeHtml from 'sanitize-html';
+
 
 function enforceSafeLinks(html: string): string {
   return html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {

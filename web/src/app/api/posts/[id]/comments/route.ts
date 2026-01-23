@@ -8,8 +8,7 @@ import { invalidateCache } from "@/lib/redis";
 import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
 import { createLogger } from "@/lib/logger";
 import { getRequestId, withApiHandler } from "@/lib/apiHandler";
-import sanitizeHtml from 'sanitize-html';
-// import sanitizeHtml from 'sanitize-html';
+import DOMPurify from 'isomorphic-dompurify';
 
 function enforceSafeLinks(html: string): string {
   return html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
@@ -209,11 +208,9 @@ export async function POST(
 
     // Sanitize content
     const dirty = enforceSafeLinks(content);
-    const sanitizedContent = sanitizeHtml(dirty, {
-      allowedTags: ['p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'br', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre'],
-      allowedAttributes: {
-        'a': ['href', 'target', 'rel', 'class']
-      },
+    const sanitizedContent = DOMPurify.sanitize(dirty, {
+      ALLOWED_TAGS: ['p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'br', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre'],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'class']
     });
 
     // Create comment
