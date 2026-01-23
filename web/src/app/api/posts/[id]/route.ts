@@ -20,7 +20,7 @@ function enforceSafeLinks(html: string): string {
 // GET /api/posts/[id] - Get single post
 export async function GET(
   request: NextRequest,
-  props: { params: Promise<{ id: string }> }
+  props: any
 ) {
   const params = await props.params;
 
