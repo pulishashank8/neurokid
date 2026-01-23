@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard | NeuroKind",
@@ -100,7 +101,7 @@ export default function AdminDashboardPage() {
             Quick Actions
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <a
+            <Link
               href="/admin/data-catalog"
               className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
             >
@@ -113,7 +114,7 @@ export default function AdminDashboardPage() {
                 <h3 className="font-medium text-gray-900 dark:text-white">Browse Data Catalog</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Discover datasets</p>
               </div>
-            </a>
+            </Link>
 
             <div className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed">
               <div className="h-10 w-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">

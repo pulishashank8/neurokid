@@ -6,7 +6,7 @@ import type { NextRequest } from "next/server";
  * Auth and logging temporarily disabled to fix loading issues
  */
 
-export async function middleware(request: NextRequest) {
+export async function middleware(_request: NextRequest) {
   const response = NextResponse.next();
 
   // Basic security headers

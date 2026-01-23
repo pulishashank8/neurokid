@@ -162,7 +162,7 @@ describe('Bookmarks API Integration Tests', () => {
                 title: 'Post 2',
                 content: '<p>Content 2</p>',
             });
-            const post3 = await createTestPost(testUser.id, testCategory.id, {
+            await createTestPost(testUser.id, testCategory.id, {
                 title: 'Post 3',
                 content: '<p>Content 3</p>',
             });

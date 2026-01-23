@@ -1,8 +1,7 @@
-import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
     createTestUser,
     createModeratorUser,
-    createMockSession,
     getSeededCategory,
     getSeededTag,
     createTestPost,
@@ -22,7 +21,6 @@ describe('Full Project End-to-End Tests', () => {
         let regularUser: any;
         let moderatorUser: any;
         let category: any;
-        let tag: any;
         let post: any;
 
         beforeEach(async () => {
@@ -31,7 +29,7 @@ describe('Full Project End-to-End Tests', () => {
             regularUser = await createTestUser(`journey-${suffix}@example.com`, 'password123', `journeyuser-${suffix}`);
             moderatorUser = await createModeratorUser(`mod-${suffix}@example.com`, 'password123', `moduser-${suffix}`);
             category = await getSeededCategory('general-discussion');
-            tag = await getSeededTag('autism');
+            await getSeededTag('autism');
 
             post = await createTestPost(regularUser.id, category.id, {
                 title: 'E2E Test Post',
@@ -76,7 +74,6 @@ describe('Full Project End-to-End Tests', () => {
         });
 
         it('should have categories available', async () => {
-            const request = createMockRequest('GET', '/api/categories');
             const response = await getCategories();
             const data = await parseResponse(response);
 
@@ -86,7 +83,6 @@ describe('Full Project End-to-End Tests', () => {
         });
 
         it('should have tags available', async () => {
-            const request = createMockRequest('GET', '/api/tags');
             const response = await getTags();
             const data = await parseResponse(response);
 
@@ -168,7 +164,7 @@ describe('Full Project End-to-End Tests', () => {
         });
 
         it('should enforce unique constraints', async () => {
-            const user1 = await createTestUser('unique1@example.com', 'pass', 'unique1');
+            await createTestUser('unique1@example.com', 'pass', 'unique1');
 
             // Try to create duplicate email
             await expect(

@@ -57,10 +57,10 @@ async function main() {
 
         for (const res of results) {
             if (res.status === 'BROKEN') {
-                // @ts-ignore
+                // @ts-expect-error - title is not present on type Resource result from select but exists in raw data
                 console.log(`❌ BROKEN: ${res.r.title} - ${res.url} (${res.code || res.error})`);
                 failed++;
-                // @ts-ignore
+                // @ts-expect-error - title is not present on type Resource result from select but exists in raw data
                 brokenLinks.push({ id: res.r.id, title: res.r.title, url: res.url, error: res.code || res.error });
             } else {
                 passed++;
