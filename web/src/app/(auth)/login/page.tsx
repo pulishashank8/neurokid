@@ -1,5 +1,4 @@
 "use client";
-// Force redeploy - removing demo credentials
 
 import { useState, FormEvent, Suspense } from "react";
 import { signIn } from "next-auth/react";
@@ -16,13 +15,19 @@ function LoginContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showResend, setShowResend] = useState(false);
+  const [resendStatus, setResendStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [isLoading, setIsLoading] = useState(false);
 
+  const verified = searchParams.get("verified") === "1";
+  const resetSuccess = searchParams.get("reset") === "1";
+  const errorParam = searchParams.get("error");
   const callbackUrl = searchParams.get("callbackUrl") || "/";
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+    setShowResend(false);
     setIsLoading(true);
 
     try {
@@ -42,7 +47,12 @@ function LoginContent() {
       });
 
       if (!result?.ok) {
-        setError(result?.error || "Invalid email or password");
+        if (result?.error === "EmailNotVerified" || result?.error?.includes("not verified")) {
+          setError("Please verify your email before logging in.");
+          setShowResend(true);
+        } else {
+          setError(result?.error || "Invalid email or password");
+        }
         setIsLoading(false);
         return;
       }
@@ -67,9 +77,72 @@ function LoginContent() {
         <p className="text-[var(--muted)] text-sm sm:text-base">Sign in to NeuroKid</p>
       </div>
 
+      {verified && (
+        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/20 rounded-[var(--radius-md)] flex items-center gap-3">
+          <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+            <span className="text-green-600 text-xs font-bold">✓</span>
+          </div>
+          <p className="text-green-700 dark:text-green-300 text-sm font-medium">Email verified successfully! Please sign in.</p>
+        </div>
+      )}
+
+      {resetSuccess && (
+        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/20 rounded-[var(--radius-md)] flex items-center gap-3">
+          <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+            <span className="text-green-600 text-xs font-bold">✓</span>
+          </div>
+          <p className="text-green-700 dark:text-green-300 text-sm font-medium">Password reset successfully. Please login.</p>
+        </div>
+      )}
+
+      {errorParam === "InvalidToken" && (
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/20 rounded-[var(--radius-md)]">
+          <p className="text-red-600 dark:text-red-400 text-sm">Invalid verification link.</p>
+        </div>
+      )}
+
+      {errorParam === "TokenExpired" && (
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/20 rounded-[var(--radius-md)]">
+          <p className="text-red-600 dark:text-red-400 text-sm">Verification link expired. Please log in to resend.</p>
+        </div>
+      )}
+
       {error && (
         <div className="mb-6 p-4 bg-[var(--error-light)] border border-[var(--error)] rounded-[var(--radius-md)]">
           <p className="text-[var(--error)] text-sm">{error}</p>
+          {showResend && (
+            <div className="mt-3 pt-3 border-t border-red-200 dark:border-red-800">
+              {resendStatus === "success" ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <p className="text-green-600 text-sm">Verification email sent! Check your inbox.</p>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!email) return;
+                    setResendStatus("loading");
+                    try {
+                      const res = await fetch("/api/auth/resend-verification", {
+                        method: "POST",
+                        body: JSON.stringify({ email }),
+                        headers: { "Content-Type": "application/json" }
+                      });
+                      if (res.ok) setResendStatus("success");
+                      else setResendStatus("error");
+                    } catch {
+                      setResendStatus("error");
+                    }
+                  }}
+                  disabled={resendStatus === "loading"}
+                  className="text-sm font-medium underline text-red-700 hover:text-red-800 dark:text-red-300 dark:hover:text-red-200"
+                >
+                  {resendStatus === "loading" ? "Sending..." : "Resend Verification Email"}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -93,6 +166,12 @@ function LoginContent() {
           placeholder="••••••••"
           required
         />
+
+        <div className="flex justify-end mt-1">
+          <Link href="/forgot-password" className="text-sm font-medium text-[var(--primary)] hover:underline">
+            Forgot password?
+          </Link>
+        </div>
 
         <Button
           type="submit"
@@ -153,8 +232,6 @@ function LoginContent() {
           </Link>
         </p>
       </div>
-
-
     </Card>
   );
 }

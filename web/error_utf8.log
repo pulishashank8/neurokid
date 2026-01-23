@@ -1,0 +1,21 @@
+﻿
+ RUN  v4.0.17 C:/Users/User/neurokind/web
+
+stdout | src/__tests__/integration/screening.test.tsx
+Setting up test database...
+
+stdout | src/__tests__/integration/screening.test.tsx
+Γ£ô Test database schema pushed
+
+stdout | src/__tests__/integration/screening.test.tsx
+Γ£ô Essential data seeded (categories and tags)
+
+ Γ¥» src/__tests__/integration/screening.test.tsx (2 tests | 2 failed) 14649ms
+     ├ù calculates Child score correctly (High Risk - All Yes) 4685ms
+     ├ù calculates Toddler score correctly (Mixed Risk) 2411ms
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  17:18:02
+   Duration  16.44s (transform 108ms, setup 106ms, import 344ms, tests 14.65s, environment 1.11s)
+

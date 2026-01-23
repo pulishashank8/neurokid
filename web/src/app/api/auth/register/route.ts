@@ -9,6 +9,8 @@ import {
 } from "@/lib/rateLimit";
 import { withApiHandler, getRequestId } from "@/lib/apiHandler";
 import { createLogger } from "@/lib/logger";
+import crypto from "crypto";
+import { sendVerificationEmail } from "@/lib/mailer";
 
 export const POST = withApiHandler(async (request: NextRequest) => {
   const requestId = getRequestId(request);
@@ -67,8 +69,11 @@ export const POST = withApiHandler(async (request: NextRequest) => {
     );
   }
 
-  // REMOVED: Email verification check to allow direct registration
-  // const emailVerification = ... (removed)
+  // Create email verification token
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+  const tokenHash = crypto.createHash('sha256').update(verificationToken).digest('hex');
+  const expiryDate = new Date();
+  expiryDate.setMinutes(expiryDate.getMinutes() + 60); // 60 mins expiry
 
   // Hash password
   const hashedPassword = await bcryptjs.hash(password, 10);
@@ -96,6 +101,24 @@ export const POST = withApiHandler(async (request: NextRequest) => {
       userRoles: true,
     },
   });
+
+  // Store verification token
+  await prisma.emailVerificationToken.create({
+    data: {
+      userId: user.id,
+      tokenHash,
+      expiresAt: expiryDate,
+    },
+  });
+
+  // Send verification email
+  try {
+    await sendVerificationEmail(user.email, verificationToken);
+  } catch (emailError) {
+    logger.error({ error: emailError, userId: user.id }, 'Failed to send verification email');
+    // Note: We don't rollback user creation, but user will be unverified.
+    // Client can request resend.
+  }
 
   logger.info({ userId: user.id, username }, 'User registered successfully');
   return NextResponse.json(

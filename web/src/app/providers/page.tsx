@@ -2,6 +2,19 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import {
+  Stethoscope,
+  MapPin,
+  Phone,
+  Search,
+  Hospital,
+  Sparkles,
+  ExternalLink,
+  ChevronRight,
+  Navigation,
+  Activity,
+  UserCheck
+} from "lucide-react";
 
 // ============================================================================
 // NEW IMPLEMENTATION: Free NPI Registry API (No API key required)
@@ -40,7 +53,7 @@ export default function ProvidersPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [zipCode, setZipCode] = useState("");
-  
+
   // ============================================================================
   // NEW IMPLEMENTATION: NPI Registry state
   // ============================================================================
@@ -82,16 +95,17 @@ export default function ProvidersPage() {
   // Show loading while checking authentication
   if (status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
+      <div className="flex items-center justify-center min-h-screen bg-[var(--background)]">
+        <div className="flex flex-col items-center gap-4">
+          <Activity className="w-12 h-12 text-[var(--primary)] animate-pulse" />
+          <p className="text-lg font-medium text-[var(--muted)]">Locating specialists...</p>
+        </div>
       </div>
     );
   }
 
   // Don't render if not authenticated
-  if (!session) {
-    return null;
-  }
+  if (!session) return null;
 
   // ============================================================================
   // NEW IMPLEMENTATION: NPI Registry search handler
@@ -136,248 +150,197 @@ export default function ProvidersPage() {
   // };
 
   return (
-    <div className="min-h-screen pt-20 pb-6 sm:pt-24 sm:pb-12">
-      <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Healthcare Provider Finder</h1>
-        <p className="mt-2 text-sm sm:text-base text-muted-foreground">
-          Search local neurodiversity-friendly healthcare providers near you using the NPI Registry.
-        </p>
+    <div className="min-h-screen bg-[var(--background)] pt-20 pb-20">
+      {/* Header Section */}
+      <div className="relative overflow-hidden border-b border-[var(--border)] bg-[var(--surface)] py-8 sm:py-12 mb-6 sm:mb-8">
+        <div className="absolute top-0 right-0 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] bg-gradient-to-br from-[var(--primary)]/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+        <div className="mx-auto max-w-7xl px-4 md:px-6 relative z-10">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+              <UserCheck className="w-3 h-3" />
+              Verified Network
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[var(--text)] tracking-tight">Care Compass</h1>
+            <p className="max-w-2xl text-base sm:text-lg text-[var(--muted)] leading-relaxed">
+              Connect with neurodiversity-friendly healthcare providers and specialists using our NPI-backed registry.
+            </p>
+          </div>
+        </div>
+      </div>
 
-        <div className="mt-6 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
-          <div>
-            <label className="block text-sm font-medium mb-1">ZIP Code</label>
-            <input
-              value={zipCode}
-              onChange={(e) => setZipCode(e.target.value.replaceAll(/\D/g, ""))}
-              placeholder="Enter ZIP code"
-              maxLength={5}
-              className="w-full rounded-md border p-2 text-sm min-h-[44px]"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Specialty</label>
-            <select
-              value={specialty}
-              onChange={(e) => setSpecialty(e.target.value)}
-              className="w-full rounded-md border p-2 text-sm min-h-[44px]"
-            >
-              {TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          {/* Filter Results - Commented out as NPI Registry handles filtering server-side */}
-          {/* <div>
-            <label className="block text-sm font-medium mb-1">Filter Results</label>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Name, address..."
-              className="w-full rounded-md border p-2 text-sm min-h-[44px]"
-            />
-          </div> */}
-          <div className="flex items-end">
-            <button
-              onClick={handleSearch}
-              disabled={loading || zipCode.length !== 5}
-              className="w-full rounded-md bg-blue-600 text-white px-4 py-2 text-sm min-h-[44px] disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {loading ? "Searching..." : "Search Providers"}
-            </button>
+      <div className="mx-auto max-w-7xl px-4 md:px-6">
+        {/* Search Bar */}
+        <div className="sticky top-[4.5rem] z-30 mb-8 sm:mb-10 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/90 p-4 sm:p-6 backdrop-blur-md shadow-lg">
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-12 items-end">
+            <div className="md:col-span-4 relative">
+              <label className="block text-[10px] sm:text-xs font-bold text-[var(--muted)] mb-1.5 sm:mb-2 uppercase tracking-tighter">Target Location</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+                  <MapPin className="h-4 w-4 text-[var(--muted)]" />
+                </div>
+                <input
+                  value={zipCode}
+                  onChange={(e) => setZipCode(e.target.value.replaceAll(/\D/g, ""))}
+                  placeholder="Enter ZIP"
+                  maxLength={5}
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] pl-10 pr-4 py-3 sm:py-3.5 text-sm sm:text-base focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-all font-bold placeholder:font-normal"
+                />
+              </div>
+            </div>
+
+            <div className="md:col-span-5 relative">
+              <label className="block text-[10px] sm:text-xs font-bold text-[var(--muted)] mb-1.5 sm:mb-2 uppercase tracking-tighter">Service Specialty</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+                  <Stethoscope className="h-4 w-4 text-[var(--muted)]" />
+                </div>
+                <select
+                  value={specialty}
+                  onChange={(e) => setSpecialty(e.target.value)}
+                  className="w-full rounded-xl border border-[var(--border)] bg-[var(--background)] pl-10 pr-10 py-3 sm:py-3.5 text-sm sm:text-base appearance-none focus:border-[var(--primary)] outline-none transition-all cursor-pointer font-bold truncate"
+                >
+                  {TYPE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-[var(--muted)]">
+                  <ChevronRight className="w-4 h-4 rotate-90" />
+                </div>
+              </div>
+            </div>
+
+            <div className="md:col-span-3">
+              <button
+                onClick={handleSearch}
+                disabled={loading || zipCode.length !== 5}
+                className="w-full rounded-xl sm:rounded-2xl bg-emerald-600 px-6 sm:px-8 py-3.5 sm:py-4 text-sm sm:text-base font-black text-white hover:bg-emerald-700 transition-all flex items-center justify-center gap-3 shadow-xl shadow-emerald-500/30 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:pointer-events-none"
+              >
+                {loading ? (
+                  <Activity className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Search className="w-5 h-5 stroke-[2.5px]" />
+                )}
+                {loading ? "Searching..." : "Search Now"}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* ================================================================ */}
-        {/* OLD IMPLEMENTATION: Google Places Search Form - COMMENTED OUT   */}
-        {/* ================================================================ */}
-        {/* <div className="mt-6 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
-          <div>
-            <label className="block text-sm font-medium mb-1">ZIP Code</label>
-            <input
-              value={zipCode}
-              onChange={(e) => setZipCode(e.target.value)}
-              placeholder="Enter ZIP code"
-              maxLength={5}
-              className="w-full rounded-md border p-2 text-sm min-h-[44px]"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Radius (miles)</label>
-            <input
-              type="number"
-              value={radius}
-              onChange={(e) => setRadius(Number(e.target.value))}
-              min="1"
-              max="100"
-              className="w-full rounded-md border p-2 text-sm min-h-[44px]"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Service Type</label>
-            <select
-              value={serviceType}
-              onChange={(e) => setServiceType(e.target.value)}
-              className="w-full rounded-md border p-2 text-sm min-h-[44px]"
-            >
-              {TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Filter Results</label>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Name, address..."
-              className="w-full rounded-md border p-2 text-sm min-h-[44px]"
-            />
-          </div>
-          <div className="flex items-end">
-            <button
-              onClick={handleSearch}
-              disabled={loading || zipCode.length !== 5}
-              className="w-full rounded-md bg-blue-600 text-white px-4 py-2 text-sm min-h-[44px] disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {loading ? "Searching..." : "Search"}
-            </button>
-          </div>
-        </div> */}
-
-        {/* ================================================================ */}
-        {/* Error Display (Works for both implementations)                  */}
-        {/* ================================================================ */}
-
+        {/* Status / Error */}
         {error && (
-          <div className="mt-4 rounded-md bg-red-50 p-4 text-sm text-red-800">
-            <p className="font-medium">Error:</p>
-            <p>{error}</p>
+          <div className="mb-8 rounded-2xl bg-rose-50 border border-rose-100 p-4 flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+            <Sparkles className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-rose-900">Search Error</p>
+              <p className="text-sm text-rose-700 mt-1">{error}</p>
+            </div>
           </div>
         )}
 
         {providers.length > 0 && (
-          <div className="mt-6">
-            <p className="text-sm text-muted-foreground">
-              Showing {providers.length} {total && total > providers.length ? `of ${total}` : ''} providers
-            </p>
+          <div className="mb-6 flex items-center justify-between">
+            <div className="text-sm text-[var(--muted)]">
+              Found <span className="font-bold text-[var(--text)]">{providers.length}</span> {total && total > providers.length ? `of ${total}` : ''} specialists near <span className="text-[var(--primary)] font-bold">{zipCode}</span>
+            </div>
           </div>
         )}
 
-        <ul className="mt-4 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {providers.map((provider, index) => (
-            <li key={`${provider.npi}-${index}`} className="rounded-lg border p-4">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1">
-                  <h2 className="text-base font-semibold">{provider.name}</h2>
-                  {provider.specialty && (
-                    <div className="mt-1">
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-                        {provider.specialty}
-                      </span>
+        {/* Results Grid */}
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-12">
+          {providers.map((provider, i) => (
+            <div
+              key={`${provider.npi}-${i}`}
+              className="group relative flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-[var(--primary)]/30"
+            >
+              <div className="mb-4 flex items-start justify-between">
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 group-hover:bg-[var(--primary)] group-hover:text-[var(--primary-foreground)] transition-all duration-300">
+                  <Hospital className="w-5 h-5" />
+                </div>
+                {provider.specialty && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600">
+                    {provider.specialty.split(' - ')[0]}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex-1">
+                <h2 className="text-lg font-bold text-[var(--text)] group-hover:text-[var(--primary)] transition-colors leading-snug mb-3">
+                  {provider.name}
+                </h2>
+
+                <div className="space-y-2.5">
+                  <div className="flex items-start gap-2.5 text-sm text-[var(--muted)]">
+                    <MapPin className="w-4 h-4 shrink-0 mt-0.5 text-emerald-500" />
+                    <span className="leading-relaxed">
+                      {provider.address}<br />
+                      <span className="font-bold text-[var(--text)]">{provider.city}, {provider.state} {provider.zip}</span>
+                    </span>
+                  </div>
+
+                  {provider.phone && (
+                    <div className="flex items-center gap-2.5 text-base text-[var(--text)] font-extrabold tracking-tight">
+                      <Phone className="w-5 h-5 shrink-0 text-emerald-600" />
+                      {provider.phone}
                     </div>
                   )}
                 </div>
               </div>
-              <div className="mt-2 text-sm">
-                <p>
-                  {provider.address}
-                  {provider.city && `, ${provider.city}`}
-                  {provider.state && ` ${provider.state}`}
-                  {provider.zip && ` ${provider.zip}`}
-                </p>
-                {provider.phone && <p className="mt-1">📞 {provider.phone}</p>}
-              </div>
-              <div className="mt-3 flex gap-2">
+
+              <div className="mt-6 flex gap-3 pt-5 border-t border-[var(--border)]">
                 {provider.address && (
                   <a
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(provider.name + ' ' + provider.address + ' ' + provider.city + ' ' + provider.state)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 rounded-md border px-3 py-2 text-xs sm:text-sm text-center min-h-[44px] flex items-center justify-center hover:bg-gray-50"
+                    className="flex-1 rounded-2xl bg-[var(--surface2)] px-6 py-3.5 text-base font-bold text-[var(--text)] hover:bg-[var(--primary)] hover:text-white transition-all flex items-center justify-center gap-2.5 border-2 border-[var(--border)]"
                   >
-                    Maps
+                    <Navigation className="w-5 h-5" />
+                    Directions
                   </a>
                 )}
                 {provider.phone && (
                   <a
                     href={`tel:${provider.phone}`}
-                    className="flex-1 rounded-md border px-3 py-2 text-xs sm:text-sm text-center min-h-[44px] flex items-center justify-center hover:bg-gray-50"
+                    className="flex-1 rounded-2xl bg-emerald-600 px-6 py-3.5 text-base font-black !text-white hover:bg-emerald-700 transition-all flex items-center justify-center gap-2.5 active:scale-95 shadow-xl shadow-emerald-500/40"
                   >
-                    Call
+                    <Phone className="w-5 h-5 stroke-[3px] !text-white" />
+                    <span className="!text-white">Call Now</span>
                   </a>
                 )}
               </div>
-            </li>
+            </div>
           ))}
+
           {!loading && providers.length === 0 && (
-            <li className="rounded-lg border p-4 text-sm text-muted-foreground col-span-full text-center py-12">
-              Enter a ZIP code and click "Search Providers" to find healthcare providers nearby.
-            </li>
-          )}
-        </ul>
-
-        {/* ================================================================ */}
-        {/* OLD IMPLEMENTATION: Google Places Results - COMMENTED OUT       */}
-        {/* ================================================================ */}
-        {/* <ul className="mt-4 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((facility) => (
-            <li
-              key={facility.id}
-              className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <h3 className="font-semibold text-gray-900">{facility.name}</h3>
-              <p className="mt-1 text-sm text-gray-600">{facility.address}</p>
-              <p className="text-sm text-gray-600">
-                {facility.city}, {facility.state} {facility.zip_code}
+            <div className="col-span-full mt-8 rounded-3xl border-2 border-dashed border-[var(--border)] bg-[var(--surface)] p-16 text-center">
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-500/10 text-emerald-500">
+                <Search className="h-10 w-10" />
+              </div>
+              <h3 className="text-xl font-bold text-[var(--text)]">Begin your search</h3>
+              <p className="mt-3 text-[var(--muted)] max-w-sm mx-auto leading-relaxed">
+                Enter your ZIP code above to discover local specialists. We connect you with verified data from the National Provider Registry.
               </p>
-              {facility.services.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {facility.services.slice(0, 3).map((service, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-block rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700"
-                    >
-                      {service}
-                    </span>
-                  ))}
-                  {facility.services.length > 3 && (
-                    <span className="inline-block rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
-                      +{facility.services.length - 3} more
-                    </span>
-                  )}
-                </div>
-              )}
-            </li>
-          ))}
-          {!loading && facilities.length === 0 && (
-            <li className="col-span-full rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-              <p className="text-gray-600">
-                Enter a ZIP code and click Search to find providers
+            </div>
+          )}
+        </div>
+
+        {/* Disclaimer Area */}
+        <div className="rounded-3xl border border-amber-100 bg-amber-50/50 p-8 backdrop-blur-sm">
+          <div className="flex items-start gap-4">
+            <div className="p-2 rounded-xl bg-amber-100 text-amber-600">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-amber-900 uppercase tracking-wider mb-2">Network Disclaimer</h3>
+              <p className="text-sm text-amber-800 leading-relaxed opacity-90">
+                This directory dynamically leverages data from the official US National Provider Identifier (NPI) registry maintained by CMS.
+                NeuroKind is an information hub and does not endorse specific providers or provide medical advice.
+                <span className="block mt-2 font-bold">Recommended steps:</span> Always verify credentials, neuro-inclusive practices, and insurance coverage direct with the provider before scheduling.
               </p>
-            </li>
-          )}
-          {!loading && filtered.length === 0 && facilities.length > 0 && (
-            <li className="col-span-full rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-              <p className="text-gray-600">No providers match your filter</p>
-            </li>
-          )}
-        </ul> */}
-
-        {/* ================================================================ */}
-        {/* Disclaimer (Updated for NPI Registry)                           */}
-        {/* ================================================================ */}
-
-        <div className="mt-8 rounded-md bg-amber-50 p-4 text-sm border border-amber-200">
-          <p className="font-medium text-amber-900">Disclaimer</p>
-          <p className="mt-1 text-amber-800">
-            This directory uses data from the official US National Provider Identifier (NPI) database maintained by CMS. 
-            NeuroKind does not endorse specific providers and does not provide medical advice. 
-            Always verify credentials, services, availability, and insurance coverage directly with providers before scheduling appointments.
-          </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

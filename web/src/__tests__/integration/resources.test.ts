@@ -23,7 +23,7 @@ describe('Resources API Integration Tests', () => {
                     content: 'Comprehensive guide to understanding ASD',
                     link: 'https://example.com/autism-guide',
                     category: 'EDUCATION',
-                    status: 'PUBLISHED',
+                    status: 'ACTIVE',
                     views: 100,
                     createdBy: testUser.id,
                 },
@@ -32,7 +32,7 @@ describe('Resources API Integration Tests', () => {
                     content: 'Learn effective ABA therapy methods',
                     link: 'https://example.com/aba-guide',
                     category: 'THERAPY',
-                    status: 'PUBLISHED',
+                    status: 'ACTIVE',
                     views: 50,
                     createdBy: testUser.id,
                 },
@@ -41,7 +41,7 @@ describe('Resources API Integration Tests', () => {
                     content: 'Activities for sensory processing',
                     link: 'https://example.com/sensory',
                     category: 'OTHER',
-                    status: 'PUBLISHED',
+                    status: 'ACTIVE',
                     views: 75,
                     createdBy: testUser.id,
                 },
@@ -59,7 +59,7 @@ describe('Resources API Integration Tests', () => {
     });
 
     describe('GET /api/resources - List Resources', () => {
-        it('should list all published resources', async () => {
+        it('should list all active resources', async () => {
             const request = createMockRequest('GET', '/api/resources');
             const response = await GET(request);
             const data = await parseResponse(response);
@@ -68,7 +68,7 @@ describe('Resources API Integration Tests', () => {
             expect(Array.isArray(data.resources)).toBe(true);
             expect(data.resources.length).toBeGreaterThanOrEqual(3);
             // Should not include draft resources
-            expect(data.resources.every((r: any) => r.status === 'PUBLISHED')).toBe(true);
+            expect(data.resources.every((r: any) => r.status === 'ACTIVE')).toBe(true);
         });
 
         it('should filter resources by category', async () => {
@@ -80,7 +80,7 @@ describe('Resources API Integration Tests', () => {
 
             expect(response.status).toBe(200);
             expect(data.resources.every((r: any) => r.category === 'EDUCATION')).toBe(true);
-            // Should only include published EDUCATION resources
+            // Should only include active EDUCATION resources
             expect(data.resources.length).toBe(1);
         });
 
@@ -116,7 +116,7 @@ describe('Resources API Integration Tests', () => {
             expect(response.status).toBe(200);
         });
 
-        it('should return empty array when category has no published resources', async () => {
+        it('should return empty array when category has no active resources', async () => {
             const request = createMockRequest('GET', '/api/resources', {
                 searchParams: { category: 'LEGAL' },
             });
@@ -160,10 +160,24 @@ describe('Resources API Integration Tests', () => {
                 searchParams: { category: 'INVALID_CATEGORY' },
             });
             const response = await GET(request);
+
+            // Should either return empty array or validation error, depending on implementation
+            // Our current implementation might return 400 or empty list
+            expect([200, 400]).toContain(response.status);
+        });
+
+        it('should have valid URL formats for all resources', async () => {
+            const request = createMockRequest('GET', '/api/resources');
+            const response = await GET(request);
             const data = await parseResponse(response);
 
-            // Should either return empty array or validation error
-            expect([200, 400]).toContain(response.status);
+            const urlRegex = /^(http|https):\/\/[^ "]+$/;
+
+            data.resources.forEach((r: any) => {
+                if (r.link) {
+                    expect(r.link).toMatch(urlRegex);
+                }
+            });
         });
     });
 });

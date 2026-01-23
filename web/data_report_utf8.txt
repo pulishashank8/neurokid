@@ -1,0 +1,15 @@
+﻿
+≡ƒôè Checking your database data...
+
+≡ƒæÑ Users: 2
+≡ƒô¥ Posts: 0
+≡ƒÆ¼ Comments: 0
+≡ƒÅÑ Providers: 0
+≡ƒñû AI Conversations: 1
+
+≡ƒôï Recent Users:
+  1. 1@gmail.com (111) - Created: 1/22/2026
+  2. test@shashank.com (Test) - Created: 1/22/2026
+
+Γ£à Database connection successful!
+

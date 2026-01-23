@@ -58,7 +58,8 @@ const CHILD_QUESTIONS: QA[] = [
 export default function ScreeningFlowPage() {
   const router = useRouter();
   const params = useParams();
-  const group = (params?.group as "toddler" | "child") || "child";
+  const groupParam = params?.group;
+  const group = (Array.isArray(groupParam) ? groupParam[0] : groupParam) as "toddler" | "child" || "child";
 
   const questions = useMemo(() => (group === "toddler" ? TODDLER_QUESTIONS : CHILD_QUESTIONS), [group]);
   const [index, setIndex] = useState(0);
@@ -90,84 +91,104 @@ export default function ScreeningFlowPage() {
   // Check if all questions have been answered
   const allAnswered = answers.every((a) => a !== null);
 
-  const computeScore = () => {
-    if (group === "toddler") {
-      // Official M-CHAT-R/F Scoring Algorithm
-      // © 2009 Diana Robins, Deborah Fein, & Marianne Barton
-      // Questions 2, 5, 12 are reverse-scored (YES = 1 point)
-      // All other questions: NO = 1 point
-      let score = 0;
-      const reverseScored = [1, 4, 11]; // indices for questions 2, 5, 12 (0-indexed)
+  const handleNext = () => {
+    if (answers[index] === null) {
+      alert("Please answer this question (Yes or No) before moving to the next one.");
+      return;
+    }
+    setIndex((i) => Math.min(19, i + 1));
+  };
 
-      answers.forEach((answer, i) => {
-        if (answer === null) return;
+  const computeScore = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    console.log("Computing score... Current state:", { group, allAnswered, answers });
 
-        if (reverseScored.includes(i)) {
-          // For questions 2, 5, 12: YES = risk
+    if (!allAnswered) {
+      const missing = answers
+        .map((a, i) => (a === null ? i + 1 : null))
+        .filter((i) => i !== null);
+
+      alert(`Please answer all 20 questions before viewing results. Missing questions: ${missing.join(", ")}`);
+      return;
+    }
+
+    try {
+      if (group === "toddler") {
+        // ... (existing toddler logic) ...
+        let score = 0;
+        const reverseScored = [1, 4, 11]; // indices for questions 2, 5, 12 (0-indexed)
+
+        answers.forEach((answer, i) => {
+          if (answer === null) return;
+          if (reverseScored.includes(i)) {
+            if (answer === "yes") score++;
+          } else {
+            if (answer === "no") score++;
+          }
+        });
+
+        let category: "Low" | "Moderate" | "High" = "Low";
+        if (score >= 8) category = "High";
+        else if (score >= 3) category = "Moderate";
+
+        const summary = {
+          score,
+          category,
+          group,
+          rawScore: score,
+          maxScore: 20,
+          createdAt: new Date().toISOString(),
+          interpretation: score <= 2
+            ? "Low risk. Continue monitoring development. Re-screen at future well-child visits."
+            : score <= 7
+              ? "Moderate risk. Follow-up screening recommended. Discuss results with your pediatrician."
+              : "High risk. Immediate referral for diagnostic evaluation and early intervention services is recommended.",
+        };
+
+        sessionStorage.setItem("nk-screening-summary", JSON.stringify(summary));
+        console.log("Summary saved, navigating...", summary);
+
+        setTimeout(() => {
+          window.location.href = "/screening/result";
+        }, 1500);
+        router.push("/screening/result");
+      } else {
+        // Child screening (3-12 years)
+        let score = 0;
+        answers.forEach((answer) => {
           if (answer === "yes") score++;
-        } else {
-          // For all other questions: NO = risk
-          if (answer === "no") score++;
-        }
-      });
+        });
 
-      // M-CHAT-R/F Risk Categories:
-      // 0-2: Low Risk
-      // 3-7: Moderate Risk (Follow-up recommended)
-      // 8-20: High Risk (Immediate referral)
-      let category: "Low" | "Moderate" | "High" = "Low";
-      if (score >= 8) category = "High";
-      else if (score >= 3) category = "Moderate";
+        const percentage = Math.round((score / 20) * 100);
+        let category: "Low" | "Moderate" | "High" = "Low";
+        if (percentage >= 50) category = "High";
+        else if (percentage >= 25) category = "Moderate";
 
-      const summary = {
-        score,
-        category,
-        group,
-        rawScore: score,
-        maxScore: 20,
-        createdAt: new Date().toISOString(),
-        interpretation: score <= 2
-          ? "Low risk. Continue monitoring development. Re-screen at future well-child visits."
-          : score <= 7
-            ? "Moderate risk. Follow-up screening recommended. Discuss results with your pediatrician."
-            : "High risk. Immediate referral for diagnostic evaluation and early intervention services is recommended.",
-      };
+        const summary = {
+          score: percentage,
+          category,
+          group,
+          rawScore: score,
+          maxScore: 20,
+          createdAt: new Date().toISOString(),
+          interpretation: percentage < 25
+            ? "Low concern level. Continue monitoring and discuss at routine check-ups."
+            : percentage < 50
+              ? "Moderate concern level. Consider consultation with healthcare provider or developmental specialist."
+              : "Higher concern level. Professional evaluation by a developmental specialist is recommended.",
+        };
 
-      try {
         sessionStorage.setItem("nk-screening-summary", JSON.stringify(summary));
-      } catch { }
-      router.push("/screening/result");
-    } else {
-      // Child screening (3-12 years) - simplified scoring
-      // All "yes" answers indicate areas of concern
-      let score = 0;
-      answers.forEach((answer) => {
-        if (answer === "yes") score++;
-      });
+        console.log("Summary saved, navigating...", summary);
 
-      const percentage = Math.round((score / 20) * 100);
-      let category: "Low" | "Moderate" | "High" = "Low";
-      if (percentage >= 50) category = "High";
-      else if (percentage >= 25) category = "Moderate";
-
-      const summary = {
-        score: percentage,
-        category,
-        group,
-        rawScore: score,
-        maxScore: 20,
-        createdAt: new Date().toISOString(),
-        interpretation: percentage < 25
-          ? "Low concern level. Continue monitoring and discuss at routine check-ups."
-          : percentage < 50
-            ? "Moderate concern level. Consider consultation with healthcare provider or developmental specialist."
-            : "Higher concern level. Professional evaluation by a developmental specialist is recommended.",
-      };
-
-      try {
-        sessionStorage.setItem("nk-screening-summary", JSON.stringify(summary));
-      } catch { }
-      router.push("/screening/result");
+        setTimeout(() => {
+          window.location.href = "/screening/result";
+        }, 1500);
+        router.push("/screening/result");
+      }
+    } catch (err) {
+      console.error("Error computing score:", err);
+      alert("There was an error calculating your results. Please try again or contact support.");
     }
   };
 
@@ -175,36 +196,57 @@ export default function ScreeningFlowPage() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] pt-16">
-      <div className="mx-auto max-w-3xl px-4 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-[var(--text)]">Autism Screening — {group === "toddler" ? "Toddler (18–36 months)" : "Child (3–12 years)"}</h1>
-          <span className="text-sm text-[var(--muted)]">{index + 1}/20</span>
+      <div className="mx-auto max-w-2xl px-4 py-6 sm:py-10">
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <h1 className="text-lg sm:text-xl font-bold text-[var(--text)] leading-tight">
+            Screening — {group === "toddler" ? "Toddler" : "Child"}
+          </h1>
+          <span className="text-xs sm:text-sm font-bold text-[var(--muted)] whitespace-nowrap bg-[var(--surface2)] px-2 py-1 rounded-md border border-[var(--border)]">
+            {index + 1} of 20
+          </span>
         </div>
 
         {/* Progress */}
-        <div className="mb-6 h-2 w-full overflow-hidden rounded-full bg-[var(--border)]">
+        <div className="mb-8 h-2.5 w-full overflow-hidden rounded-full bg-[var(--surface2)] border border-[var(--border)]">
           <div
-            className="h-full bg-[var(--primary)] transition-all"
+            className="h-full bg-gradient-to-r from-[var(--primary)] to-emerald-400 transition-all duration-500 ease-out"
             style={{ width: `${progressPct}%` }}
           ></div>
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-md)]">
-          <p className="text-lg font-medium text-[var(--text)]">{questions[index].text}</p>
-          <div className="mt-6 flex gap-3">
+        <div className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-6 sm:p-8 shadow-xl shadow-black/5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+
+          <p className="text-lg sm:text-xl font-bold text-[var(--text)] leading-relaxed">
+            {questions[index].text}
+          </p>
+
+          <div className="mt-8 flex flex-col sm:flex-row gap-4">
             <button
               onClick={() => setAnswer("yes")}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold border border-[var(--border)] transition-all min-h-[44px] ${answers[index] === "yes" ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface2)]"
+              type="button"
+              className={`flex-1 rounded-2xl px-6 py-4 text-base font-black border-2 transition-all active:scale-95 flex items-center justify-center gap-2 ${answers[index] === "yes"
+                ? "bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-500/30"
+                : "bg-[var(--surface)] border-[var(--border)] text-[var(--text)] hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
                 }`}
             >
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${answers[index] === "yes" ? "border-white" : "border-[var(--border)]"}`}>
+                {answers[index] === "yes" && <div className="w-2.5 h-2.5 bg-white rounded-full"></div>}
+              </div>
               Yes
             </button>
             <button
               onClick={() => setAnswer("no")}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold border border-[var(--border)] transition-all min-h-[44px] ${answers[index] === "no" ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface2)]"
+              type="button"
+              className={`flex-1 rounded-2xl px-6 py-4 text-base font-black border-2 transition-all active:scale-95 flex items-center justify-center gap-2 ${answers[index] === "no"
+                ? "bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-500/30"
+                : "bg-[var(--surface)] border-[var(--border)] text-[var(--text)] hover:border-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20"
                 }`}
             >
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${answers[index] === "no" ? "border-white" : "border-[var(--border)]"}`}>
+                {answers[index] === "no" && <div className="w-2.5 h-2.5 bg-white rounded-full"></div>}
+              </div>
               No
             </button>
           </div>
@@ -212,23 +254,24 @@ export default function ScreeningFlowPage() {
           <div className="mt-8 flex justify-between">
             <button
               onClick={() => setIndex((i) => Math.max(0, i - 1))}
+              type="button"
               className="rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] px-4 py-2 text-sm hover:bg-[var(--surface2)] transition-colors min-h-[44px]"
             >
               Back
             </button>
             {index < 19 ? (
               <button
-                onClick={() => setIndex((i) => Math.min(19, i + 1))}
-                className="rounded-lg bg-[var(--primary)] px-5 py-2 text-sm font-semibold text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] transition-colors min-h-[44px] disabled:opacity-50"
-                disabled={answers[index] === null}
+                onClick={handleNext}
+                type="button"
+                className="rounded-lg bg-[var(--primary)] px-5 py-2 text-sm font-semibold text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] transition-all min-h-[44px]"
               >
                 Next
               </button>
             ) : (
               <button
                 onClick={computeScore}
-                className="rounded-lg bg-[var(--primary)] px-5 py-2 text-sm font-semibold text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] transition-colors min-h-[44px] disabled:opacity-50"
-                disabled={!allAnswered}
+                type="button"
+                className="rounded-lg bg-[var(--primary)] px-5 py-2 text-sm font-semibold text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] transition-all min-h-[44px] shadow-lg shadow-[var(--primary)]/20"
               >
                 See Results
               </button>

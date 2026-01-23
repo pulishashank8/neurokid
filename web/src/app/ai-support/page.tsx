@@ -102,20 +102,20 @@ export default function AiSupportPage() {
       <div className="mx-auto max-w-5xl px-4 md:px-6 lg:px-8 relative z-10 h-[calc(100vh-140px)] flex flex-col gap-6">
 
         {/* Header */}
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-[var(--text)] flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl text-white shadow-lg shadow-purple-500/20">
-                <Brain className="w-6 h-6" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text)] flex items-center gap-3 truncate">
+              <div className="flex-shrink-0 p-2 sm:p-2.5 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl text-white shadow-lg shadow-purple-500/20">
+                <Brain className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              NeuroKid AI
+              <span>NeuroKid AI</span>
             </h1>
-            <p className="mt-2 text-[var(--muted)]">Your 24/7 personalized support companion.</p>
+            <p className="mt-1 sm:mt-2 text-sm sm:text-base text-[var(--muted)] truncate">Your personalized support companion.</p>
           </div>
 
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-amber-200 bg-amber-50 dark:bg-amber-900/10 dark:border-amber-900/30 text-xs sm:text-sm text-amber-700 dark:text-amber-400">
-            <AlertTriangle className="w-4 h-4" />
-            <span>Not medical advice. For emergencies, call 911.</span>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/10 dark:border-amber-900/30 text-[10px] sm:text-xs text-amber-700 dark:text-amber-400 w-fit">
+            <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="font-medium">Not medical advice. For emergencies, call 911.</span>
           </div>
         </div>
 
@@ -173,32 +173,32 @@ export default function AiSupportPage() {
           </div>
 
           {/* Input Area */}
-          <div className="p-4 sm:p-5 bg-[var(--surface2)]/50 border-t border-[var(--border)]">
-            <div className="relative flex items-center gap-3 max-w-4xl mx-auto">
+          <div className="p-3 sm:p-5 bg-[var(--surface2)]/50 border-t border-[var(--border)]">
+            <div className="relative flex items-center gap-2 sm:gap-3 max-w-4xl mx-auto">
               <div className="relative flex-1">
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Ask anything..."
-                  className="w-full pl-5 pr-12 py-3.5 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] outline-none shadow-sm transition-all text-[var(--text)] placeholder:text-[var(--muted)]"
+                  className="w-full pl-4 sm:pl-5 pr-12 py-3 sm:py-4 bg-[var(--background)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] outline-none shadow-sm transition-all text-sm sm:text-base text-[var(--text)] placeholder:text-[var(--muted)] font-medium"
                   disabled={loading}
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                  <span className="text-[10px] text-[var(--muted)] border border-[var(--border)] rounded px-1.5 py-0.5 hidden sm:block">↵ Enter</span>
+                  <span className="text-[10px] font-bold text-[var(--muted)] border border-[var(--border)] rounded px-1.5 py-0.5 hidden md:block uppercase tracking-tighter">↵ Ent</span>
                 </div>
               </div>
 
               <button
                 onClick={send}
                 disabled={loading || !input.trim()}
-                className="flex-shrink-0 p-3.5 bg-[var(--primary)] text-white rounded-xl shadow-lg hover:bg-[var(--primary-hover)] hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:shadow-none transition-all"
+                className="flex-shrink-0 p-3 sm:p-4 bg-emerald-600 text-white rounded-2xl shadow-lg hover:bg-emerald-700 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:shadow-none transition-all"
               >
                 <Send className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-center text-[10px] text-[var(--muted)] mt-3">
-              AI can make mistakes. Please verify important information.
+            <p className="text-center text-[10px] font-bold text-[var(--muted)] mt-2 sm:mt-3 uppercase tracking-widest opacity-60">
+              AI companion can make mistakes.
             </p>
           </div>
         </div>

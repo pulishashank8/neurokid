@@ -6,7 +6,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./src/__tests__/setup.ts'],
-    include: ['src/__tests__/**/*.test.ts'],
+    include: ['src/__tests__/**/*.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -18,10 +18,8 @@ export default defineConfig({
         '**/dist/**',
       ],
     },
-    testTimeout: 15000,
-    hookTimeout: 15000,
-    fileParallelism: false, // Critical: Disable parallel execution to prevent DB race conditions
-    // poolOptions removed to fix type error, fileParallelism: false should be sufficient
+    testTimeout: 10000,
+    hookTimeout: 10000,
   },
   resolve: {
     alias: {

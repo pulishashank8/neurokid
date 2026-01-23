@@ -94,7 +94,7 @@ export default function Home() {
               <p className="text-[var(--muted)] leading-relaxed text-sm mb-6">
                 A safe, anonymous space to ask questions, share stories, and find strength in shared experiences.
               </p>
-              <Link href="/community" className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface2)] text-sm font-semibold text-[var(--text)] group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+              <Link href="/community" className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface2)] text-sm font-bold text-[var(--primary)] group-hover:bg-[var(--primary)] group-hover:text-white transition-all">
                 Explore <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -110,7 +110,7 @@ export default function Home() {
               <p className="text-[var(--muted)] leading-relaxed text-sm mb-6">
                 Find trusted ABA, OT, and Speech specialists nearby with verified credentials and parent reviews.
               </p>
-              <Link href="/providers" className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface2)] text-sm font-semibold text-[var(--text)] group-hover:bg-rose-500 group-hover:text-white transition-colors">
+              <Link href="/providers" className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface2)] text-sm font-bold text-rose-500 group-hover:bg-rose-500 group-hover:text-white transition-all">
                 Find Care <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -126,7 +126,7 @@ export default function Home() {
               <p className="text-[var(--muted)] leading-relaxed text-sm mb-6">
                 Instant, compassionate answers to your questions about behavior, IEPs, and daily routines.
               </p>
-              <Link href="/ai-support" className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface2)] text-sm font-semibold text-[var(--text)] group-hover:bg-purple-500 group-hover:text-white transition-colors">
+              <Link href="/ai-support" className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface2)] text-sm font-bold text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-all">
                 Chat Now <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -142,7 +142,7 @@ export default function Home() {
               <p className="text-[var(--muted)] leading-relaxed text-sm mb-6">
                 Validated screening tools to help you understand developmental milestones and next steps.
               </p>
-              <Link href="/screening" className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface2)] text-sm font-semibold text-[var(--text)] group-hover:bg-green-500 group-hover:text-white transition-colors">
+              <Link href="/screening" className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[var(--surface2)] text-sm font-bold text-green-500 group-hover:bg-green-500 group-hover:text-white transition-all">
                 Start Screen <ArrowRight className="w-4 h-4" />
               </Link>
             </div>

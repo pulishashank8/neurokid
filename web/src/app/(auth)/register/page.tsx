@@ -7,7 +7,7 @@ import { RegisterSchemaWithConfirm } from "@/lib/validators";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Mail } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -90,9 +90,11 @@ export default function RegisterPage() {
       }
 
       setSuccess(true);
-      setTimeout(() => {
-        router.push("/login");
-      }, 2000);
+      setSuccess(true);
+      // Removed redirect to allow user to read instruction
+      // setTimeout(() => {
+      //   router.push("/login");
+      // }, 2000);
     } catch {
       setError("An unexpected error occurred");
       setIsLoading(false);
@@ -103,11 +105,19 @@ export default function RegisterPage() {
     return (
       <div className="min-h-screen pt-20 pb-12 px-4">
         <Card className="max-w-md mx-auto text-center" hover={false}>
-          <div className="mb-4 inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full">
-            <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+          <div className="mb-4 inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full">
+            <Mail className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </div>
-          <h2 className="text-2xl font-bold text-[var(--text)] mb-2">Registration Successful!</h2>
-          <p className="text-[var(--muted)]">Your account has been created. Redirecting to login...</p>
+          <h2 className="text-2xl font-bold text-[var(--text)] mb-2">Check your email</h2>
+          <p className="text-[var(--muted)] mb-4">
+            We've sent a verification link to <strong>{formData.email}</strong>.
+          </p>
+          <p className="text-[var(--muted)] text-sm mb-6">
+            Please check your inbox (and spam folder) to verify your account before logging in.
+          </p>
+          <Button onClick={() => router.push("/login")}>
+            Go to Login
+          </Button>
         </Card>
       </div>
     );

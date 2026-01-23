@@ -59,6 +59,12 @@ export const authOptions: NextAuthOptions = {
               return null;
             }
 
+            // Check email verification
+            if (!user.emailVerified) {
+              logger.warn({ userId: user.id }, 'User not verified');
+              throw new Error("EmailNotVerified");
+            }
+
             // Update lastLoginAt
             await prisma.user.update({
               where: { id: user.id },
@@ -160,6 +166,8 @@ export const authOptions: NextAuthOptions = {
               data: {
                 email: user.email,
                 lastLoginAt: new Date(),
+                emailVerified: true,
+                emailVerifiedAt: new Date(),
                 profile: {
                   create: {
                     username,

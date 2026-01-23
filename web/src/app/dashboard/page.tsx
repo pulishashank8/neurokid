@@ -4,7 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect } from "react";
-import { Users, Stethoscope, Brain, ClipboardCheck, ArrowRight, LogOut, Activity, MessagesSquare, Bookmark, ShoppingBag, Sparkles } from "lucide-react";
+import { Users, Stethoscope, Brain, ClipboardCheck, ArrowRight, LogOut, Activity, MessagesSquare, Bookmark, ShoppingBag, Sparkles, Heart } from "lucide-react";
 
 // ... (rest of imports/code) 
 
@@ -172,9 +172,14 @@ export default function DashboardPage() {
                 <span className="text-sm font-bold text-[var(--text)] group-hover:text-white">My Posts</span>
               </Link>
 
-              <Link href="/community" className="flex flex-col items-center justify-center rounded-xl bg-[var(--surface2)] p-4 text-center transition-all hover:bg-rose-500 hover:text-white group">
+              <Link href="/community?saved=1" className="flex flex-col items-center justify-center rounded-xl bg-[var(--surface2)] p-4 text-center transition-all hover:bg-rose-500 hover:text-white group">
                 <Bookmark className="w-6 h-6 mb-2 text-rose-500 group-hover:text-white" />
-                <span className="text-sm font-bold text-[var(--text)] group-hover:text-white">Saved Items</span>
+                <span className="text-sm font-bold text-[var(--text)] group-hover:text-white">Saved Posts</span>
+              </Link>
+
+              <Link href="/resources?saved=1" className="flex flex-col items-center justify-center rounded-xl bg-[var(--surface2)] p-4 text-center transition-all hover:bg-blue-500 hover:text-white group">
+                <Heart className="w-6 h-6 mb-2 text-blue-500 group-hover:text-white" />
+                <span className="text-sm font-bold text-[var(--text)] group-hover:text-white">Saved Resources</span>
               </Link>
             </div>
 
@@ -207,12 +212,12 @@ export default function DashboardPage() {
 
               <Link
                 href="/marketplace"
-                className="group/btn relative w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 py-3.5 px-4 font-bold text-white shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all overflow-hidden"
+                className="group/btn relative w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 py-3.5 px-4 font-black text-amber-950 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 hover:-translate-y-0.5 transition-all overflow-hidden"
               >
                 <span className="relative z-10 flex items-center gap-2">
-                  Browse Collection <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                  Browse Collection <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform stroke-[3px]" />
                 </span>
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></div>
+                <div className="absolute inset-0 bg-white/40 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300"></div>
               </Link>
             </div>
           </div>

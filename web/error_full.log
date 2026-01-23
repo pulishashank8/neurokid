@@ -1,0 +1,1013 @@
+﻿
+ RUN  v4.0.17 C:/Users/User/neurokind/web
+
+stdout | src/__tests__/integration/screening.test.tsx
+Setting up test database...
+
+stdout | src/__tests__/integration/screening.test.tsx
+Γ£ô Test database schema pushed
+
+stdout | src/__tests__/integration/screening.test.tsx
+Γ£ô Essential data seeded (categories and tags)
+
+node.exe : stderr | src/__tes
+ts__/integration/screening.te
+st.tsx > Screening Flow 
+Integration > calculates 
+Child score correctly (High 
+Risk - All Yes)
+At C:\Program 
+Files\nodejs\npx.ps1:29 
+char:3
++   & $NODE_EXE $NPX_CLI_JS 
+$args
++   
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (stderr   
+  | src/__...Risk - All Ye   
+ s):String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+
+stderr | src/__tests__/integr
+ation/screening.test.tsx > 
+Screening Flow Integration > 
+calculates Toddler score 
+correctly (Mixed Risk)
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+An update to 
+ScreeningFlowPage inside a 
+test was not wrapped in 
+act(...).
+
+When testing, code that 
+causes React state updates 
+should be wrapped into 
+act(...):
+
+act(() => {
+  /* fire events that update 
+state */
+});
+/* assert on the output */
+
+This ensures that you're 
+testing the behavior the 
+user would see in the 
+browser. Learn more at https:
+//react.dev/link/wrap-tests-w
+ith-act
+
+ Γ¥» src/__tests__/integration/screening.test.tsx (2 tests | 2 failed) 14832ms
+     ├ù calculates Child score correctly (High Risk - All Yes) 4603ms
+     ├ù calculates Toddler score correctly (Mixed Risk) 2500ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed 
+Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/__tests__/integrat
+ion/screening.test.tsx > 
+Screening Flow Integration > 
+calculates Child score 
+correctly (High Risk - All 
+Yes)
+Error: [2mexpect([22m[31me
+lement[39m[2m).toBeEnabled(
+)[22m
+
+Received element is not 
+enabled:
+  [31m<button
+  class="rounded-lg 
+bg-[var(--primary)] px-5 
+py-2 text-sm font-semibold te
+xt-[var(--primary-foreground)
+] hover:bg-[var(--primary-hov
+er)] transition-colors 
+min-h-[44px] 
+disabled:opacity-50"
+  disabled=""
+/>[39m
+ Γ¥» src/__tests__/integratio
+n/screening.test.tsx:51:27
+     49|         // Now "See 
+Results" should be available
+     50|         const 
+resultBtn = 
+screen.getByRole('button', { 
+name: /See ResuΓÇª
+     51|         expect(resul
+tBtn).toBeEnabled();
+       |                     
+      ^
+     52|         
+fireEvent.click(resultBtn);
+     53| 
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ
+»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»Γ
+Ä»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  src/__tests__/integrat
+ion/screening.test.tsx > 
+Screening Flow Integration > 
+calculates Toddler score 
+correctly (Mixed Risk)
+AssertionError: expected 
+undefined to be 3 // 
+Object.is equality
+
+[32m- Expected:[39m 
+3
+
+[31m+ Received:[39m 
+undefined
+
+ Γ¥» src/__tests__/integratio
+n/screening.test.tsx:103:31
+    101| 
+    102|         const 
+summary = JSON.parse(window.s
+essionStorage.getItem('nk-sΓÇ
+ª
+    103|         expect(summa
+ry.score).toBe(3);
+       |                     
+          ^
+    104|         expect(summa
+ry.category).toBe('Moderate')
+;
+    105|         expect(mockP
+ush).toHaveBeenCalledWith('/s
+creening/result');
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ
+»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»Γ
+Ä»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  17:19:22
+   Duration  16.59s (transform 103ms, setup 102ms, import 337ms, tests 14.83s, environment 1.09s)
+
