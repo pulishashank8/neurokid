@@ -8,8 +8,7 @@ import { invalidateCache } from "@/lib/redis";
 import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
 import { createLogger } from "@/lib/logger";
 import { getRequestId, withApiHandler } from "@/lib/apiHandler";
-import sanitizeHtml from 'sanitize-html';
-// import sanitizeHtml from 'sanitize-html';
+import DOMPurify from 'isomorphic-dompurify';
 
 function enforceSafeLinks(html: string): string {
   return html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
@@ -209,37 +208,38 @@ export async function POST(
 
     // Sanitize content
     const dirty = enforceSafeLinks(content);
-    const sanitizedContent = sanitizeHtml(dirty, {
-      allowedTags: ['p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'br', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre'],
-      allowedAttributes: {
-        'a': ['href', 'target', 'rel', 'class']
-      },
-    });
+    const sanitizedContent = DOMPurify.sanitize(dirty);
 
-    // Create comment
-    const comment = await prisma.comment.create({
-      data: {
-        content: sanitizedContent,
-        authorId: session.user.id,
-        postId: id,
-        parentCommentId: parentCommentId || null,
-        isAnonymous,
-        status: "ACTIVE", // Auto-approve
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            profile: {
-              select: {
-                username: true,
-                avatarUrl: true,
+    // Create comment and increment post comment count
+    const [comment] = await prisma.$transaction([
+      prisma.comment.create({
+        data: {
+          content: sanitizedContent,
+          authorId: session.user.id,
+          postId: id,
+          parentCommentId: parentCommentId || null,
+          isAnonymous,
+          status: "ACTIVE", // Auto-approve
+        },
+        include: {
+          author: {
+            select: {
+              id: true,
+              profile: {
+                select: {
+                  username: true,
+                  avatarUrl: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+      prisma.post.update({
+        where: { id },
+        data: { commentCount: { increment: 1 } },
+      }),
+    ]);
 
     // Format response
     const formattedComment = {

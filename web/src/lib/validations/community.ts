@@ -38,7 +38,7 @@ export const createCommentSchema = z.object({
   postId: z.string().min(1, "Invalid post"),
   parentCommentId: z.string().min(1).optional(),
   isAnonymous: z.boolean().default(false).optional(),
-}).strict();
+});
 
 export const updateCommentSchema = z.object({
   content: z.string().min(1).max(10000).trim(),

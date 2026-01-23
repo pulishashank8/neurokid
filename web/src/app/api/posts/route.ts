@@ -3,8 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { createPostSchema, getPostsSchema } from "@/lib/validations/community";
-import sanitizeHtml from 'sanitize-html';
-// import sanitizeHtml from 'sanitize-html';
+import DOMPurify from 'isomorphic-dompurify';
 import { getCached, setCached, invalidateCache, CACHE_TTL, cacheKey } from "@/lib/redis";
 import { rateLimitResponse, RATE_LIMITERS } from "@/lib/rateLimit";
 import { withApiHandler, getRequestId } from "@/lib/apiHandler";
@@ -318,12 +317,7 @@ export const POST = withApiHandler(async (request: NextRequest) => {
   // Sanitize content to prevent XSS
   // sanitize-html removes malicious scripts and handling safe links
   const dirty = enforceSafeLinks(content);
-  const sanitizedContent = sanitizeHtml(dirty, {
-    allowedTags: ['p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'br', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre'],
-    allowedAttributes: {
-      'a': ['href', 'target', 'rel', 'class']
-    },
-  });
+  const sanitizedContent = DOMPurify.sanitize(dirty);
 
   // Verify category exists
   const category = await prisma.category.findUnique({

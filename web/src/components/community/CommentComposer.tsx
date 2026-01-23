@@ -21,7 +21,6 @@ export function CommentComposer({
   onCancel,
   placeholder = "Share your thoughts...",
 }: CommentComposerProps) {
-  const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -30,17 +29,20 @@ export function CommentComposer({
     watch,
     formState: { errors, isValid },
     reset,
+    setValue,
   } = useForm<CreateCommentInput>({
     resolver: zodResolver(createCommentSchema),
     defaultValues: {
       postId,
       parentCommentId,
       isAnonymous: false,
+      content: "",
     },
     mode: "onChange",
   });
 
   const content = watch("content") ?? "";
+  const isAnonymous = watch("isAnonymous");
 
   const onSubmit = async (data: CreateCommentInput) => {
     setIsSubmitting(true);
@@ -49,10 +51,7 @@ export function CommentComposer({
       const response = await fetch(`/api/posts/${postId}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          isAnonymous,
-        }),
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
@@ -61,8 +60,12 @@ export function CommentComposer({
       }
 
       toast.success("Comment posted!");
-      reset();
-      setIsAnonymous(false);
+      reset({
+        postId,
+        parentCommentId,
+        isAnonymous: false,
+        content: "",
+      });
       onSuccess?.();
     } catch (error: any) {
       toast.error(error.message || "Failed to post comment");
@@ -74,6 +77,10 @@ export function CommentComposer({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+      {/* Hidden Fields for Validation */}
+      <input type="hidden" {...register("postId")} />
+      {parentCommentId && <input type="hidden" {...register("parentCommentId")} />}
+
       {/* Comment Input */}
       <textarea
         placeholder={placeholder}
@@ -89,8 +96,7 @@ export function CommentComposer({
       <label className="flex items-center gap-3 cursor-pointer">
         <input
           type="checkbox"
-          checked={isAnonymous}
-          onChange={(e) => setIsAnonymous(e.target.checked)}
+          {...register("isAnonymous")}
           className="w-4 h-4 rounded accent-[var(--primary)]"
         />
         <span className="text-xs sm:text-sm font-medium text-[var(--text-secondary)]">
@@ -116,7 +122,7 @@ export function CommentComposer({
         )}
         <button
           type="submit"
-          disabled={isSubmitting || !isValid}
+          disabled={isSubmitting || !isValid || content.trim().length === 0}
           className="flex-1 min-h-[44px] px-4 rounded-[var(--radius-md)] bg-[var(--primary)] text-white hover:opacity-90 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
         >
           {isSubmitting ? "Posting..." : "Post Comment"}
