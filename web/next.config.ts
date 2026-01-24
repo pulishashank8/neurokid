@@ -5,6 +5,15 @@ const nextConfig: NextConfig = {
   // Next.js 16.1.2 has worker stability issues with Turbopack
 
   productionBrowserSourceMaps: true,
+  webpack: (config, { webpack }) => {
+    // Completely ignore jsdom/canvas imports on server
+    config.plugins.push(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^(jsdom|canvas|bufferutil|utf-8-validate)$/,
+      })
+    );
+    return config;
+  },
 
   images: {
     remotePatterns: [
