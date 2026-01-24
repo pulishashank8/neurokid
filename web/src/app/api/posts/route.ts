@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { createPostSchema, getPostsSchema } from "@/lib/validations/community";
-import sanitizeHtml from 'sanitize-html';
+import DOMPurify from 'isomorphic-dompurify';
 import { getCached, setCached, invalidateCache, CACHE_TTL, cacheKey } from "@/lib/redis";
 import { rateLimitResponse, RATE_LIMITERS } from "@/lib/rateLimit";
 import { withApiHandler, getRequestId } from "@/lib/apiHandler";
@@ -315,15 +315,16 @@ export const POST = withApiHandler(async (request: NextRequest) => {
   }
 
   // Sanitize content to prevent XSS
-  // sanitize-html removes malicious scripts and handling safe links
   const dirty = enforceSafeLinks(content);
-  const sanitizedContent = sanitizeHtml(dirty, {
-    allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
-    allowedAttributes: {
-      ...sanitizeHtml.defaults.allowedAttributes,
-      'img': ['src', 'alt', 'title', 'width', 'height'],
-      'a': ['href', 'name', 'target', 'rel']
-    }
+  const sanitizedContent = DOMPurify.sanitize(dirty, {
+    ALLOWED_TAGS: [
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'p', 'a', 'ul', 'ol',
+      'nl', 'li', 'b', 'i', 'strong', 'em', 'strike', 'code', 'hr', 'br', 'div',
+      'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'img'
+    ],
+    ALLOWED_ATTR: [
+      'href', 'name', 'target', 'rel', 'src', 'alt', 'title', 'width', 'height', 'class', 'style'
+    ],
   });
 
   // Verify category exists
