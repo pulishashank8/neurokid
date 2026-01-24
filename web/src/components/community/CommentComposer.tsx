@@ -139,23 +139,55 @@ export function CommentComposer({
       </p>
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
-        {onCancel && (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="min-h-[44px] px-4 rounded-[var(--radius-md)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated-hover)] font-medium transition-all text-sm"
+            >
+              Cancel
+            </button>
+          )}
           <button
-            type="button"
-            onClick={onCancel}
-            className="min-h-[44px] px-4 rounded-[var(--radius-md)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated-hover)] font-medium transition-all text-sm"
+            type="submit"
+            disabled={isSubmitting || !isValid || !session}
+            className="flex-1 min-h-[44px] px-4 rounded-[var(--radius-md)] bg-[var(--primary)] text-white hover:opacity-90 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            title={
+              !session
+                ? "Please login to comment"
+                : !isValid
+                  ? "Please enter your comment"
+                  : isSubmitting
+                    ? "Posting..."
+                    : "Post your comment"
+            }
           >
-            Cancel
+            {isSubmitting ? "Posting..." : "Post Comment"}
           </button>
+        </div>
+
+        {/* Helpful user feedback */}
+        {!session && (
+          <p className="text-xs text-red-500 font-medium">
+            Please{" "}
+            <a href="/login" className="underline hover:text-red-600">
+              login
+            </a>{" "}
+            to comment
+          </p>
         )}
-        <button
-          type="submit"
-          disabled={isSubmitting || content.trim().length === 0 || !session}
-          className="flex-1 min-h-[44px] px-4 rounded-[var(--radius-md)] bg-[var(--primary)] text-white hover:opacity-90 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-        >
-          {isSubmitting ? "Posting..." : "Post Comment"}
-        </button>
+        {session && !isValid && content.length === 0 && (
+          <p className="text-xs text-[var(--text-muted)]">
+            Start typing to enable posting
+          </p>
+        )}
+        {session && errors.content && (
+          <p className="text-xs text-red-500 font-medium">
+            {errors.content.message}
+          </p>
+        )}
       </div>
     </form>
   );

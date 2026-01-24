@@ -1,0 +1,118 @@
+﻿
+> web@0.1.0 build
+> next build
+
+node.exe : ΓÜá `eslint` 
+configuration in 
+next.config.ts is no longer 
+supported. See more info 
+here: https://nextjs.org/docs
+/app/api-reference/cli/next#n
+ext-lint-options
+At C:\Program 
+Files\nodejs\npm.ps1:29 
+char:3
++   & $NODE_EXE $NPM_CLI_JS 
+$args
++   
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (ΓÜá `es  
+  lint` co...xt-lint-optio   
+ ns:String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+ΓÜá Invalid next.config.ts 
+options detected: 
+ΓÜá     Unrecognized key(s) 
+in object: 'eslint'
+ΓÜá See more info here: https
+://nextjs.org/docs/messages/i
+nvalid-next-config
+Γû▓ Next.js 16.1.2 (Turbopack)
+- Environments: .env.local, .env.production, .env
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 5.4s
+  Skipping validation of types
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/52) ...
+  Generating static pages using 11 workers (13/52) 
+  Generating static pages using 11 workers (26/52) 
+  Generating static pages using 11 workers (39/52) 
+Γ£ô Generating static pages using 11 workers (52/52) in 1570.4ms
+  Finalizing page optimization ...
+
+Route (app)
+Γöî Γùï /
+Γö£ Γùï /_not-found
+Γö£ Γùï /about
+Γö£ Γùï /admin
+Γö£ Γùï /admin/data-catalog
+Γö£ ╞Æ /admin/data-catalog/[id]
+Γö£ Γùï /ai-support
+Γö£ ╞Æ /api/admin/catalog
+Γö£ ╞Æ /api/admin/catalog/[id]
+Γö£ ╞Æ /api/admin/seed-resources
+Γö£ ╞Æ /api/ai/chat
+Γö£ ╞Æ /api/auth/[...nextauth]
+Γö£ ╞Æ /api/auth/forgot-password
+Γö£ ╞Æ /api/auth/register
+Γö£ ╞Æ /api/auth/resend-verification
+Γö£ ╞Æ /api/auth/reset-password
+Γö£ ╞Æ /api/auth/verify-email
+Γö£ ╞Æ /api/bookmarks
+Γö£ ╞Æ /api/categories
+Γö£ ╞Æ /api/comments/[id]
+Γö£ ╞Æ /api/health
+Γö£ ╞Æ /api/mod/actions/lock
+Γö£ ╞Æ /api/mod/actions/pin
+Γö£ ╞Æ /api/mod/actions/remove
+Γö£ ╞Æ /api/mod/actions/suspend
+Γö£ ╞Æ /api/mod/reports
+Γö£ ╞Æ /api/mod/reports/[id]
+Γö£ ╞Æ /api/posts
+Γö£ ╞Æ /api/posts/[id]
+Γö£ ╞Æ /api/posts/[id]/comments
+Γö£ ╞Æ /api/posts/[id]/lock
+Γö£ ╞Æ /api/posts/[id]/pin
+Γö£ ╞Æ /api/providers
+Γö£ ╞Æ /api/reports
+Γö£ ╞Æ /api/reports/[id]
+Γö£ ╞Æ /api/resources
+Γö£ ╞Æ /api/resources/save
+Γö£ ╞Æ /api/tags
+Γö£ ╞Æ /api/user/change-password
+Γö£ ╞Æ /api/user/delete-account
+Γö£ ╞Æ /api/user/profile
+Γö£ ╞Æ /api/votes
+Γö£ Γùï /bookmarks
+Γö£ Γùï /community
+Γö£ ╞Æ /community/[id]
+Γö£ Γùï /community/new
+Γö£ Γùï /dashboard
+Γö£ Γùï /error
+Γö£ Γùï /forgot-password
+Γö£ Γùï /login
+Γö£ Γùï /marketplace
+Γö£ Γùï /moderation
+Γö£ ╞Æ /moderation/[id]
+Γö£ Γùï /providers
+Γö£ Γùï /register
+Γö£ Γùï /reset-password
+Γö£ Γùï /resources
+Γö£ Γùï /screening
+Γö£ ╞Æ /screening/[group]
+Γö£ Γùï /screening/result
+Γö£ Γùï /settings
+Γö£ Γùï /trust
+Γöö Γùï /verify-email
+
+
+╞Æ Proxy (Middleware)
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+

@@ -8,7 +8,7 @@ import { invalidateCache } from "@/lib/redis";
 import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
 import { createLogger } from "@/lib/logger";
 import { getRequestId, withApiHandler } from "@/lib/apiHandler";
-import DOMPurify from 'isomorphic-dompurify';
+import sanitizeHtml from 'sanitize-html';
 
 function enforceSafeLinks(html: string): string {
   return html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
@@ -216,7 +216,14 @@ export async function POST(
 
     // Sanitize content
     const dirty = enforceSafeLinks(content);
-    const sanitizedContent = DOMPurify.sanitize(dirty);
+    const sanitizedContent = sanitizeHtml(dirty, {
+      allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
+      allowedAttributes: {
+        ...sanitizeHtml.defaults.allowedAttributes,
+        'img': ['src', 'alt', 'title', 'width', 'height'],
+        'a': ['href', 'name', 'target', 'rel']
+      }
+    });
 
     // Create comment and increment post comment count
     const [comment] = await prisma.$transaction([

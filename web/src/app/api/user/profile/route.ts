@@ -5,7 +5,7 @@ import { updateProfileSchema } from "@/lib/validations/community";
 import { RATE_LIMITERS, rateLimitResponse } from "@/lib/rateLimit";
 import { withApiHandler, getRequestId } from "@/lib/apiHandler";
 import { createLogger } from "@/lib/logger";
-import DOMPurify from 'isomorphic-dompurify';
+import sanitizeHtml from 'sanitize-html';
 
 // GET /api/user/profile
 export async function GET() {
@@ -81,7 +81,14 @@ export const PUT = withApiHandler(async (request: NextRequest) => {
   const { username, displayName, bio, avatarUrl, location, website } = validation.data;
 
   // Sanitize bio
-  const sanitizedBio = bio ? DOMPurify.sanitize(bio) : bio;
+  const sanitizedBio = bio ? sanitizeHtml(bio, {
+    allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
+    allowedAttributes: {
+      ...sanitizeHtml.defaults.allowedAttributes,
+      'img': ['src', 'alt', 'title', 'width', 'height'],
+      'a': ['href', 'name', 'target', 'rel']
+    }
+  }) : bio;
 
   logger.debug({ userId: session.user.id, username }, 'Updating profile');
 

@@ -1,0 +1,79 @@
+﻿git : remote: error: GH013: 
+Repository rule violations 
+found for refs/heads/main.   
+     
+At line:1 char:1
++ git push origin main 2>&1 
+| Out-File -Encoding utf8 
+git_push_error.tx ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (remote:  
+   error: ...s/main.         
+   :String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+remote: 
+remote: - GITHUB PUSH 
+PROTECTION        
+remote:   ΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓ
+ÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇö
+ΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇ
+öΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓ
+ÇöΓÇöΓÇöΓÇöΓÇöΓÇö        
+remote:     Resolve the 
+following violations before 
+pushing again        
+remote: 
+remote:     - Push cannot 
+contain secrets        
+remote: 
+remote:             
+remote:      (?) Learn how 
+to resolve a blocked push    
+    
+remote:      https://docs.git
+hub.com/code-security/secret-
+scanning/working-with-secret-
+scanning-and-push-protection/
+working-with-push-protection-
+from-the-command-line#resolvi
+ng-a-blocked-push        
+remote:             
+remote:             
+remote:       ΓÇöΓÇö Groq 
+API Key ΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇö
+ΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇ
+öΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓ
+ÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇöΓÇö
+ΓÇöΓÇö        
+remote:        locations:    
+    
+remote:          - commit: c4
+d175b6f3e3dc71b3a3ef63ffb3987
+2499985c8        
+remote:            path: 
+web/.env.production:6        
+remote:             
+remote:        (?) To push, 
+remove secret from commit(s) 
+or follow this URL to allow 
+the secret.        
+remote:        https://github
+.com/pulishashank8/neurokid/s
+ecurity/secret-scanning/unblo
+ck-secret/38fND69Si8Go1TMbuk7
+0lvdN3yA        
+remote:             
+remote: 
+remote: 
+To https://github.com/pulisha
+shank8/neurokid.git
+ ! [remote rejected] main -> 
+main (push declined due to 
+repository rule violations)
+error: failed to push some 
+refs to 'https://github.com/p
+ulishashank8/neurokid.git'
