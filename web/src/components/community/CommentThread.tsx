@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
+import { useSession } from "next-auth/react";
+import toast from "react-hot-toast";
 import { VoteButtons } from "./VoteButtons";
 import { ReportButton } from "./ReportButton";
 import { CommentComposer } from "./CommentComposer";
@@ -38,6 +40,7 @@ export function CommentThread({
 }: CommentThreadProps) {
   const [isReplying, setIsReplying] = useState(false);
   const [showChildren, setShowChildren] = useState(true);
+  const { data: session } = useSession();
   const createdDate = new Date(comment.createdAt);
 
   const maxDepth = 5; // Limit nesting
@@ -84,7 +87,13 @@ export function CommentThread({
               <div className="flex items-center gap-2">
                 {canNest && (
                   <button
-                    onClick={() => setIsReplying(!isReplying)}
+                    onClick={() => {
+                      if (!session) {
+                        toast.error("Please login to reply", { id: "login-required" });
+                        return;
+                      }
+                      setIsReplying(!isReplying);
+                    }}
                     className="min-h-[44px] px-3 rounded-[var(--radius-md)] text-xs sm:text-sm font-medium bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated-hover)] transition-all"
                   >
                     {isReplying ? "Cancel" : "Reply"}

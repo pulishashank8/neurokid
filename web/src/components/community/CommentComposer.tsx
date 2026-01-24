@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createCommentSchema, CreateCommentInput } from "@/lib/validations/community";
@@ -40,6 +41,13 @@ export function CommentComposer({
     },
     mode: "onChange",
   });
+
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (postId) setValue("postId", postId);
+    if (parentCommentId) setValue("parentCommentId", parentCommentId);
+  }, [postId, parentCommentId, setValue]);
 
   const content = watch("content") ?? "";
   const isAnonymous = watch("isAnonymous");
@@ -122,7 +130,7 @@ export function CommentComposer({
         )}
         <button
           type="submit"
-          disabled={isSubmitting || !isValid || content.trim().length === 0}
+          disabled={isSubmitting || content.trim().length === 0 || !session}
           className="flex-1 min-h-[44px] px-4 rounded-[var(--radius-md)] bg-[var(--primary)] text-white hover:opacity-90 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
         >
           {isSubmitting ? "Posting..." : "Post Comment"}
