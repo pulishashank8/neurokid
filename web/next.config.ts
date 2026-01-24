@@ -5,14 +5,6 @@ const nextConfig: NextConfig = {
   // Next.js 16.1.2 has worker stability issues with Turbopack
 
   productionBrowserSourceMaps: true,
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      jsdom: false,
-      'isomorphic-dompurify': false,
-    };
-    return config;
-  },
 
   images: {
     remotePatterns: [
