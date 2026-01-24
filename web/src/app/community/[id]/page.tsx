@@ -69,12 +69,16 @@ export default function PostDetailPage({
   }, [params]);
 
   // Fetch post
-  const { data: post, isLoading: postLoading } = useQuery({
+  const { data: post, isLoading: postLoading, isError, error } = useQuery({
     queryKey: ["post", postId],
     queryFn: async () => {
       if (!postId) return null;
       const res = await fetch(`/api/posts/${postId}`);
-      if (!res.ok) throw new Error("Failed to fetch post");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        console.error("Fetch post error:", errorData);
+        throw new Error(errorData.details || errorData.error || "Failed to fetch post");
+      }
       return res.json() as Promise<Post>;
     },
     enabled: !!postId,
@@ -98,6 +102,20 @@ export default function PostDetailPage({
   };
 
   const comments: Comment[] = commentsData?.comments || [];
+
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-primary)] pt-20 px-4 flex items-center justify-center">
+        <div className="bg-red-50 text-red-800 p-6 rounded-lg max-w-md text-center">
+          <h2 className="text-xl font-bold mb-2">Error Loading Post</h2>
+          <p>{error instanceof Error ? error.message : "An unexpected error occurred"}</p>
+          <Link href="/community">
+            <Button className="mt-4" variant="secondary">Back to Community</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (!postId) return <LoadingSpinner size="lg" />;
 

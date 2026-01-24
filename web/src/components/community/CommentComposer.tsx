@@ -52,10 +52,23 @@ export function CommentComposer({
   const content = watch("content") ?? "";
   const isAnonymous = watch("isAnonymous");
 
+  // DEBUGGING: Monitor button state
+  useEffect(() => {
+    console.log("🟢 CommentComposer State:", {
+      hasSession: !!session,
+      contentLength: content.length,
+      isSubmitting,
+      isValid,
+      errors
+    });
+  }, [session, content, isSubmitting, isValid, errors]);
+
   const onSubmit = async (data: CreateCommentInput) => {
+    console.log("🟢 CommentComposer: onSubmit called", data); // LOGGING
     setIsSubmitting(true);
 
     try {
+      console.log(`🟢 CommentComposer: Sending POST to /api/posts/${postId}/comments`); // LOGGING
       const response = await fetch(`/api/posts/${postId}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -64,8 +77,12 @@ export function CommentComposer({
 
       if (!response.ok) {
         const error = await response.json();
+        console.error("🔴 CommentComposer: API Error", error); // LOGGING
         throw new Error(error.error || "Failed to create comment");
       }
+
+      const result = await response.json();
+      console.log("🟢 CommentComposer: Success", result); // LOGGING
 
       toast.success("Comment posted!");
       reset({
@@ -76,15 +93,19 @@ export function CommentComposer({
       });
       onSuccess?.();
     } catch (error: any) {
+      console.error("🔴 CommentComposer: Catch Error", error); // LOGGING
       toast.error(error.message || "Failed to post comment");
-      console.error("Error posting comment:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const onError = (errors: any) => {
+    console.error("🔴 CommentComposer: Validation Errors", errors); // LOGGING
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+    <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-3">
       {/* Hidden Fields for Validation */}
       <input type="hidden" {...register("postId")} />
       {parentCommentId && <input type="hidden" {...register("parentCommentId")} />}
