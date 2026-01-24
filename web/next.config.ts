@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   productionBrowserSourceMaps: true,
-  serverExternalPackages: ['isomorphic-dompurify', 'jsdom'],
+
   images: {
     remotePatterns: [
       {
