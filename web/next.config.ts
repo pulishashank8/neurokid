@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  allowedDevOrigins: ['*'],
+  allowedDevOrigins: [
+    'https://*.replit.dev',
+    'https://*.janeway.replit.dev',
+  ],
   images: {
     remotePatterns: [
       {
