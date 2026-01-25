@@ -26,7 +26,8 @@ import {
   ShoppingBag,
   LogOut,
   Sun,
-  Moon
+  Moon,
+  MessageCircle
 } from "lucide-react";
 
 type SubItem = { href: string; label: string; icon: any; description: string };
@@ -37,6 +38,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Community",
     items: [
       { href: "/community", label: "Forums", icon: Users, description: "Safe space to share stories" },
+      { href: "/messages", label: "Messages", icon: MessageCircle, description: "Private conversations" },
       { href: "/community?saved=1", label: "Saved Posts", icon: Heart, description: "Posts you've bookmarked" },
     ]
   },
