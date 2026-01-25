@@ -184,6 +184,28 @@ The platform includes a notification system for messaging:
 - Cleaned up dashboard - removed redundant elements
 - Full responsiveness across all device sizes (mobile, tablet, desktop)
 
+## User Profiles (`/user/[username]`)
+The platform includes LinkedIn-style user profiles accessible by clicking on post authors:
+
+### Features
+- **Profile Header**: Display name, username, member since date with gradient banner
+- **Connection Request**: Send connection requests with optional message (300 char limit)
+- **Connection Status**: Shows pending, connected, or none status
+- **Posts Tab**: Public tab showing all posts by this user
+- **Upvoted Tab**: Private tab (own profile only) showing posts you've upvoted
+- **Saved Tab**: Private tab (own profile only) showing bookmarked posts
+
+### Privacy Model
+- Posts are publicly visible on any profile
+- Upvoted and Saved tabs only appear when viewing your own profile
+- APIs enforce ownership check for private content
+
+## Community Page Enhancements
+- **My Posts Filter**: Filter community feed to show only your posts
+- **Messages Button**: Quick access to messaging from community header
+- **Category Sidebar**: Includes "My Posts" option with state management
+- **Posts API**: Supports `authorId` filter parameter for user-specific feeds
+
 ## Known Issues & Deployment Notes
 
 ### Next.js 16 Build Bug (January 2025)
