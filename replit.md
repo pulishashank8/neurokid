@@ -183,3 +183,22 @@ The platform includes a notification system for messaging:
 - Improved theme toggle with clear Sun/Moon icons with labels
 - Cleaned up dashboard - removed redundant elements
 - Full responsiveness across all device sizes (mobile, tablet, desktop)
+
+## Known Issues & Deployment Notes
+
+### Next.js 16 Build Bug (January 2025)
+Next.js 16.1.4 has a known prerendering bug that causes build failures with errors like:
+- "Cannot read properties of null (reading 'useContext')"
+- "Cannot read properties of null (reading 'useState')"
+
+**Affected pages**: Any page using React hooks in client components during static export
+
+**Workaround options**:
+1. Wait for official Next.js patch (recommended)
+2. Downgrade to Next.js 14.x if compatibility allows
+3. Deploy directly to Vercel which may handle build differently in their environment
+
+**Current status**: Local development works perfectly. Production builds fail during static generation phase.
+
+### Email Verification
+Email verification is bypassed in development mode (NODE_ENV !== 'production') for easier testing.

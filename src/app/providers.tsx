@@ -10,8 +10,8 @@ function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 1000 * 60 * 5, // 5 minutes
-        gcTime: 1000 * 60 * 10, // 10 minutes
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
       },
     },
   });
@@ -21,17 +21,15 @@ let browserQueryClient: QueryClient | undefined = undefined;
 
 function getQueryClient() {
   if (typeof window === "undefined") {
-    // Server: always make a new query client
     return makeQueryClient();
   } else {
-    // Browser: make a new query client if we don't already have one
     if (!browserQueryClient) browserQueryClient = makeQueryClient();
     return browserQueryClient;
   }
 }
 
 export function SessionProvider({ children }: Readonly<{ children: ReactNode }>) {
-  const queryClient = getQueryClient();
+  const [queryClient] = useState(() => getQueryClient());
   
   return (
     <QueryClientProvider client={queryClient}>
