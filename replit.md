@@ -19,6 +19,7 @@ NeuroKid is a Next.js-based community platform for parents of autistic children.
 
 ## Development
 - Dev server runs on port 5000
+- Database: Supabase PostgreSQL (connected via SUPABASE_DATABASE_URL)
 - Database schema is managed via Prisma
 - Run `npm run dev` to start development
 
