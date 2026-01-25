@@ -97,10 +97,10 @@ export default function CrisisPage() {
           
           <Link 
             href="/calm"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 text-white font-semibold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5 transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 text-white font-bold text-lg shadow-lg shadow-emerald-600/30 hover:shadow-emerald-600/50 hover:-translate-y-0.5 transition-all border-2 border-emerald-700 min-h-[48px]"
           >
             <Heart className="w-5 h-5" />
-            Need to Calm Down First?
+            <span>Need to Calm Down First?</span>
           </Link>
         </div>
       </div>
@@ -151,19 +151,25 @@ export default function CrisisPage() {
                     <div className="flex flex-wrap gap-3">
                       <a
                         href={`tel:${resource.phone.replace(/-/g, "")}`}
-                        className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl ${iconBg[resource.color as keyof typeof iconBg]} text-white font-semibold shadow-lg hover:opacity-90 transition-all`}
+                        className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold shadow-lg hover:opacity-90 transition-all min-h-[44px] ${
+                          resource.color === "red" ? "bg-red-600 text-white border-2 border-red-700" :
+                          resource.color === "blue" ? "bg-blue-600 text-white border-2 border-blue-700" :
+                          resource.color === "emerald" ? "bg-emerald-600 text-white border-2 border-emerald-700" :
+                          resource.color === "purple" ? "bg-purple-600 text-white border-2 border-purple-700" :
+                          "bg-amber-600 text-white border-2 border-amber-700"
+                        }`}
                       >
                         <Phone className="w-4 h-4" />
-                        {resource.phoneLabel ? `${resource.phoneLabel} ${resource.phone}` : `Call ${resource.phone}`}
+                        <span className="font-bold">{resource.phoneLabel ? `${resource.phoneLabel} ${resource.phone}` : `Call ${resource.phone}`}</span>
                       </a>
                       <a
                         href={resource.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--surface2)] text-[var(--text)] font-medium hover:bg-[var(--surface2)]/80 transition-all"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-emerald-600 font-semibold border-2 border-emerald-500 hover:bg-emerald-50 transition-all min-h-[44px]"
                       >
                         <ExternalLink className="w-4 h-4" />
-                        Website
+                        <span className="font-bold">Website</span>
                       </a>
                     </div>
                   </div>
