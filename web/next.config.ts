@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
   allowedDevOrigins: [
     'https://*.replit.dev',
     'https://*.janeway.replit.dev',
