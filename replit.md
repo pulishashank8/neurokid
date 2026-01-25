@@ -84,6 +84,25 @@ These features are 100% free (no paid APIs) and designed for real-world use by f
 - **Knowledge**: Resources, AI Companion
 - **Platform**: About, Marketplace, Trust & Safety, Settings, Sign Out
 
+## Dashboard Support Tools
+Four quick-access tools on the dashboard:
+1. **Breathe & Calm** - Animated breathing exercises
+2. **Next Screening** - M-CHAT developmental screening
+3. **Therapy Log** - Track therapy sessions
+4. **Marketplace** - 150+ Amazon product links for autism essentials
+
+## Marketplace
+The Marketplace (`/marketplace`) is a curated shopping experience with 150+ Amazon product links across categories:
+- **Gifts**: Subscription boxes, weighted animals, building sets
+- **Communication**: PECS books, visual schedules, talking flashcards
+- **Safety**: Door alarms, GPS trackers, ID bracelets
+- **Sensory**: Swings, weighted blankets, chew toys, bubble tubes
+- **Toys**: Fidgets, kinetic sand, trampolines, puzzles
+- **Clothing**: Seamless socks, compression vests, adaptive wear
+- **Education**: Books, flashcards, scissors, social skills games
+- **Daily Living**: Adaptive utensils, visual timers, potty watches
+- **Tech**: Noise-cancelling headphones, GPS trackers, star projectors
+
 ## Recent Updates (Jan 2026)
 - Added Breathing/Calm Tool with animated exercises
 - Created Crisis Resources page with emergency hotlines

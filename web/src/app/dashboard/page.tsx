@@ -6,8 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { 
   Users, Stethoscope, Brain, ClipboardCheck, ArrowRight, 
-  Activity, MessagesSquare, Bookmark, Heart, Wind,
-  ClipboardList, Sparkles, Quote
+  Heart, Wind, ClipboardList, Sparkles, Quote, ShoppingBag
 } from "lucide-react";
 
 const QUOTES = [
@@ -94,8 +93,10 @@ export default function DashboardPage() {
   ];
 
   const supportTools = [
-    { href: "/calm", icon: Wind, label: "Breathing & Calm", color: "text-emerald-500 bg-emerald-500/10" },
+    { href: "/calm", icon: Wind, label: "Breathe & Calm", color: "text-emerald-500 bg-emerald-500/10" },
+    { href: "/screening", icon: ClipboardCheck, label: "Next Screening", color: "text-blue-500 bg-blue-500/10" },
     { href: "/therapy-log", icon: ClipboardList, label: "Therapy Log", color: "text-purple-500 bg-purple-500/10" },
+    { href: "/marketplace", icon: ShoppingBag, label: "Marketplace", color: "text-amber-500 bg-amber-500/10" },
   ];
 
   return (
@@ -198,58 +199,26 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Activity & Quick Links */}
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* Your Activity */}
-            <div className="bg-[var(--surface)] rounded-3xl border border-[var(--border)] p-8 shadow-lg">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                  <Activity className="w-5 h-5 text-blue-500" />
-                </div>
-                <h2 className="text-xl font-bold text-[var(--text)]">Your Activity</h2>
+          {/* Community Highlights */}
+          <div className="bg-gradient-to-br from-[var(--surface)] to-emerald-50/30 dark:to-emerald-950/10 rounded-3xl border border-[var(--border)] p-8 shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                <Users className="w-5 h-5 text-white" />
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <Link href="/screening" className="group flex items-center gap-3 p-4 rounded-xl bg-[var(--surface2)] hover:bg-emerald-500 transition-all">
-                  <ClipboardCheck className="w-5 h-5 text-emerald-500 group-hover:text-white transition-colors" />
-                  <span className="text-sm font-semibold text-[var(--text)] group-hover:text-white transition-colors">Screenings</span>
-                </Link>
-                <Link href="/community" className="group flex items-center gap-3 p-4 rounded-xl bg-[var(--surface2)] hover:bg-purple-500 transition-all">
-                  <MessagesSquare className="w-5 h-5 text-purple-500 group-hover:text-white transition-colors" />
-                  <span className="text-sm font-semibold text-[var(--text)] group-hover:text-white transition-colors">My Posts</span>
-                </Link>
-                <Link href="/community?saved=1" className="group flex items-center gap-3 p-4 rounded-xl bg-[var(--surface2)] hover:bg-rose-500 transition-all">
-                  <Bookmark className="w-5 h-5 text-rose-500 group-hover:text-white transition-colors" />
-                  <span className="text-sm font-semibold text-[var(--text)] group-hover:text-white transition-colors">Saved Posts</span>
-                </Link>
-                <Link href="/resources?saved=1" className="group flex items-center gap-3 p-4 rounded-xl bg-[var(--surface2)] hover:bg-blue-500 transition-all">
-                  <Heart className="w-5 h-5 text-blue-500 group-hover:text-white transition-colors" />
-                  <span className="text-sm font-semibold text-[var(--text)] group-hover:text-white transition-colors">Saved Resources</span>
-                </Link>
+              <div>
+                <h2 className="text-xl font-bold text-[var(--text)]">Community</h2>
+                <p className="text-sm text-[var(--muted)]">You're not alone in this journey</p>
               </div>
             </div>
-
-            {/* Community Highlights */}
-            <div className="bg-gradient-to-br from-[var(--surface)] to-emerald-50/30 dark:to-emerald-950/10 rounded-3xl border border-[var(--border)] p-8 shadow-lg">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                  <Users className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-[var(--text)]">Community</h2>
-                  <p className="text-sm text-[var(--muted)]">You're not alone in this journey</p>
-                </div>
-              </div>
-              
-              <p className="text-[var(--muted)] mb-6 leading-relaxed">
-                Join thousands of parents sharing experiences, asking questions, and supporting each other through the ups and downs of parenting neurodiverse children.
-              </p>
-              
-              <Link href="/community" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5 transition-all">
-                Join the Conversation
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
+            
+            <p className="text-[var(--muted)] mb-6 leading-relaxed">
+              Join thousands of parents sharing experiences, asking questions, and supporting each other through the ups and downs of parenting neurodiverse children.
+            </p>
+            
+            <Link href="/community" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5 transition-all">
+              Join the Conversation
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </div>
