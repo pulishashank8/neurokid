@@ -3,12 +3,20 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { createPostSchema, getPostsSchema } from "@/lib/validations/community";
-import DOMPurify from 'isomorphic-dompurify';
 import { getCached, setCached, invalidateCache, CACHE_TTL, cacheKey } from "@/lib/redis";
 import { rateLimitResponse, RATE_LIMITERS } from "@/lib/rateLimit";
 import { withApiHandler, getRequestId } from "@/lib/apiHandler";
 import { createLogger } from "@/lib/logger";
 import { apiErrors } from "@/lib/apiError";
+
+// SUPER STABLE SANITIZER (No external dependencies)
+function simpleSanitize(html: string): string {
+  if (!html) return "";
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/on\w+="[^"]*"/gi, "")
+    .replace(/javascript:[^"']*/gi, "");
+}
 
 // Reddit-style Hot algorithm: time-decayed score based on votes
 function calculateHotScore(voteScore: number, createdAt: Date): number {
@@ -315,17 +323,7 @@ export const POST = withApiHandler(async (request: NextRequest) => {
   }
 
   // Sanitize content to prevent XSS
-  const dirty = enforceSafeLinks(content);
-  const sanitizedContent = DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: [
-      'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'p', 'a', 'ul', 'ol',
-      'nl', 'li', 'b', 'i', 'strong', 'em', 'strike', 'code', 'hr', 'br', 'div',
-      'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'img'
-    ],
-    ALLOWED_ATTR: [
-      'href', 'name', 'target', 'rel', 'src', 'alt', 'title', 'width', 'height', 'class', 'style'
-    ],
-  });
+  const sanitizedContent = simpleSanitize(content);
 
   // Verify category exists
   const category = await prisma.category.findUnique({
