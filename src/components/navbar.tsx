@@ -28,7 +28,17 @@ import {
   Sun,
   Moon,
   MessageCircle,
-  Star
+  Star,
+  Gamepad2,
+  Grid3X3,
+  Palette,
+  Shapes,
+  Puzzle,
+  Smile,
+  Circle,
+  Music,
+  ListOrdered,
+  Search
 } from "lucide-react";
 
 type SubItem = { href: string; label: string; icon: any; description: string };
@@ -65,6 +75,22 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/resources", label: "Resources", icon: BookOpen, description: "Guides, tools & manuals" },
       { href: "/ai-support", label: "AI Companion", icon: Brain, description: "24/7 instant guidance" },
+    ]
+  },
+  {
+    label: "Games",
+    items: [
+      { href: "/games", label: "All Games", icon: Gamepad2, description: "Fun learning activities" },
+      { href: "/games/memory-match", label: "Memory Match", icon: Grid3X3, description: "Find matching pairs" },
+      { href: "/games/color-sort", label: "Color Sort", icon: Palette, description: "Sort by colors" },
+      { href: "/games/shape-puzzle", label: "Shape Puzzle", icon: Shapes, description: "Match shapes" },
+      { href: "/games/pattern-complete", label: "Patterns", icon: Puzzle, description: "Complete sequences" },
+      { href: "/games/emotion-match", label: "Emotions", icon: Smile, description: "Learn feelings" },
+      { href: "/games/calming-bubbles", label: "Calm Bubbles", icon: Circle, description: "Pop to relax" },
+      { href: "/games/counting-stars", label: "Counting Stars", icon: Star, description: "Count objects" },
+      { href: "/games/sound-match", label: "Sound Match", icon: Music, description: "Match sounds" },
+      { href: "/games/sequence-builder", label: "Sequences", icon: ListOrdered, description: "Order steps" },
+      { href: "/games/spot-difference", label: "Spot Difference", icon: Search, description: "Find what's different" },
     ]
   },
   {

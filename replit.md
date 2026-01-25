@@ -89,6 +89,7 @@ These features are 100% free (no paid APIs) and designed for real-world use by f
 - **Care Compass**: Find Care, M-CHAT-R/F Screening
 - **Support**: Calm Tool, Crisis Help, Therapy Log, Daily Wins, Emergency Cards
 - **Knowledge**: Resources, AI Companion
+- **Games**: All Games, Memory Match, Color Sort, Shape Puzzle, Patterns, Emotions, Calm Bubbles
 - **Platform**: About, Marketplace, Trust & Safety, Settings, Sign Out
 
 ## Dashboard Layout
@@ -100,10 +101,52 @@ The dashboard has a side-by-side layout below the main module cards:
 3. **Therapy Log** - Track therapy sessions
 4. **Daily Wins** - Celebrate what worked today
 
-**Right Section - Marketplace**:
-- Title and description about Amazon products
-- "Browse Collection" button linking to 150+ products
+**Right Section - Marketplace & Games**:
+- Marketplace card with soft violet gradient theme
+- Games section card with sky/indigo gradient
+- "Browse Collection" and "Play Games" buttons
 - Responsive: stacks on mobile, side-by-side on tablet+
+
+## Games for Children (`/games`)
+The platform includes 10 therapeutic games designed specifically for autistic children:
+
+### Game Features
+- **No time pressure** - Games are relaxing without competitive stress
+- **Soft pastel colors** - Sensory-friendly visual design
+- **Clear feedback** - Positive reinforcement on correct answers
+- **Simple interactions** - Tap-based gameplay, no complex gestures
+- **Skills focus** - Each game targets specific developmental skills
+
+### Available Games
+1. **Memory Match** (`/games/memory-match`) - Flip cards to find matching pairs
+   - Skills: Memory, Focus, Pattern recognition
+   
+2. **Color Sort** (`/games/color-sort`) - Sort items by their color
+   - Skills: Categorization, Color recognition
+   
+3. **Shape Puzzle** (`/games/shape-puzzle`) - Match shapes to their outlines
+   - Skills: Spatial awareness, Shape recognition
+   
+4. **Pattern Complete** (`/games/pattern-complete`) - Finish the sequence
+   - Skills: Logic, Pattern recognition, Sequencing
+   
+5. **Emotion Match** (`/games/emotion-match`) - Match faces to feelings
+   - Skills: Emotional recognition, Social understanding
+   
+6. **Counting Stars** (`/games/counting-stars`) - Count objects and select number
+   - Skills: Numeracy, Counting, Number recognition
+   
+7. **Sound Match** (`/games/sound-match`) - Match sounds to animals
+   - Skills: Auditory processing, Association
+   
+8. **Sequence Builder** (`/games/sequence-builder`) - Put steps in order
+   - Skills: Sequencing, Logic, Daily routines
+   
+9. **Spot the Difference** (`/games/spot-difference`) - Find what's different
+   - Skills: Attention to detail, Visual discrimination
+   
+10. **Calming Bubbles** (`/games/calming-bubbles`) - Pop floating bubbles
+    - Skills: Stress relief, Focus, Calm down tool
 
 ## Marketplace
 The Marketplace (`/marketplace`) is a curated shopping experience with 150+ Amazon product links across categories:
