@@ -270,8 +270,10 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Right: Marketplace - Soft & Elegant Card */}
-            <Link href="/marketplace" className="group block">
+            {/* Right Column: Marketplace + Games stacked */}
+            <div className="flex flex-col gap-4">
+              {/* Marketplace Card */}
+              <Link href="/marketplace" className="group block">
               <div className="relative rounded-2xl p-4 sm:p-5 overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-xl bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-50 dark:from-violet-950/40 dark:via-purple-950/30 dark:to-indigo-950/40 border border-violet-100 dark:border-violet-900/30">
                 
                 {/* Soft ambient glow */}
@@ -325,8 +327,8 @@ export default function DashboardPage() {
               </div>
             </Link>
             
-            {/* Games Section - Below Marketplace */}
-            <Link href="/games" className="group block mt-4">
+              {/* Games Section - Below Marketplace */}
+              <Link href="/games" className="group block">
               <div className="relative rounded-2xl p-4 sm:p-5 overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-xl bg-gradient-to-br from-sky-50 via-indigo-50 to-violet-50 dark:from-sky-950/40 dark:via-indigo-950/30 dark:to-violet-950/40 border border-sky-100 dark:border-sky-900/30">
                 
                 {/* Soft ambient glow */}
@@ -378,7 +380,8 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
-            </Link>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
