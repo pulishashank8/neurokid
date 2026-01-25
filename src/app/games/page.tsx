@@ -25,8 +25,8 @@ const games = [
     description: "Flip cards to find matching pairs",
     icon: Grid3X3,
     color: "from-pink-400 to-rose-400",
-    bgColor: "bg-pink-50 dark:bg-pink-950/30",
-    borderColor: "border-pink-200 dark:border-pink-900/40",
+    bgColor: "bg-pink-50 dark:bg-slate-800",
+    borderColor: "border-pink-200 dark:border-pink-700/50",
     skills: ["Memory", "Focus"],
   },
   {
@@ -35,8 +35,8 @@ const games = [
     description: "Sort items by their colors",
     icon: Palette,
     color: "from-violet-400 to-purple-400",
-    bgColor: "bg-violet-50 dark:bg-violet-950/30",
-    borderColor: "border-violet-200 dark:border-violet-900/40",
+    bgColor: "bg-violet-50 dark:bg-slate-800",
+    borderColor: "border-violet-200 dark:border-violet-700/50",
     skills: ["Categorization", "Colors"],
   },
   {
@@ -45,8 +45,8 @@ const games = [
     description: "Match shapes to their outlines",
     icon: Shapes,
     color: "from-blue-400 to-cyan-400",
-    bgColor: "bg-blue-50 dark:bg-blue-950/30",
-    borderColor: "border-blue-200 dark:border-blue-900/40",
+    bgColor: "bg-blue-50 dark:bg-slate-800",
+    borderColor: "border-blue-200 dark:border-blue-700/50",
     skills: ["Spatial", "Shapes"],
   },
   {
@@ -55,8 +55,8 @@ const games = [
     description: "Finish the pattern sequence",
     icon: Puzzle,
     color: "from-emerald-400 to-teal-400",
-    bgColor: "bg-emerald-50 dark:bg-emerald-950/30",
-    borderColor: "border-emerald-200 dark:border-emerald-900/40",
+    bgColor: "bg-emerald-50 dark:bg-slate-800",
+    borderColor: "border-emerald-200 dark:border-emerald-700/50",
     skills: ["Logic", "Patterns"],
   },
   {
@@ -65,8 +65,8 @@ const games = [
     description: "Match faces to feelings",
     icon: Smile,
     color: "from-amber-400 to-orange-400",
-    bgColor: "bg-amber-50 dark:bg-amber-950/30",
-    borderColor: "border-amber-200 dark:border-amber-900/40",
+    bgColor: "bg-amber-50 dark:bg-slate-800",
+    borderColor: "border-amber-200 dark:border-amber-700/50",
     skills: ["Emotions", "Social"],
   },
   {
@@ -75,8 +75,8 @@ const games = [
     description: "Count objects and pick the number",
     icon: Star,
     color: "from-yellow-400 to-amber-400",
-    bgColor: "bg-yellow-50 dark:bg-yellow-950/30",
-    borderColor: "border-yellow-200 dark:border-yellow-900/40",
+    bgColor: "bg-yellow-50 dark:bg-slate-800",
+    borderColor: "border-yellow-200 dark:border-yellow-700/50",
     skills: ["Numbers", "Counting"],
   },
   {
@@ -85,8 +85,8 @@ const games = [
     description: "Match sounds to pictures",
     icon: Music,
     color: "from-indigo-400 to-violet-400",
-    bgColor: "bg-indigo-50 dark:bg-indigo-950/30",
-    borderColor: "border-indigo-200 dark:border-indigo-900/40",
+    bgColor: "bg-indigo-50 dark:bg-slate-800",
+    borderColor: "border-indigo-200 dark:border-indigo-700/50",
     skills: ["Listening", "Association"],
   },
   {
@@ -95,8 +95,8 @@ const games = [
     description: "Put steps in the right order",
     icon: ListOrdered,
     color: "from-teal-400 to-emerald-400",
-    bgColor: "bg-teal-50 dark:bg-teal-950/30",
-    borderColor: "border-teal-200 dark:border-teal-900/40",
+    bgColor: "bg-teal-50 dark:bg-slate-800",
+    borderColor: "border-teal-200 dark:border-teal-700/50",
     skills: ["Sequencing", "Logic"],
   },
   {
@@ -105,8 +105,8 @@ const games = [
     description: "Find what's different",
     icon: Search,
     color: "from-rose-400 to-pink-400",
-    bgColor: "bg-rose-50 dark:bg-rose-950/30",
-    borderColor: "border-rose-200 dark:border-rose-900/40",
+    bgColor: "bg-rose-50 dark:bg-slate-800",
+    borderColor: "border-rose-200 dark:border-rose-700/50",
     skills: ["Attention", "Detail"],
   },
   {
@@ -115,8 +115,8 @@ const games = [
     description: "Pop bubbles to relax",
     icon: Circle,
     color: "from-sky-400 to-blue-400",
-    bgColor: "bg-sky-50 dark:bg-sky-950/30",
-    borderColor: "border-sky-200 dark:border-sky-900/40",
+    bgColor: "bg-sky-50 dark:bg-slate-800",
+    borderColor: "border-sky-200 dark:border-sky-700/50",
     skills: ["Calm", "Focus"],
   },
 ];
@@ -140,18 +140,18 @@ export default function GamesPage() {
               <Gamepad2 className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)]">Fun & Learn Games</h1>
-              <p className="text-[var(--muted)] text-sm sm:text-base">Simple, calming games designed for focus and fun</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Fun & Learn Games</h1>
+              <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">Simple, calming games designed for focus and fun</p>
             </div>
           </div>
           
           {/* Info banner */}
-          <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-950/30 dark:to-purple-950/30 border border-violet-100 dark:border-violet-900/40">
+          <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-violet-50 to-purple-50 dark:from-slate-800 dark:to-slate-800 border border-violet-100 dark:border-violet-700/50">
             <div className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-violet-500 mt-0.5 flex-shrink-0" />
+              <Sparkles className="w-5 h-5 text-violet-500 dark:text-violet-400 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-sm text-[var(--text)] font-medium">Designed with care</p>
-                <p className="text-xs text-[var(--muted)] mt-0.5">
+                <p className="text-sm text-gray-900 dark:text-white font-medium">Designed with care</p>
+                <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
                   No time limits, no competition. Just gentle fun at your own pace.
                 </p>
               </div>
@@ -176,17 +176,17 @@ export default function GamesPage() {
               </div>
               
               {/* Content */}
-              <h3 className="font-bold text-[var(--text)] mb-1 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+              <h3 className="font-bold text-gray-900 dark:text-white mb-1 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
                 {game.name}
               </h3>
-              <p className="text-sm text-[var(--muted)] mb-3">{game.description}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">{game.description}</p>
               
               {/* Skill tags */}
               <div className="flex flex-wrap gap-1.5">
                 {game.skills.map((skill) => (
                   <span
                     key={skill}
-                    className="px-2 py-0.5 rounded-full bg-white/60 dark:bg-white/10 text-[10px] font-medium text-[var(--muted)]"
+                    className="px-2 py-0.5 rounded-full bg-white/60 dark:bg-slate-700/80 text-[10px] font-medium text-gray-600 dark:text-gray-200"
                   >
                     {skill}
                   </span>
@@ -198,7 +198,7 @@ export default function GamesPage() {
         
         {/* Footer note */}
         <div className="mt-8 text-center">
-          <p className="text-sm text-[var(--muted)]">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             All games are designed to be calming and supportive for neurodivergent children.
           </p>
         </div>

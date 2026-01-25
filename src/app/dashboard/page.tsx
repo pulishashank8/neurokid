@@ -274,16 +274,16 @@ export default function DashboardPage() {
             <div className="flex flex-col gap-4">
               {/* Marketplace Card - Compact */}
               <Link href="/marketplace" className="group block">
-              <div className="relative rounded-xl p-3 sm:p-4 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-50 dark:from-violet-950/40 dark:via-purple-950/30 dark:to-indigo-950/40 border border-violet-100 dark:border-violet-900/30">
+              <div className="relative rounded-xl p-3 sm:p-4 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 border border-violet-100 dark:border-violet-700/40">
                 
                 {/* Soft ambient glow */}
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-violet-200/30 to-transparent dark:from-violet-500/10 rounded-full blur-xl" />
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-violet-200/30 to-transparent dark:from-violet-600/20 rounded-full blur-xl" />
                 
                 {/* Floating product icons */}
                 <div className="absolute top-2 right-2 flex gap-1">
-                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-white/10 flex items-center justify-center text-xs shadow-sm border border-violet-100/50 dark:border-violet-800/20">🧸</div>
-                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-white/10 flex items-center justify-center text-xs shadow-sm border border-violet-100/50 dark:border-violet-800/20">🎧</div>
-                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-white/10 flex items-center justify-center text-xs shadow-sm border border-violet-100/50 dark:border-violet-800/20">📚</div>
+                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-slate-700/80 flex items-center justify-center text-xs shadow-sm border border-violet-100/50 dark:border-violet-600/30">🧸</div>
+                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-slate-700/80 flex items-center justify-center text-xs shadow-sm border border-violet-100/50 dark:border-violet-600/30">🎧</div>
+                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-slate-700/80 flex items-center justify-center text-xs shadow-sm border border-violet-100/50 dark:border-violet-600/30">📚</div>
                 </div>
                 
                 {/* Content */}
@@ -292,17 +292,17 @@ export default function DashboardPage() {
                     <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-sm">
                       <ShoppingBag className="w-3.5 h-3.5 text-white" />
                     </div>
-                    <h2 className="text-sm font-bold text-[var(--text)]">Marketplace</h2>
+                    <h2 className="text-sm font-bold text-gray-900 dark:text-white">Marketplace</h2>
                   </div>
                   
-                  <p className="text-[var(--muted)] text-xs leading-relaxed mb-2">
+                  <p className="text-gray-600 dark:text-gray-300 text-xs leading-relaxed mb-2">
                     Sensory toys, weighted blankets & more.
                   </p>
                   
                   {/* Category pills */}
                   <div className="flex flex-wrap gap-1 mb-2">
                     {['Sensory', 'Safety', 'Learning'].map((cat) => (
-                      <span key={cat} className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300 text-[9px] font-medium">
+                      <span key={cat} className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-800/50 text-violet-700 dark:text-violet-200 text-[9px] font-medium">
                         {cat}
                       </span>
                     ))}
@@ -319,16 +319,16 @@ export default function DashboardPage() {
             
               {/* Games Section - Compact */}
               <Link href="/games" className="group block">
-              <div className="relative rounded-xl p-3 sm:p-4 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg bg-gradient-to-br from-sky-50 via-indigo-50 to-violet-50 dark:from-sky-950/40 dark:via-indigo-950/30 dark:to-violet-950/40 border border-sky-100 dark:border-sky-900/30">
+              <div className="relative rounded-xl p-3 sm:p-4 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg bg-gradient-to-br from-sky-50 via-indigo-50 to-violet-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 border border-sky-100 dark:border-sky-700/40">
                 
                 {/* Soft ambient glow */}
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-sky-200/30 to-transparent dark:from-sky-500/10 rounded-full blur-xl" />
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-sky-200/30 to-transparent dark:from-sky-600/20 rounded-full blur-xl" />
                 
                 {/* Floating game icons */}
                 <div className="absolute top-2 right-2 flex gap-1">
-                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-white/10 flex items-center justify-center text-xs shadow-sm border border-sky-100/50 dark:border-sky-800/20">🧩</div>
-                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-white/10 flex items-center justify-center text-xs shadow-sm border border-sky-100/50 dark:border-sky-800/20">🎮</div>
-                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-white/10 flex items-center justify-center text-xs shadow-sm border border-sky-100/50 dark:border-sky-800/20">🌈</div>
+                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-slate-700/80 flex items-center justify-center text-xs shadow-sm border border-sky-100/50 dark:border-sky-600/30">🧩</div>
+                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-slate-700/80 flex items-center justify-center text-xs shadow-sm border border-sky-100/50 dark:border-sky-600/30">🎮</div>
+                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-slate-700/80 flex items-center justify-center text-xs shadow-sm border border-sky-100/50 dark:border-sky-600/30">🌈</div>
                 </div>
                 
                 {/* Content */}
@@ -337,17 +337,17 @@ export default function DashboardPage() {
                     <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center shadow-sm">
                       <Gamepad2 className="w-3.5 h-3.5 text-white" />
                     </div>
-                    <h2 className="text-sm font-bold text-[var(--text)]">Fun & Learn Games</h2>
+                    <h2 className="text-sm font-bold text-gray-900 dark:text-white">Fun & Learn Games</h2>
                   </div>
                   
-                  <p className="text-[var(--muted)] text-xs leading-relaxed mb-2">
+                  <p className="text-gray-600 dark:text-gray-300 text-xs leading-relaxed mb-2">
                     10 calming games for kids.
                   </p>
                   
                   {/* Game type pills */}
                   <div className="flex flex-wrap gap-1 mb-2">
                     {['Memory', 'Patterns', 'Emotions'].map((cat) => (
-                      <span key={cat} className="px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-300 text-[9px] font-medium">
+                      <span key={cat} className="px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-800/50 text-sky-700 dark:text-sky-200 text-[9px] font-medium">
                         {cat}
                       </span>
                     ))}
