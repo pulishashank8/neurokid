@@ -1,0 +1,98 @@
+.
+
+FEATURE TO ADD (ONLY THIS FEATURE)
+
+Add **Private 1:1 Direct Messaging between users**.
+
+This is an **additional feature**, NOT a replacement or change to Community.
+
+FUNCTIONAL REQUIREMENTS
+
+1) Messaging Scope
+- Messages are **strictly private**.
+- Only **two users** can see a conversation.
+- No public visibility.
+- Messages are NOT linked to posts or comments.
+- Admins/moderators should NOT read message content by default.
+
+2) How Users Start a Conversation
+- Every user has a **unique username** (already collected).
+- Add a “Message” button:
+  - On user profile
+  - Or next to username in Community posts/comments
+- Clicking it opens (or creates) a private conversation.
+
+3) Conversation Rules
+- One conversation per user-pair (A ↔ B).
+- Users can:
+  - Send messages
+  - Read messages
+  - Delete their own messages
+- Other users cannot access the conversation by any means.
+
+4) UI Requirements
+- Add a new route: `/messages`
+- Inbox layout:
+  - Left: list of conversations (username + last message preview)
+  - Right: message thread
+- Simple, clean UI consistent with existing Tailwind styles.
+- Mobile-friendly (stacked layout on small screens).
+- No attachments, images, or emojis (text-only for now).
+
+5) Safety & Governance
+- Add rate limiting:
+  - Messages: max 20 per minute per user
+  - Conversation requests: max 5 per day
+- Add:
+  - Block user
+  - Report user (creates moderation record, but does NOT expose messages publicly)
+- Log metadata only (senderId, receiverId, timestamps), NOT message content, for audit.
+
+6) Data Model (ADD ONLY WHAT IS REQUIRED)
+- Conversation table:
+  - id
+  - userAId
+  - userBId
+  - createdAt
+- Message table:
+  - id
+  - conversationId
+  - senderId
+  - content
+  - createdAt
+  - deletedAt (soft delete)
+- Enforce DB-level uniqueness so only one conversation exists per user pair.
+
+7) Authorization (CRITICAL)
+- Every read/write must verify:
+  - currentUser is one of the two participants
+- Reject unauthorized access with 403.
+
+8) Performance
+- Paginate messages (cursor or limit).
+- Do NOT load entire message history at once.
+- No N+1 queries.
+
+====================================================
+WHAT NOT TO DO
+====================================================
+
+- Do NOT refactor Community.
+- Do NOT modify existing comment/post behavior.
+- Do NOT introduce paid services.
+- Do NOT add real-time websockets (polling is fine).
+- Do NOT expose messages to moderators by default.
+- Do NOT add global search for messages.
+
+DELIVERABLES
+
+- Working private messaging feature
+- Clean UI consistent with the app
+- No breaking changes
+- No dependency errors
+- `npm run dev` and `npm run build` must pass
+- Feature integrates cleanly with existing auth and users
+
+If any part of the existing code blocks this feature, explain clearly BEFORE changing it.
+
+Proceed carefully and incrementally.
