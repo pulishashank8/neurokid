@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
     'https://*.replit.dev',
     'https://*.janeway.replit.dev',
     'https://*.kirk.replit.dev',
+    '127.0.0.1',
+    'localhost',
   ],
   images: {
     remotePatterns: [
@@ -18,7 +20,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  output: 'standalone',
 };
 
 export default nextConfig;
