@@ -187,13 +187,14 @@ export default function NavBar() {
 
             {/* Right Section: Get Help + Theme Toggle + Auth */}
             <div className="flex items-center gap-3">
-              {/* Get Help Button - High visibility with border for light backgrounds */}
+              {/* Get Help Button - High visibility with black text on red */}
               <Link
                 href="/crisis"
-                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-rose-500 text-white text-sm font-bold shadow-lg shadow-rose-500/30 hover:shadow-rose-500/50 hover:bg-rose-600 transition-all border-2 border-rose-600"
+                className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-rose-500 text-sm font-bold shadow-lg shadow-rose-500/30 hover:shadow-rose-500/50 hover:bg-rose-600 transition-all border-2 border-rose-600"
+                style={{ color: '#000000' }}
               >
-                <Phone className="w-3.5 h-3.5" />
-                Get Help
+                <Phone className="w-3.5 h-3.5" style={{ color: '#000000' }} />
+                <span style={{ color: '#000000' }}>Get Help</span>
               </Link>
 
               {/* Theme Toggle - Clear icons with labels */}
@@ -232,14 +233,15 @@ export default function NavBar() {
           {/* Mobile Menu */}
           {mobileOpen && (
             <div className="lg:hidden border-t border-[var(--border)] bg-[var(--surface)] py-4 px-2 space-y-4 max-h-[80vh] overflow-y-auto">
-              {/* Mobile Get Help Button - High visibility rose color */}
+              {/* Mobile Get Help Button - High visibility with black text on red */}
               <Link
                 href="/crisis"
-                className="flex items-center justify-center gap-2 mx-2 px-4 py-3 rounded-xl bg-rose-500 text-white font-bold shadow-lg shadow-rose-500/30 border-2 border-rose-600"
+                className="flex items-center justify-center gap-2 mx-2 px-4 py-3 rounded-xl bg-rose-500 font-bold shadow-lg shadow-rose-500/30 border-2 border-rose-600"
                 onClick={() => setMobileOpen(false)}
+                style={{ color: '#000000' }}
               >
-                <Phone className="w-5 h-5" />
-                Get Help Now
+                <Phone className="w-5 h-5" style={{ color: '#000000' }} />
+                <span style={{ color: '#000000' }}>Get Help Now</span>
               </Link>
 
               <Link
