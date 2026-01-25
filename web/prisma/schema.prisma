@@ -749,3 +749,68 @@ model DatasetGlossaryTerm {
   @@index([termId])
 }
 
+// ============================================================================
+// THERAPY SESSION TRACKING
+// ============================================================================
+
+enum TherapyType {
+  ABA
+  OCCUPATIONAL
+  SPEECH
+  BEHAVIORAL
+  PLAY
+  SOCIAL_SKILLS
+  PHYSICAL
+  OTHER
+}
+
+model TherapySession {
+  id                    String       @id @default(cuid())
+  userId                String
+  childName             String       @db.VarChar(100)
+  therapistName         String       @db.VarChar(100)
+  therapyType           TherapyType
+  sessionDate           DateTime
+  duration              Int          @default(60) // minutes
+  notes                 String?      @db.Text
+  wentWell              String?      @db.Text
+  toWorkOn              String?      @db.Text
+  mood                  Int?         @db.SmallInt // 1-5 scale
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([sessionDate])
+  @@index([therapyType])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// EMERGENCY INFO CARDS
+// ============================================================================
+
+model EmergencyCard {
+  id                    String       @id @default(cuid())
+  userId                String
+  childName             String       @db.VarChar(100)
+  childAge              Int?
+  diagnosis             String?      @db.VarChar(255)
+  triggers              String?      @db.Text
+  calmingStrategies     String?      @db.Text
+  communication         String?      @db.Text
+  medications           String?      @db.Text
+  allergies             String?      @db.Text
+  emergencyContact1Name String?      @db.VarChar(100)
+  emergencyContact1Phone String?     @db.VarChar(20)
+  emergencyContact2Name String?      @db.VarChar(100)
+  emergencyContact2Phone String?     @db.VarChar(20)
+  doctorName            String?      @db.VarChar(100)
+  doctorPhone           String?      @db.VarChar(20)
+  additionalNotes       String?      @db.Text
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
+}
+

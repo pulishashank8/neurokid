@@ -40,7 +40,54 @@ The platform uses a premium, luxurious UI with the following features:
 - **Custom Scrollbar**: Premium styled scrollbar matching the theme
 - **Color Scheme**: Emerald green primary with sensory-friendly, accessible contrast
 
+## Support Tools (Free & Useful)
+These features are 100% free (no paid APIs) and designed for real-world use by families:
+
+### Calm/Breathing Tool (`/calm`)
+- Animated breathing circle with multiple patterns (4-4-4, 4-7-8, energizing, sleep prep)
+- Visual countdown and progress ring
+- Tracks completed breathing cycles
+- Designed for use during meltdowns or overwhelming moments
+
+### Crisis Resources (`/crisis`)
+- Emergency hotlines (988, Crisis Text Line, Autism Society)
+- Meltdown management tips (during and after)
+- Local resource finder links
+- Prominent "Get Help" button always visible in navbar
+
+### Therapy Session Log (`/therapy-log`)
+- Log therapy sessions with date, therapist, type
+- Track what went well and areas to work on
+- Mood tracking (1-5 emoji scale)
+- View session history
+- Supports ABA, Speech, OT, and other therapy types
+
+### Emergency Info Cards (`/emergency-card`)
+- Create cards with child's name, triggers, calming strategies
+- Add emergency contacts and doctor info
+- Printable format for teachers, babysitters, caregivers
+- Expandable cards to view full details
+
+### Legal Pages
+- `/disclaimer` - Medical disclaimer for AI and screening tools
+- `/privacy` - Privacy policy explaining data handling
+- `/terms` - Terms of service
+
+## Navigation Structure
+- **Community**: Forums, Saved Posts
+- **Care Compass**: Find Care, M-CHAT-R/F Screening
+- **Support**: Calm Tool, Crisis Help, Therapy Log, Emergency Cards
+- **Knowledge**: Resources, AI Companion
+- **Platform**: About, Trust & Safety, Settings
+
 ## Recent Updates (Jan 2026)
+- Added Breathing/Calm Tool with animated exercises
+- Created Crisis Resources page with emergency hotlines
+- Built Therapy Session Log feature with database persistence
+- Created Emergency Info Card generator with print functionality
+- Added prominent "Get Help" button to navbar (desktop + mobile)
+- Added Medical Disclaimer, Privacy Policy, Terms of Service pages
+- Updated navbar with new Support navigation group
 - Added premium 3D card effects and glassmorphism to globals.css
 - Redesigned PostCard with 3D hover effects and improved visual hierarchy
 - Enhanced VoteButtons with animated counters and satisfying pop feedback

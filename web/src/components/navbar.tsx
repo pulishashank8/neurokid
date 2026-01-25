@@ -19,7 +19,11 @@ import {
   Menu,
   X,
   Sparkles,
-  Heart
+  Heart,
+  Phone,
+  Wind,
+  ClipboardList,
+  CreditCard
 } from "lucide-react";
 
 type SubItem = { href: string; label: string; icon: any; description: string };
@@ -38,6 +42,15 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/providers", label: "Find Care", icon: Stethoscope, description: "NPI-verified specialists" },
       { href: "/screening", label: "M-CHAT-R/F™", icon: ClipboardCheck, description: "Validated autism screening" },
+    ]
+  },
+  {
+    label: "Support",
+    items: [
+      { href: "/calm", label: "Calm Tool", icon: Wind, description: "Breathing exercises & relaxation" },
+      { href: "/crisis", label: "Crisis Help", icon: Phone, description: "Emergency resources & hotlines" },
+      { href: "/therapy-log", label: "Therapy Log", icon: ClipboardList, description: "Track therapy sessions" },
+      { href: "/emergency-card", label: "Emergency Cards", icon: CreditCard, description: "Printable info cards" },
     ]
   },
   {
@@ -146,8 +159,17 @@ export default function NavBar() {
               ))}
             </div>
 
-            {/* Right Section: Theme Toggle + Auth */}
+            {/* Right Section: Get Help + Theme Toggle + Auth */}
             <div className="flex items-center gap-3">
+              {/* Get Help Button - Always visible, prominent */}
+              <Link
+                href="/crisis"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-500 text-white text-sm font-bold shadow-lg shadow-red-500/25 hover:shadow-red-500/40 hover:bg-red-600 transition-all"
+              >
+                <Phone className="w-3.5 h-3.5" />
+                Get Help
+              </Link>
+
               {/* Theme Toggle - Show only when logged in */}
               {session && (
                 <button
@@ -199,6 +221,16 @@ export default function NavBar() {
           {/* Mobile Menu */}
           {mobileOpen && (
             <div className="lg:hidden border-t border-[var(--border)] bg-[var(--surface)] py-4 px-2 space-y-4 max-h-[80vh] overflow-y-auto">
+              {/* Mobile Get Help Button - Always at top */}
+              <Link
+                href="/crisis"
+                className="flex items-center justify-center gap-2 mx-2 px-4 py-3 rounded-xl bg-red-500 text-white font-bold shadow-lg"
+                onClick={() => setMobileOpen(false)}
+              >
+                <Phone className="w-5 h-5" />
+                Get Help Now
+              </Link>
+
               <Link
                 href="/"
                 className={`block px-4 py-2 rounded-xl text-base font-bold transition-colors ${pathname === "/" ? "bg-[var(--primary)] text-white" : "text-[var(--text)]"}`}
