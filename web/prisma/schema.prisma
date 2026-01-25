@@ -113,9 +113,17 @@ enum NotificationType {
   MENTION
   FOLLOW
   MESSAGE
+  CONNECTION_REQUEST
+  CONNECTION_ACCEPTED
   MODERATION_ACTION
   VERIFICATION_REQUEST
   SYSTEM
+}
+
+enum ConnectionRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
 }
 
 enum ResourceCategory {
@@ -178,6 +186,10 @@ model User {
   messageReportsFiled   MessageReport[]  @relation("MessageReporter")
   messageReportsReceived MessageReport[] @relation("MessageReported")
   messageRateLimits     MessageRateLimit[]
+  
+  // Connection requests (LinkedIn-style)
+  sentConnectionRequests     ConnectionRequest[] @relation("ConnectionRequestSender")
+  receivedConnectionRequests ConnectionRequest[] @relation("ConnectionRequestReceiver")
 
   @@index([email])
   @@index([createdAt])
@@ -906,6 +918,27 @@ model MessageRateLimit {
 
   @@index([userId])
   @@index([actionType])
+  @@index([createdAt])
+}
+
+// LinkedIn-style connection requests
+model ConnectionRequest {
+  id                    String                    @id @default(cuid())
+  senderId              String
+  receiverId            String
+  message               String?                   @db.VarChar(300)
+  status                ConnectionRequestStatus   @default(PENDING)
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+  respondedAt           DateTime?
+
+  sender                User                      @relation("ConnectionRequestSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver              User                      @relation("ConnectionRequestReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([status])
   @@index([createdAt])
 }
 

@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { SessionProvider } from "@/app/providers";
+import { ProfileGuard } from "@/components/ProfileGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,11 +32,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
       >
         <SessionProvider>
-          <NavBar />
-          <main className="min-h-screen">
-            {children}
-          </main>
-          <Analytics />
+          <ProfileGuard>
+            <NavBar />
+            <main className="min-h-screen">
+              {children}
+            </main>
+            <Analytics />
+          </ProfileGuard>
         </SessionProvider>
       </body>
     </html>

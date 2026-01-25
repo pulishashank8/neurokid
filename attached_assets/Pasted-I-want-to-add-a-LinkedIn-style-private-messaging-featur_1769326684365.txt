@@ -1,0 +1,74 @@
+I want to add a LinkedIn-style private messaging feature to my existing app.
+
+We already collect a username when users sign up.
+That username must be UNIQUE for every user.
+If it is not unique now, please make it unique and enforce it in the database and validation.
+
+Important case:
+When users sign up using Google login, we currently do NOT ask for a username.
+For Google users, after first login, show a screen that asks them to enter:
+- Username (required, unique)
+- Display name (required)
+
+They should NOT be allowed to continue into the app until this is completed.
+Once saved, they can proceed normally.
+
+-----------------------------------
+MESSAGING FEATURE (LIKE LINKEDIN)
+-----------------------------------
+
+This messaging system must work like LinkedIn, NOT Instagram.
+
+1) User Search
+- Add a Messages section.
+- Users can search other users ONLY by username.
+- When a username is found, show:
+  - username
+  - display name
+  - a “Send Connection Request” button
+
+2) Connection Request
+- Users cannot send messages directly.
+- Before messaging, a connection request must be sent.
+- The request can include an optional short message.
+
+Example:
+User “test1” searches “test143”
+Clicks “Send Connection Request”
+Writes a short message
+Sends request
+
+3) Receiving Requests
+- The receiver sees requests in a “Pending Requests” section.
+- Each request shows:
+  - sender username
+  - optional message
+- Receiver can:
+  - Accept
+  - Decline
+
+4) After Acceptance
+- Only after acceptance, create a private 1-to-1 conversation.
+- Messaging is enabled for both users.
+- Conversation appears in “Active Conversations”.
+
+5) If Declined
+- No conversation is created.
+- Messaging is not allowed.
+- Sender sees the request was declined.
+
+6) Privacy
+- Messages are private.
+- Only the two connected users can see them.
+- No public visibility.
+
+7) UI
+- Clean, professional UI similar to LinkedIn.
+- Sections:
+  - Search Users
+  - Pending Requests
+  - Active Conversations
+- Match the current app’s theme and design.
+
+The community feature should remain exactly the same.
+Only add this messaging feature using usernames.

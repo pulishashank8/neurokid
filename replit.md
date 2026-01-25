@@ -109,19 +109,31 @@ The Marketplace (`/marketplace`) is a curated shopping experience with 150+ Amaz
 - **Daily Living**: Adaptive utensils, visual timers, potty watches
 - **Tech**: Noise-cancelling headphones, GPS trackers, star projectors
 
-## Private 1:1 Direct Messaging (`/messages`)
-The platform includes a fully-featured private messaging system:
+## LinkedIn-Style Private Messaging (`/messages`)
+The platform includes a connection-based private messaging system similar to LinkedIn:
+
+### Connection Request Flow
+1. **Search Users**: Find users by their unique username
+2. **Send Connection Request**: Send a request with an optional message
+3. **Respond to Requests**: Accept or decline incoming requests
+4. **Messaging**: Only connected users can message each other
 
 ### Features
-- **Conversation Management**: Create and view private conversations with other users
-- **Real-time Updates**: Messages auto-refresh every 5 seconds
-- **Split-Panel UI**: Responsive layout with conversation list + message thread
-- **Message Controls**: Soft delete your own messages
-- **User Safety**: Block/unblock users, report users for moderation
+- **User Search**: Search by username to find and connect with other users
+- **Connection Requests**: Send requests with optional intro message (300 char limit)
+- **Pending Requests Tab**: View/manage incoming and sent requests
+- **Active Conversations**: Chat with accepted connections
 - **Rate Limiting**: 20 messages per minute, 5 new conversations per day
+- **User Safety**: Block/unblock users, report users for moderation
+
+### Google OAuth Onboarding
+- Users who sign up via Google must complete their profile before accessing the app
+- Required fields: unique username and display name
+- Profile completion page at `/onboarding`
 
 ### Database Tables
-- `Conversation`: Stores 1:1 conversation between two users
+- `ConnectionRequest`: Stores connection requests (sender, receiver, message, status)
+- `Conversation`: Stores 1:1 conversation between connected users
 - `DirectMessage`: Individual messages with soft delete support
 - `BlockedUser`: Blocked user relationships
 - `MessageReport`: User reports for moderation
@@ -129,12 +141,12 @@ The platform includes a fully-featured private messaging system:
 
 ### Access Points
 - Messages link in navbar under Community dropdown
-- Message button on post cards
-- Message button next to post authors on detail pages
-- Message button next to comment authors in threads
+- Three tabs: Search Users, Pending Requests, Active Conversations
 
 ## Recent Updates (Jan 2026)
-- Added private 1:1 direct messaging with rate limiting and safety features
+- Refactored messaging to LinkedIn-style connection request system
+- Added Google OAuth onboarding for username/display name collection
+- Removed direct messaging buttons from posts/comments (require connection first)
 - Added Breathing/Calm Tool with animated exercises
 - Created Crisis Resources page with emergency hotlines
 - Built Therapy Session Log feature with database persistence

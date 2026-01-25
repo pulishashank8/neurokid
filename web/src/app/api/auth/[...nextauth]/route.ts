@@ -149,7 +149,7 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async signIn({ user, account }) {
-      // For Google OAuth: create or update user account
+      // For Google OAuth: create user WITHOUT auto-generating profile (requires onboarding)
       if (account?.provider === "google" && user.email) {
         try {
           let existingUser = await prisma.user.findUnique({
@@ -157,36 +157,14 @@ export const authOptions: NextAuthOptions = {
             include: { profile: true, userRoles: true },
           });
 
-          // Create user if doesn't exist
+          // Create user if doesn't exist (without profile - will complete in onboarding)
           if (!existingUser) {
-            // Generate username from Google name or email
-            let baseUsername = user.name?.toLowerCase().replace(/\s+/g, "") || user.email.split("@")[0];
-            baseUsername = baseUsername.replace(/[^a-z0-9]/g, "");
-
-            // Ensure username is unique
-            let username = baseUsername;
-            let counter = 1;
-            while (true) {
-              const exists = await prisma.profile.findUnique({ where: { username } });
-              if (!exists) break;
-              username = `${baseUsername}${counter}`;
-              counter++;
-            }
-
-            // Create user with profile and role in a transaction
             existingUser = await prisma.user.create({
               data: {
                 email: user.email,
                 lastLoginAt: new Date(),
                 emailVerified: true,
                 emailVerifiedAt: new Date(),
-                profile: {
-                  create: {
-                    username,
-                    displayName: user.name || username,
-                    avatarUrl: user.image || null,
-                  },
-                },
                 userRoles: {
                   create: {
                     role: "PARENT",
@@ -204,30 +182,6 @@ export const authOptions: NextAuthOptions = {
               where: { id: existingUser.id },
               data: { lastLoginAt: new Date() },
             });
-
-            // Create profile if missing
-            if (!existingUser.profile) {
-              let baseUsername = user.name?.toLowerCase().replace(/\s+/g, "") || user.email.split("@")[0];
-              baseUsername = baseUsername.replace(/[^a-z0-9]/g, "");
-
-              let username = baseUsername;
-              let counter = 1;
-              while (true) {
-                const exists = await prisma.profile.findUnique({ where: { username } });
-                if (!exists) break;
-                username = `${baseUsername}${counter}`;
-                counter++;
-              }
-
-              await prisma.profile.create({
-                data: {
-                  userId: existingUser.id,
-                  username,
-                  displayName: user.name || username,
-                  avatarUrl: user.image || null,
-                },
-              });
-            }
 
             // Ensure user has PARENT role
             if (existingUser.userRoles.length === 0) {
@@ -270,10 +224,12 @@ export const authOptions: NextAuthOptions = {
             token.roles = userData.userRoles.map((ur: any) => ur.role);
             token.name = userData.profile?.displayName || userData.profile?.username || userData.email;
             token.username = userData.profile?.username;
+            token.profileComplete = !!userData.profile?.username && !!userData.profile?.displayName;
           } else {
             (token as any).disabled = true;
             delete token.id;
             token.roles = [];
+            token.profileComplete = false;
           }
         } catch {
           // If DB unavailable, keep existing data (dev fallback)
@@ -292,6 +248,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).id = token.id as string;
         (session.user as any).username = token.username as string;
         (session.user as any).roles = token.roles as string[];
+        (session.user as any).profileComplete = token.profileComplete as boolean;
         // Ensure session.user.name is set to displayName/username
         session.user.name = token.name as string;
       }

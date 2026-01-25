@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { checkProfileComplete } from "@/lib/auth-utils";
 
 async function checkRateLimit(userId: string, actionType: string, maxCount: number, windowMinutes: number): Promise<boolean> {
   const windowStart = new Date(Date.now() - windowMinutes * 60 * 1000);
@@ -32,11 +33,37 @@ export async function GET(request: NextRequest) {
 
     const userId = session.user.id;
 
+    const isProfileComplete = await checkProfileComplete(userId);
+    if (!isProfileComplete) {
+      return NextResponse.json({ error: "Please complete your profile first" }, { status: 403 });
+    }
+
+    const acceptedConnections = await prisma.connectionRequest.findMany({
+      where: {
+        OR: [
+          { senderId: userId, status: "ACCEPTED" },
+          { receiverId: userId, status: "ACCEPTED" }
+        ]
+      },
+      select: {
+        senderId: true,
+        receiverId: true,
+      }
+    });
+
+    const connectedUserIds = acceptedConnections.map(c => 
+      c.senderId === userId ? c.receiverId : c.senderId
+    );
+
+    if (connectedUserIds.length === 0) {
+      return NextResponse.json({ conversations: [] });
+    }
+
     const conversations = await prisma.conversation.findMany({
       where: {
         OR: [
-          { userAId: userId },
-          { userBId: userId }
+          { userAId: userId, userBId: { in: connectedUserIds } },
+          { userBId: userId, userAId: { in: connectedUserIds } }
         ]
       },
       include: {
@@ -122,6 +149,12 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = session.user.id;
+
+    const isProfileComplete = await checkProfileComplete(userId);
+    if (!isProfileComplete) {
+      return NextResponse.json({ error: "Please complete your profile first" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { targetUserId } = body;
 
@@ -153,6 +186,21 @@ export async function POST(request: NextRequest) {
 
     if (isBlocked) {
       return NextResponse.json({ error: "Cannot message this user" }, { status: 403 });
+    }
+
+    const hasAcceptedConnection = await prisma.connectionRequest.findFirst({
+      where: {
+        OR: [
+          { senderId: userId, receiverId: targetUserId, status: "ACCEPTED" },
+          { senderId: targetUserId, receiverId: userId, status: "ACCEPTED" }
+        ]
+      }
+    });
+
+    if (!hasAcceptedConnection) {
+      return NextResponse.json({ 
+        error: "You must be connected with this user to send messages. Send a connection request first." 
+      }, { status: 403 });
     }
 
     const [userAId, userBId] = [userId, targetUserId].sort();

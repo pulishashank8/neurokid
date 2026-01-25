@@ -5,7 +5,6 @@ import { formatDistanceToNow } from "date-fns";
 import { VoteButtons } from "./VoteButtons";
 import { BookmarkButton } from "./BookmarkButton";
 import { ReportButton } from "./ReportButton";
-import { MessageButton } from "./MessageButton";
 import { MessageCircle, Pin, Lock, Ban } from "lucide-react";
 
 interface Post {
@@ -166,13 +165,6 @@ export function PostCard({
 
             {showActions && (
               <div className="flex items-center gap-1">
-                {!post.isAnonymous && (
-                  <MessageButton 
-                    targetUserId={post.author.id} 
-                    targetUsername={post.author.username}
-                    className="p-2 rounded-xl hover:bg-[var(--surface2)]"
-                  />
-                )}
                 <BookmarkButton postId={post.id} />
                 <ReportButton targetType="POST" targetId={post.id} />
               </div>

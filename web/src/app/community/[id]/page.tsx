@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/Button";
 import { VoteButtons } from "@/components/community/VoteButtons";
 import { BookmarkButton } from "@/components/community/BookmarkButton";
 import { ReportButton } from "@/components/community/ReportButton";
-import { MessageButton } from "@/components/community/MessageButton";
 import { CommentComposer } from "@/components/community/CommentComposer";
 import { CommentThreadList } from "@/components/community/CommentThread";
 import { CommentSkeleton, LoadingSpinner } from "@/components/community/LoadingSkeletons";
@@ -164,19 +163,9 @@ export default function PostDetailPage({
                   className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm sm:text-base font-semibold text-[var(--text-primary)]">
-                      {post.isAnonymous ? "Anonymous" : post.author.username}
-                    </p>
-                    {!post.isAnonymous && (
-                      <MessageButton 
-                        targetUserId={post.author.id} 
-                        targetUsername={post.author.username}
-                        showText
-                        className="text-xs px-2 py-1 rounded-lg bg-[var(--bg-elevated)] hover:bg-[var(--primary)]/10"
-                      />
-                    )}
-                  </div>
+                  <p className="text-sm sm:text-base font-semibold text-[var(--text-primary)]">
+                    {post.isAnonymous ? "Anonymous" : post.author.username}
+                  </p>
                   <p className="text-xs sm:text-sm text-[var(--text-muted)]">
                     {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
                   </p>

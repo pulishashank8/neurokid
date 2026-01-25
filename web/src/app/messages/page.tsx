@@ -3,10 +3,51 @@
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useRef, useCallback } from "react";
+import Image from "next/image";
 import { 
-  MessageCircle, Send, ArrowLeft, MoreVertical, 
-  Ban, Flag, Trash2, AlertCircle, Check, X
+  Search, UserPlus, Users, MessageCircle, Send, ArrowLeft, 
+  Check, X, Clock, MoreVertical, Ban, Flag, Trash2
 } from "lucide-react";
+import toast from "react-hot-toast";
+
+type TabType = "search" | "pending" | "conversations";
+
+interface SearchUser {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl?: string;
+  connectionStatus: "none" | "pending_sent" | "pending_received" | "connected";
+}
+
+interface PendingRequest {
+  id: string;
+  message?: string;
+  createdAt: string;
+  sender?: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl?: string;
+  };
+  receiver?: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl?: string;
+  };
+}
+
+interface Connection {
+  id: string;
+  connectedAt: string;
+  user: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl?: string;
+  };
+}
 
 interface Conversation {
   id: string;
@@ -32,38 +73,29 @@ interface Message {
   createdAt: string;
 }
 
-interface ConversationDetails {
-  id: string;
-  otherUser: {
-    id: string;
-    username: string;
-    displayName: string;
-    avatarUrl?: string;
-  };
-  isBlocked: boolean;
-}
-
 export default function MessagesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const selectedConvId = searchParams.get("conversation");
   
+  const [activeTab, setActiveTab] = useState<TabType>("conversations");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [pendingReceived, setPendingReceived] = useState<PendingRequest[]>([]);
+  const [pendingSent, setPendingSent] = useState<PendingRequest[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedConversation, setSelectedConversation] = useState<ConversationDetails | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [loading, setLoading] = useState(true);
   const [sendingMessage, setSendingMessage] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showMenu, setShowMenu] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
-  const [reportReason, setReportReason] = useState("");
-  const [reportDescription, setReportDescription] = useState("");
-  const [submittingReport, setSubmittingReport] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [connectionMessage, setConnectionMessage] = useState("");
+  const [showConnectionModal, setShowConnectionModal] = useState<string | null>(null);
+  const [otherUser, setOtherUser] = useState<{id: string; username: string; displayName: string; avatarUrl?: string} | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -71,547 +103,659 @@ export default function MessagesPage() {
     }
   }, [status, router]);
 
-  const fetchConversations = useCallback(async () => {
-    try {
-      const res = await fetch("/api/messages/conversations");
-      if (!res.ok) throw new Error("Failed to fetch conversations");
-      const data = await res.json();
-      setConversations(data.conversations || []);
-    } catch (err) {
-      console.error("Error fetching conversations:", err);
-    }
-  }, []);
-
-  const fetchMessages = useCallback(async (conversationId: string) => {
-    try {
-      const res = await fetch(`/api/messages/conversations/${conversationId}`);
-      if (!res.ok) {
-        if (res.status === 403) {
-          setError("You don't have access to this conversation");
-          return;
-        }
-        throw new Error("Failed to fetch messages");
-      }
-      const data = await res.json();
-      setSelectedConversation(data.conversation);
-      setMessages(data.messages || []);
-      setError(null);
-    } catch (err) {
-      console.error("Error fetching messages:", err);
-      setError("Failed to load messages");
-    }
-  }, []);
-
   useEffect(() => {
     if (status === "authenticated") {
       fetchConversations();
-      setLoading(false);
+      fetchPendingRequests();
     }
-  }, [status, fetchConversations]);
+  }, [status]);
 
   useEffect(() => {
-    if (selectedConvId && status === "authenticated") {
-      fetchMessages(selectedConvId);
-    } else {
-      setSelectedConversation(null);
-      setMessages([]);
+    const convId = searchParams.get("conversation");
+    if (convId) {
+      setSelectedConversation(convId);
+      fetchMessages(convId);
     }
-  }, [selectedConvId, status, fetchMessages]);
+  }, [searchParams]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setShowMenu(false);
-      }
+    if (searchQuery.length < 2) {
+      setSearchResults([]);
+      return;
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
-  useEffect(() => {
-    if (!selectedConvId || !status || status !== "authenticated") return;
-    
-    const interval = setInterval(() => {
-      fetchMessages(selectedConvId);
-      fetchConversations();
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, [selectedConvId, status, fetchMessages, fetchConversations]);
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
 
-  const selectConversation = (convId: string) => {
-    router.push(`/messages?conversation=${convId}`);
+    searchTimeoutRef.current = setTimeout(() => {
+      searchUsers(searchQuery);
+    }, 300);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  const fetchConversations = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/messages/conversations");
+      if (res.ok) {
+        const data = await res.json();
+        setConversations(data.conversations || []);
+      }
+    } catch (err) {
+      console.error("Error fetching conversations:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const goBackToList = () => {
-    router.push("/messages");
+  const fetchPendingRequests = async () => {
+    try {
+      const [receivedRes, sentRes] = await Promise.all([
+        fetch("/api/connections?type=pending-received"),
+        fetch("/api/connections?type=pending-sent"),
+      ]);
+
+      if (receivedRes.ok) {
+        const data = await receivedRes.json();
+        setPendingReceived(data.requests || []);
+      }
+      if (sentRes.ok) {
+        const data = await sentRes.json();
+        setPendingSent(data.requests || []);
+      }
+    } catch (err) {
+      console.error("Error fetching pending requests:", err);
+    }
+  };
+
+  const fetchMessages = async (conversationId: string) => {
+    try {
+      const res = await fetch(`/api/messages/conversations/${conversationId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(data.messages || []);
+        setOtherUser(data.conversation?.otherUser || null);
+      }
+    } catch (err) {
+      console.error("Error fetching messages:", err);
+    }
+  };
+
+  const searchUsers = async (query: string) => {
+    try {
+      setSearching(true);
+      const res = await fetch(`/api/users/search?username=${encodeURIComponent(query)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSearchResults(data.users || []);
+      }
+    } catch (err) {
+      console.error("Error searching users:", err);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const sendConnectionRequest = async (receiverId: string) => {
+    try {
+      const res = await fetch("/api/connections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ receiverId, message: connectionMessage.trim() || null }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Connection request sent!");
+        setShowConnectionModal(null);
+        setConnectionMessage("");
+        setSearchResults((prev) =>
+          prev.map((u) =>
+            u.id === receiverId ? { ...u, connectionStatus: "pending_sent" as const } : u
+          )
+        );
+        fetchPendingRequests();
+      } else {
+        toast.error(data.error || "Failed to send request");
+      }
+    } catch {
+      toast.error("Failed to send connection request");
+    }
+  };
+
+  const respondToRequest = async (requestId: string, action: "accept" | "decline") => {
+    try {
+      const res = await fetch(`/api/connections/${requestId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+
+      if (res.ok) {
+        toast.success(action === "accept" ? "Connection accepted!" : "Request declined");
+        fetchPendingRequests();
+        if (action === "accept") {
+          fetchConversations();
+        }
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to respond");
+      }
+    } catch {
+      toast.error("Failed to respond to request");
+    }
+  };
+
+  const cancelRequest = async (requestId: string) => {
+    try {
+      const res = await fetch(`/api/connections/${requestId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel" }),
+      });
+
+      if (res.ok) {
+        toast.success("Request cancelled");
+        fetchPendingRequests();
+      }
+    } catch {
+      toast.error("Failed to cancel request");
+    }
   };
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedConvId || sendingMessage) return;
+    if (!newMessage.trim() || !selectedConversation || sendingMessage) return;
 
     setSendingMessage(true);
     try {
-      const res = await fetch(`/api/messages/conversations/${selectedConvId}`, {
+      const res = await fetch(`/api/messages/conversations/${selectedConversation}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: newMessage.trim() }),
       });
 
-      if (!res.ok) {
+      if (res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to send message");
+        setMessages((prev) => [...prev, data.message]);
+        setNewMessage("");
+        fetchConversations();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to send message");
       }
-
-      const data = await res.json();
-      setMessages(prev => [...prev, data.message]);
-      setNewMessage("");
-      fetchConversations();
-    } catch (err: any) {
-      setError(err.message || "Failed to send message");
+    } catch {
+      toast.error("Failed to send message");
     } finally {
       setSendingMessage(false);
     }
   };
 
-  const handleBlock = async () => {
-    if (!selectedConversation) return;
-    
-    const isCurrentlyBlocked = selectedConversation.isBlocked;
-    const endpoint = "/api/messages/block";
-    const method = isCurrentlyBlocked ? "DELETE" : "POST";
-    
-    try {
-      const res = await fetch(endpoint, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targetUserId: selectedConversation.otherUser.id }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to update block status");
-      }
-
-      setSelectedConversation(prev => prev ? { ...prev, isBlocked: !isCurrentlyBlocked } : null);
-      fetchConversations();
-      setShowMenu(false);
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  const handleReport = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedConversation || !reportReason.trim()) return;
-
-    setSubmittingReport(true);
-    try {
-      const res = await fetch("/api/messages/report", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reportedUserId: selectedConversation.otherUser.id,
-          conversationId: selectedConvId,
-          reason: reportReason.trim(),
-          description: reportDescription.trim() || undefined,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to submit report");
-      }
-
-      setShowReportModal(false);
-      setReportReason("");
-      setReportDescription("");
-      setError(null);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setSubmittingReport(false);
-    }
-  };
-
-  const deleteMessage = async (messageId: string) => {
-    try {
-      const res = await fetch(`/api/messages/${messageId}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to delete message");
-      }
-
-      setMessages(prev => prev.filter(m => m.id !== messageId));
-    } catch (err: any) {
-      setError(err.message);
-    }
+  const selectConversation = (convId: string) => {
+    setSelectedConversation(convId);
+    router.push(`/messages?conversation=${convId}`, { scroll: false });
+    fetchMessages(convId);
   };
 
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) {
+    const diff = now.getTime() - date.getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    if (days === 0) {
       return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    } else if (diffDays === 1) {
+    } else if (days === 1) {
       return "Yesterday";
-    } else if (diffDays < 7) {
+    } else if (days < 7) {
       return date.toLocaleDateString([], { weekday: "short" });
     } else {
       return date.toLocaleDateString([], { month: "short", day: "numeric" });
     }
   };
 
-  if (status === "loading" || loading) {
+  if (status === "loading") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--background)]">
-        <div className="text-center">
-          <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"></div>
-          <p className="mt-4 text-[var(--muted)]">Loading messages...</p>
-        </div>
+      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]"></div>
       </div>
     );
   }
 
-  if (status !== "authenticated") {
-    return null;
-  }
+  const totalPending = pendingReceived.length + pendingSent.length;
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="bg-[var(--surface)] rounded-2xl shadow-lg border border-[var(--border)] overflow-hidden" style={{ height: "calc(100vh - 180px)", minHeight: "500px" }}>
-          <div className="flex h-full">
-            {/* Conversation List */}
-            <div className={`w-full md:w-80 lg:w-96 border-r border-[var(--border)] flex flex-col ${selectedConvId ? "hidden md:flex" : "flex"}`}>
-              <div className="p-4 border-b border-[var(--border)]">
-                <h1 className="text-xl font-bold text-[var(--text)] flex items-center gap-2">
-                  <MessageCircle className="w-6 h-6 text-emerald-500" />
-                  Messages
-                </h1>
-              </div>
-              
-              <div className="flex-1 overflow-y-auto">
-                {conversations.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                    <MessageCircle className="w-16 h-16 text-[var(--muted)] mb-4" />
-                    <p className="text-[var(--muted)] text-lg font-medium">No messages yet</p>
-                    <p className="text-[var(--muted)] text-sm mt-2">
-                      Start a conversation by clicking "Message" on someone's profile or post
-                    </p>
+    <div className="min-h-screen bg-[var(--bg-primary)]">
+      <div className="container max-w-6xl mx-auto px-4 py-6">
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Messages</h1>
+
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left Panel */}
+          <div className={`w-full lg:w-96 ${selectedConversation ? "hidden lg:block" : ""}`}>
+            {/* Tabs */}
+            <div className="flex bg-[var(--bg-secondary)] rounded-xl p-1 mb-4">
+              <button
+                onClick={() => setActiveTab("search")}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
+                  activeTab === "search"
+                    ? "bg-[var(--primary)] text-white"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                }`}
+              >
+                <Search className="w-4 h-4" />
+                <span className="hidden sm:inline">Search</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("pending")}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all relative ${
+                  activeTab === "pending"
+                    ? "bg-[var(--primary)] text-white"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                }`}
+              >
+                <UserPlus className="w-4 h-4" />
+                <span className="hidden sm:inline">Requests</span>
+                {totalPending > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {totalPending}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab("conversations")}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
+                  activeTab === "conversations"
+                    ? "bg-[var(--primary)] text-white"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                }`}
+              >
+                <MessageCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Chats</span>
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            <div className="bg-[var(--bg-secondary)] rounded-xl overflow-hidden min-h-[400px]">
+              {/* Search Tab */}
+              {activeTab === "search" && (
+                <div className="p-4">
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
+                    <input
+                      type="text"
+                      placeholder="Search by username..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 bg-[var(--bg-primary)] border border-[var(--border-light)] rounded-xl text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                    />
                   </div>
-                ) : (
-                  <div className="divide-y divide-[var(--border)]">
-                    {conversations.map((conv) => (
-                      <button
-                        key={conv.id}
-                        onClick={() => selectConversation(conv.id)}
-                        className={`w-full p-4 text-left hover:bg-[var(--surface2)] transition-colors ${
-                          selectedConvId === conv.id ? "bg-[var(--surface2)]" : ""
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
-                            {conv.otherUser.avatarUrl ? (
-                              <img 
-                                src={conv.otherUser.avatarUrl} 
-                                alt={conv.otherUser.displayName}
-                                className="w-12 h-12 rounded-full object-cover"
-                              />
-                            ) : (
-                              <span className="text-emerald-600 dark:text-emerald-400 font-bold text-lg">
-                                {conv.otherUser.displayName.charAt(0).toUpperCase()}
-                              </span>
-                            )}
+
+                  {searching ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--primary)]"></div>
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    <div className="space-y-2">
+                      {searchResults.map((user) => (
+                        <div
+                          key={user.id}
+                          className="flex items-center justify-between p-3 rounded-xl hover:bg-[var(--bg-primary)] transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Image
+                              src={user.avatarUrl || "/default-avatar.svg"}
+                              alt={user.username}
+                              width={40}
+                              height={40}
+                              className="rounded-full"
+                            />
+                            <div>
+                              <p className="font-medium text-[var(--text-primary)]">
+                                {user.displayName}
+                              </p>
+                              <p className="text-sm text-[var(--text-muted)]">@{user.username}</p>
+                            </div>
                           </div>
+
+                          {user.connectionStatus === "none" && (
+                            <button
+                              onClick={() => setShowConnectionModal(user.id)}
+                              className="px-3 py-1.5 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary-hover)] transition-colors"
+                            >
+                              Connect
+                            </button>
+                          )}
+                          {user.connectionStatus === "pending_sent" && (
+                            <span className="px-3 py-1.5 bg-[var(--bg-elevated)] text-[var(--text-muted)] text-sm rounded-lg flex items-center gap-1">
+                              <Clock className="w-4 h-4" /> Pending
+                            </span>
+                          )}
+                          {user.connectionStatus === "pending_received" && (
+                            <span className="px-3 py-1.5 bg-amber-500/20 text-amber-600 text-sm rounded-lg">
+                              Respond
+                            </span>
+                          )}
+                          {user.connectionStatus === "connected" && (
+                            <span className="px-3 py-1.5 bg-green-500/20 text-green-600 text-sm rounded-lg flex items-center gap-1">
+                              <Check className="w-4 h-4" /> Connected
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : searchQuery.length >= 2 ? (
+                    <div className="text-center py-8 text-[var(--text-muted)]">
+                      No users found matching &quot;{searchQuery}&quot;
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-[var(--text-muted)]">
+                      <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p>Enter a username to search</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Pending Requests Tab */}
+              {activeTab === "pending" && (
+                <div className="divide-y divide-[var(--border-light)]">
+                  {/* Received Requests */}
+                  {pendingReceived.length > 0 && (
+                    <div className="p-4">
+                      <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase mb-3">
+                        Received ({pendingReceived.length})
+                      </h3>
+                      <div className="space-y-3">
+                        {pendingReceived.map((req) => (
+                          <div
+                            key={req.id}
+                            className="p-3 bg-[var(--bg-primary)] rounded-xl"
+                          >
+                            <div className="flex items-start gap-3">
+                              <Image
+                                src={req.sender?.avatarUrl || "/default-avatar.svg"}
+                                alt={req.sender?.username || ""}
+                                width={40}
+                                height={40}
+                                className="rounded-full"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-[var(--text-primary)]">
+                                  {req.sender?.displayName}
+                                </p>
+                                <p className="text-sm text-[var(--text-muted)]">
+                                  @{req.sender?.username}
+                                </p>
+                                {req.message && (
+                                  <p className="mt-2 text-sm text-[var(--text-secondary)] bg-[var(--bg-secondary)] p-2 rounded-lg">
+                                    &quot;{req.message}&quot;
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex gap-2 mt-3">
+                              <button
+                                onClick={() => respondToRequest(req.id, "accept")}
+                                className="flex-1 py-2 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary-hover)] transition-colors flex items-center justify-center gap-1"
+                              >
+                                <Check className="w-4 h-4" /> Accept
+                              </button>
+                              <button
+                                onClick={() => respondToRequest(req.id, "decline")}
+                                className="flex-1 py-2 bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-sm font-medium rounded-lg hover:bg-[var(--bg-elevated-hover)] transition-colors flex items-center justify-center gap-1"
+                              >
+                                <X className="w-4 h-4" /> Decline
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sent Requests */}
+                  {pendingSent.length > 0 && (
+                    <div className="p-4">
+                      <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase mb-3">
+                        Sent ({pendingSent.length})
+                      </h3>
+                      <div className="space-y-3">
+                        {pendingSent.map((req) => (
+                          <div
+                            key={req.id}
+                            className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-xl"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Image
+                                src={req.receiver?.avatarUrl || "/default-avatar.svg"}
+                                alt={req.receiver?.username || ""}
+                                width={40}
+                                height={40}
+                                className="rounded-full"
+                              />
+                              <div>
+                                <p className="font-medium text-[var(--text-primary)]">
+                                  {req.receiver?.displayName}
+                                </p>
+                                <p className="text-sm text-[var(--text-muted)]">
+                                  @{req.receiver?.username}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => cancelRequest(req.id)}
+                              className="px-3 py-1.5 text-red-500 text-sm hover:bg-red-500/10 rounded-lg transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {pendingReceived.length === 0 && pendingSent.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-12 text-[var(--text-muted)]">
+                      <UserPlus className="w-12 h-12 mb-3 opacity-50" />
+                      <p>No pending requests</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Conversations Tab */}
+              {activeTab === "conversations" && (
+                <div>
+                  {loading ? (
+                    <div className="flex justify-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]"></div>
+                    </div>
+                  ) : conversations.length > 0 ? (
+                    <div className="divide-y divide-[var(--border-light)]">
+                      {conversations.map((conv) => (
+                        <button
+                          key={conv.id}
+                          onClick={() => selectConversation(conv.id)}
+                          className={`w-full flex items-center gap-3 p-4 hover:bg-[var(--bg-primary)] transition-colors text-left ${
+                            selectedConversation === conv.id ? "bg-[var(--bg-primary)]" : ""
+                          }`}
+                        >
+                          <Image
+                            src={conv.otherUser.avatarUrl || "/default-avatar.svg"}
+                            alt={conv.otherUser.username}
+                            width={48}
+                            height={48}
+                            className="rounded-full"
+                          />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
-                              <p className="font-semibold text-[var(--text)] truncate">
+                              <p className="font-medium text-[var(--text-primary)] truncate">
                                 {conv.otherUser.displayName}
                               </p>
                               {conv.lastMessage && (
-                                <span className="text-xs text-[var(--muted)]">
+                                <span className="text-xs text-[var(--text-muted)]">
                                   {formatTime(conv.lastMessage.createdAt)}
                                 </span>
                               )}
                             </div>
-                            <p className="text-sm text-[var(--muted)] truncate">
-                              @{conv.otherUser.username}
-                              {conv.isBlocked && (
-                                <span className="ml-2 text-red-500">(Blocked)</span>
-                              )}
+                            <p className="text-sm text-[var(--text-muted)] truncate">
+                              {conv.lastMessage
+                                ? conv.lastMessage.isFromMe
+                                  ? `You: ${conv.lastMessage.content}`
+                                  : conv.lastMessage.content
+                                : "No messages yet"}
                             </p>
-                            {conv.lastMessage && (
-                              <p className="text-sm text-[var(--muted)] truncate mt-1">
-                                {conv.lastMessage.isFromMe ? "You: " : ""}
-                                {conv.lastMessage.content}
-                              </p>
-                            )}
                           </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Message Thread */}
-            <div className={`flex-1 flex flex-col ${selectedConvId ? "flex" : "hidden md:flex"}`}>
-              {selectedConversation ? (
-                <>
-                  {/* Chat Header */}
-                  <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={goBackToList}
-                        className="md:hidden p-2 hover:bg-[var(--surface2)] rounded-lg transition-colors"
-                      >
-                        <ArrowLeft className="w-5 h-5 text-[var(--text)]" />
-                      </button>
-                      <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                        {selectedConversation.otherUser.avatarUrl ? (
-                          <img 
-                            src={selectedConversation.otherUser.avatarUrl} 
-                            alt={selectedConversation.otherUser.displayName}
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                            {selectedConversation.otherUser.displayName.charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-[var(--text)]">
-                          {selectedConversation.otherUser.displayName}
-                        </p>
-                        <p className="text-sm text-[var(--muted)]">
-                          @{selectedConversation.otherUser.username}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Actions Menu */}
-                    <div className="relative" ref={menuRef}>
-                      <button
-                        onClick={() => setShowMenu(!showMenu)}
-                        className="p-2 hover:bg-[var(--surface2)] rounded-lg transition-colors"
-                      >
-                        <MoreVertical className="w-5 h-5 text-[var(--text)]" />
-                      </button>
-                      
-                      {showMenu && (
-                        <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--surface)] border border-[var(--border)] rounded-xl shadow-lg z-50">
-                          <button
-                            onClick={handleBlock}
-                            className="w-full px-4 py-3 text-left hover:bg-[var(--surface2)] flex items-center gap-2 text-[var(--text)]"
-                          >
-                            <Ban className="w-4 h-4" />
-                            {selectedConversation.isBlocked ? "Unblock User" : "Block User"}
-                          </button>
-                          <button
-                            onClick={() => {
-                              setShowReportModal(true);
-                              setShowMenu(false);
-                            }}
-                            className="w-full px-4 py-3 text-left hover:bg-[var(--surface2)] flex items-center gap-2 text-red-500"
-                          >
-                            <Flag className="w-4 h-4" />
-                            Report User
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Messages */}
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {error && (
-                      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-center gap-2 text-red-600 dark:text-red-400">
-                        <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                        <p>{error}</p>
-                        <button onClick={() => setError(null)} className="ml-auto">
-                          <X className="w-4 h-4" />
                         </button>
-                      </div>
-                    )}
-                    
-                    {selectedConversation.isBlocked && (
-                      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 text-center text-yellow-700 dark:text-yellow-400">
-                        <Ban className="w-5 h-5 inline-block mr-2" />
-                        This conversation is blocked. Unblock to send messages.
-                      </div>
-                    )}
-                    
-                    {messages.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-full text-center">
-                        <p className="text-[var(--muted)]">No messages yet. Start the conversation!</p>
-                      </div>
-                    ) : (
-                      messages.map((message) => (
-                        <div
-                          key={message.id}
-                          className={`flex ${message.isFromMe ? "justify-end" : "justify-start"}`}
-                        >
-                          <div
-                            className={`group max-w-[75%] rounded-2xl px-4 py-2 ${
-                              message.isFromMe
-                                ? "bg-emerald-500 text-white rounded-br-md"
-                                : "bg-[var(--surface2)] text-[var(--text)] rounded-bl-md"
-                            }`}
-                          >
-                            <p className="break-words whitespace-pre-wrap">{message.content}</p>
-                            <div className={`flex items-center gap-2 mt-1 ${message.isFromMe ? "justify-end" : "justify-start"}`}>
-                              <span className={`text-xs ${message.isFromMe ? "text-emerald-100" : "text-[var(--muted)]"}`}>
-                                {formatTime(message.createdAt)}
-                              </span>
-                              {message.isFromMe && (
-                                <button
-                                  onClick={() => deleteMessage(message.id)}
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-emerald-600 rounded"
-                                  title="Delete message"
-                                >
-                                  <Trash2 className="w-3 h-3 text-emerald-100" />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                    <div ref={messagesEndRef} />
-                  </div>
-
-                  {/* Message Input */}
-                  <form onSubmit={sendMessage} className="p-4 border-t border-[var(--border)]">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        placeholder={selectedConversation.isBlocked ? "Unblock user to send messages" : "Type a message..."}
-                        disabled={selectedConversation.isBlocked || sendingMessage}
-                        className="flex-1 px-4 py-3 bg-[var(--surface2)] border border-[var(--border)] rounded-xl text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50"
-                        maxLength={5000}
-                      />
-                      <button
-                        type="submit"
-                        disabled={!newMessage.trim() || selectedConversation.isBlocked || sendingMessage}
-                        className="p-3 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors"
-                        style={{ color: "#ffffff" }}
-                      >
-                        <Send className="w-5 h-5" />
-                      </button>
+                      ))}
                     </div>
-                  </form>
-                </>
-              ) : (
-                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-                  <MessageCircle className="w-20 h-20 text-[var(--muted)] mb-4" />
-                  <h2 className="text-xl font-semibold text-[var(--text)] mb-2">Select a conversation</h2>
-                  <p className="text-[var(--muted)]">
-                    Choose a conversation from the list or start a new one
-                  </p>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12 text-[var(--text-muted)]">
+                      <MessageCircle className="w-12 h-12 mb-3 opacity-50" />
+                      <p className="mb-2">No conversations yet</p>
+                      <p className="text-sm">Search for users and connect to start messaging</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
+
+          {/* Right Panel - Message Thread */}
+          <div className={`flex-1 ${!selectedConversation ? "hidden lg:block" : ""}`}>
+            {selectedConversation && otherUser ? (
+              <div className="bg-[var(--bg-secondary)] rounded-xl h-[calc(100vh-200px)] flex flex-col">
+                {/* Header */}
+                <div className="flex items-center gap-3 p-4 border-b border-[var(--border-light)]">
+                  <button
+                    onClick={() => {
+                      setSelectedConversation(null);
+                      router.push("/messages", { scroll: false });
+                    }}
+                    className="lg:hidden p-2 hover:bg-[var(--bg-primary)] rounded-lg transition-colors"
+                  >
+                    <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
+                  </button>
+                  <Image
+                    src={otherUser.avatarUrl || "/default-avatar.svg"}
+                    alt={otherUser.username}
+                    width={40}
+                    height={40}
+                    className="rounded-full"
+                  />
+                  <div className="flex-1">
+                    <p className="font-medium text-[var(--text-primary)]">
+                      {otherUser.displayName}
+                    </p>
+                    <p className="text-sm text-[var(--text-muted)]">@{otherUser.username}</p>
+                  </div>
+                </div>
+
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                  {messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.isFromMe ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-[75%] px-4 py-2 rounded-2xl ${
+                          msg.isFromMe
+                            ? "bg-[var(--primary)] text-white rounded-br-md"
+                            : "bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-bl-md"
+                        }`}
+                      >
+                        <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                        <p
+                          className={`text-xs mt-1 ${
+                            msg.isFromMe ? "text-white/70" : "text-[var(--text-muted)]"
+                          }`}
+                        >
+                          {formatTime(msg.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Input */}
+                <form onSubmit={sendMessage} className="p-4 border-t border-[var(--border-light)]">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Type a message..."
+                      className="flex-1 px-4 py-3 bg-[var(--bg-primary)] border border-[var(--border-light)] rounded-xl text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!newMessage.trim() || sendingMessage}
+                      className="px-4 py-3 bg-[var(--primary)] text-white rounded-xl hover:bg-[var(--primary-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <Send className="w-5 h-5" />
+                    </button>
+                  </div>
+                </form>
+              </div>
+            ) : (
+              <div className="bg-[var(--bg-secondary)] rounded-xl h-[calc(100vh-200px)] flex flex-col items-center justify-center text-[var(--text-muted)]">
+                <MessageCircle className="w-16 h-16 mb-4 opacity-50" />
+                <p className="text-lg">Select a conversation</p>
+                <p className="text-sm">Choose a chat from the list to start messaging</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Report Modal */}
-      {showReportModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--surface)] rounded-2xl shadow-xl max-w-md w-full p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-[var(--text)]">Report User</h3>
+      {/* Connection Request Modal */}
+      {showConnectionModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-[var(--bg-secondary)] rounded-2xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+              Send Connection Request
+            </h3>
+            <textarea
+              value={connectionMessage}
+              onChange={(e) => setConnectionMessage(e.target.value)}
+              placeholder="Add a message (optional)"
+              rows={3}
+              maxLength={300}
+              className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--border-light)] rounded-xl text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none"
+            />
+            <p className="text-xs text-[var(--text-muted)] mt-1 text-right">
+              {connectionMessage.length}/300
+            </p>
+            <div className="flex gap-3 mt-4">
               <button
                 onClick={() => {
-                  setShowReportModal(false);
-                  setReportReason("");
-                  setReportDescription("");
+                  setShowConnectionModal(null);
+                  setConnectionMessage("");
                 }}
-                className="p-2 hover:bg-[var(--surface2)] rounded-lg"
+                className="flex-1 py-2.5 bg-[var(--bg-elevated)] text-[var(--text-secondary)] font-medium rounded-xl hover:bg-[var(--bg-elevated-hover)] transition-colors"
               >
-                <X className="w-5 h-5 text-[var(--text)]" />
+                Cancel
+              </button>
+              <button
+                onClick={() => sendConnectionRequest(showConnectionModal)}
+                className="flex-1 py-2.5 bg-[var(--primary)] text-white font-medium rounded-xl hover:bg-[var(--primary-hover)] transition-colors"
+              >
+                Send Request
               </button>
             </div>
-            
-            <form onSubmit={handleReport} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-[var(--text)] mb-2">
-                  Reason for report *
-                </label>
-                <select
-                  value={reportReason}
-                  onChange={(e) => setReportReason(e.target.value)}
-                  className="w-full px-4 py-3 bg-[var(--surface2)] border border-[var(--border)] rounded-xl text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  required
-                >
-                  <option value="">Select a reason</option>
-                  <option value="Harassment">Harassment</option>
-                  <option value="Spam">Spam</option>
-                  <option value="Inappropriate content">Inappropriate content</option>
-                  <option value="Threats or violence">Threats or violence</option>
-                  <option value="Scam or fraud">Scam or fraud</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-[var(--text)] mb-2">
-                  Additional details (optional)
-                </label>
-                <textarea
-                  value={reportDescription}
-                  onChange={(e) => setReportDescription(e.target.value)}
-                  placeholder="Provide more context about this report..."
-                  rows={3}
-                  className="w-full px-4 py-3 bg-[var(--surface2)] border border-[var(--border)] rounded-xl text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
-                  maxLength={500}
-                />
-              </div>
-              
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowReportModal(false);
-                    setReportReason("");
-                    setReportDescription("");
-                  }}
-                  className="flex-1 px-4 py-3 border border-[var(--border)] rounded-xl text-[var(--text)] hover:bg-[var(--surface2)] transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={!reportReason || submittingReport}
-                  className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 disabled:opacity-50 rounded-xl transition-colors flex items-center justify-center gap-2"
-                  style={{ color: "#ffffff" }}
-                >
-                  {submittingReport ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <Flag className="w-4 h-4" />
-                      Submit Report
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

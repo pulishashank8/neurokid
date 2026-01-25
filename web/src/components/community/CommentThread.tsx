@@ -8,7 +8,6 @@ import toast from "react-hot-toast";
 import { VoteButtons } from "./VoteButtons";
 import { ReportButton } from "./ReportButton";
 import { CommentComposer } from "./CommentComposer";
-import { MessageButton } from "./MessageButton";
 
 interface Comment {
   id: string;
@@ -102,15 +101,6 @@ export function CommentThread({
                 )}
 
                 <ReportButton targetType="COMMENT" targetId={comment.id} />
-                
-                {!comment.isAnonymous && (
-                  <MessageButton 
-                    targetUserId={comment.author.id} 
-                    targetUsername={comment.author.username}
-                    className="min-h-[44px] px-3 rounded-[var(--radius-md)] text-xs sm:text-sm font-medium bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated-hover)] transition-all"
-                    showText
-                  />
-                )}
               </div>
             </div>
 
