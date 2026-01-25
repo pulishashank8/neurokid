@@ -270,73 +270,58 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Right: Marketplace - Premium 3D Card */}
-            <Link href="/marketplace" className="group block perspective-1000">
-              <div className="relative rounded-2xl p-4 sm:p-5 overflow-hidden transform-gpu transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1"
-                   style={{ transformStyle: 'preserve-3d' }}>
-                {/* Multi-layer gradient background - Emerald theme */}
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600" />
-                <div className="absolute inset-0 bg-gradient-to-tr from-green-400/20 via-transparent to-teal-300/20" />
+            {/* Right: Marketplace - Soft & Elegant Card */}
+            <Link href="/marketplace" className="group block">
+              <div className="relative rounded-2xl p-4 sm:p-5 overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-xl bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-50 dark:from-violet-950/40 dark:via-purple-950/30 dark:to-indigo-950/40 border border-violet-100 dark:border-violet-900/30">
                 
-                {/* Animated shine effect */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                </div>
+                {/* Soft ambient glow */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-violet-200/40 to-transparent dark:from-violet-500/10 rounded-full blur-2xl" />
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-200/30 to-transparent dark:from-purple-500/10 rounded-full blur-2xl" />
                 
-                {/* Floating orbs/particles */}
-                <div className="absolute top-2 right-2 w-12 h-12 bg-white/15 rounded-full blur-xl animate-pulse" />
-                <div className="absolute bottom-4 left-4 w-8 h-8 bg-teal-300/25 rounded-full blur-lg animate-bounce" style={{ animationDuration: '3s' }} />
-                
-                {/* Floating product icons */}
-                <div className="absolute top-3 right-3 flex gap-1.5" style={{ transform: 'translateZ(20px)' }}>
-                  <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center text-sm shadow-lg group-hover:scale-110 transition-transform duration-300">
+                {/* Floating product icons - soft style */}
+                <div className="absolute top-3 right-3 flex gap-1.5">
+                  <div className="w-8 h-8 rounded-xl bg-white/80 dark:bg-white/10 backdrop-blur-sm flex items-center justify-center text-sm shadow-sm border border-violet-100 dark:border-violet-800/30 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300">
                     🧸
                   </div>
-                  <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center text-sm shadow-lg group-hover:scale-110 transition-transform duration-300 delay-75">
+                  <div className="w-8 h-8 rounded-xl bg-white/80 dark:bg-white/10 backdrop-blur-sm flex items-center justify-center text-sm shadow-sm border border-violet-100 dark:border-violet-800/30 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 delay-75">
                     🎧
                   </div>
-                  <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center text-sm shadow-lg group-hover:scale-110 transition-transform duration-300 delay-150">
+                  <div className="w-8 h-8 rounded-xl bg-white/80 dark:bg-white/10 backdrop-blur-sm flex items-center justify-center text-sm shadow-sm border border-violet-100 dark:border-violet-800/30 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300 delay-150">
                     📚
                   </div>
                 </div>
                 
                 {/* Content */}
-                <div className="relative z-10" style={{ transform: 'translateZ(30px)' }}>
+                <div className="relative z-10">
                   <div className="flex items-center gap-2.5 mb-3">
-                    <div className="w-8 h-8 rounded-lg bg-white/25 backdrop-blur-sm flex items-center justify-center shadow-md">
-                      <ShoppingBag className="w-4 h-4 text-white" />
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md shadow-violet-200 dark:shadow-violet-900/30">
+                      <ShoppingBag className="w-4.5 h-4.5 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-bold text-white drop-shadow-sm">Marketplace</h2>
-                      <p className="text-[11px] text-white/75">Curated for your family</p>
+                      <h2 className="text-base font-bold text-[var(--text)]">Marketplace</h2>
+                      <p className="text-xs text-[var(--muted)]">Curated for your family</p>
                     </div>
                   </div>
                   
-                  <p className="text-white/85 text-sm leading-relaxed mb-4">
+                  <p className="text-[var(--muted)] text-sm leading-relaxed mb-4">
                     Sensory toys, weighted blankets, communication tools & more.
                   </p>
                   
-                  {/* Category pills */}
+                  {/* Category pills - soft pastel */}
                   <div className="flex flex-wrap gap-1.5 mb-4">
                     {['Sensory', 'Safety', 'Learning', 'Comfort'].map((cat) => (
-                      <span key={cat} className="px-2 py-0.5 rounded-full bg-white/15 backdrop-blur-sm text-white/90 text-[10px] font-medium group-hover:bg-white/25 transition-colors">
+                      <span key={cat} className="px-2.5 py-1 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300 text-[10px] font-medium group-hover:bg-violet-200 dark:group-hover:bg-violet-800/40 transition-colors">
                         {cat}
                       </span>
                     ))}
                   </div>
                   
-                  {/* Premium CTA Button */}
-                  <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-emerald-600 font-bold text-sm shadow-lg shadow-black/15 group-hover:shadow-xl group-hover:scale-105 transition-all duration-300">
+                  {/* Soft CTA Button */}
+                  <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-500 to-purple-500 text-white font-semibold text-sm shadow-md shadow-violet-200 dark:shadow-violet-900/40 group-hover:shadow-lg group-hover:shadow-violet-300 dark:group-hover:shadow-violet-800/50 group-hover:-translate-y-0.5 transition-all duration-300">
                     Browse Collection
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>
-                
-                {/* 3D border glow */}
-                <div className="absolute inset-0 rounded-2xl border border-white/20 group-hover:border-white/40 transition-colors" />
-                
-                {/* Bottom reflection effect */}
-                <div className="absolute -bottom-3 left-4 right-4 h-6 bg-gradient-to-t from-emerald-600/25 to-transparent blur-xl rounded-full" />
               </div>
             </Link>
           </div>
