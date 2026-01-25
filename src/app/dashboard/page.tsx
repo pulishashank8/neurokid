@@ -270,27 +270,76 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Right: Marketplace */}
-            <div className="bg-gradient-to-br from-[var(--surface)] to-amber-50/30 dark:to-amber-950/10 rounded-2xl border border-[var(--border)] p-4 sm:p-5 shadow-md flex flex-col">
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-md shadow-amber-500/20">
-                  <ShoppingBag className="w-4 h-4 text-white" />
+            {/* Right: Marketplace - Premium 3D Card */}
+            <Link href="/marketplace" className="group block perspective-1000">
+              <div className="relative rounded-2xl p-5 sm:p-6 overflow-hidden transform-gpu transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 hover:rotate-y-2 hover:rotate-x-2"
+                   style={{ transformStyle: 'preserve-3d' }}>
+                {/* Multi-layer gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 opacity-90" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400/30 via-transparent to-pink-500/30" />
+                
+                {/* Animated shine effect */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                 </div>
-                <div>
-                  <h2 className="text-base font-bold text-[var(--text)]">Marketplace</h2>
-                  <p className="text-xs text-[var(--muted)]">Curated products for your family</p>
+                
+                {/* Floating orbs/particles */}
+                <div className="absolute top-3 right-3 w-16 h-16 bg-white/20 rounded-full blur-xl animate-pulse" />
+                <div className="absolute bottom-6 left-6 w-12 h-12 bg-yellow-300/30 rounded-full blur-lg animate-bounce" style={{ animationDuration: '3s' }} />
+                <div className="absolute top-1/2 right-8 w-8 h-8 bg-pink-300/25 rounded-full blur-md animate-ping" style={{ animationDuration: '2s' }} />
+                
+                {/* Floating product icons */}
+                <div className="absolute top-4 right-4 flex gap-2" style={{ transform: 'translateZ(20px)' }}>
+                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white/80 shadow-lg group-hover:scale-110 transition-transform duration-300 hover:rotate-12">
+                    🧸
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white/80 shadow-lg group-hover:scale-110 transition-transform duration-300 delay-75 hover:-rotate-12">
+                    🎧
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white/80 shadow-lg group-hover:scale-110 transition-transform duration-300 delay-150 hover:rotate-12">
+                    📚
+                  </div>
                 </div>
+                
+                {/* Content */}
+                <div className="relative z-10" style={{ transform: 'translateZ(30px)' }}>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white/90 text-[10px] font-bold uppercase tracking-wider mb-3">
+                    <Sparkles className="w-3 h-3" />
+                    150+ Products
+                  </div>
+                  
+                  <h2 className="text-2xl sm:text-3xl font-black text-white mb-2 drop-shadow-lg">
+                    Marketplace
+                  </h2>
+                  
+                  <p className="text-white/85 text-sm leading-relaxed mb-5 max-w-xs">
+                    Sensory toys, weighted blankets, communication tools & more - handpicked for neurodiverse families.
+                  </p>
+                  
+                  {/* Category pills */}
+                  <div className="flex flex-wrap gap-1.5 mb-5">
+                    {['Sensory', 'Safety', 'Learning', 'Comfort'].map((cat, i) => (
+                      <span key={cat} className="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-white/90 text-[10px] font-semibold group-hover:bg-white/25 transition-colors" style={{ animationDelay: `${i * 100}ms` }}>
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
+                  
+                  {/* Premium CTA Button */}
+                  <div className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white text-amber-600 font-bold text-sm shadow-xl shadow-black/20 group-hover:shadow-2xl group-hover:shadow-black/30 group-hover:scale-105 transition-all duration-300">
+                    <ShoppingBag className="w-4 h-4" />
+                    Browse Collection
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+                
+                {/* 3D border glow */}
+                <div className="absolute inset-0 rounded-2xl border-2 border-white/20 group-hover:border-white/40 transition-colors" />
+                
+                {/* Bottom reflection effect */}
+                <div className="absolute -bottom-4 left-4 right-4 h-8 bg-gradient-to-t from-amber-600/30 to-transparent blur-xl rounded-full" />
               </div>
-              
-              <p className="text-sm text-[var(--muted)] mb-4 leading-relaxed flex-1">
-                Discover 150+ carefully selected items including sensory toys, weighted blankets, communication tools, and more.
-              </p>
-              
-              <Link href="/marketplace" className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-semibold shadow-md shadow-amber-500/20 hover:shadow-amber-500/35 hover:-translate-y-0.5 transition-all">
-                Browse Collection
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
+            </Link>
           </div>
         </div>
       </div>
