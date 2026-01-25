@@ -168,6 +168,16 @@ model User {
   savedResources        SavedResource[]
   emailVerificationTokens EmailVerificationToken[]
   passwordResetTokens   PasswordResetToken[]
+  
+  // Private messaging relations
+  conversationsAsUserA  Conversation[]   @relation("ConversationUserA")
+  conversationsAsUserB  Conversation[]   @relation("ConversationUserB")
+  sentDirectMessages    DirectMessage[]  @relation("DirectMessageSender")
+  blockedUsers          BlockedUser[]    @relation("BlockedByUser")
+  blockedByUsers        BlockedUser[]    @relation("BlockedUser")
+  messageReportsFiled   MessageReport[]  @relation("MessageReporter")
+  messageReportsReceived MessageReport[] @relation("MessageReported")
+  messageRateLimits     MessageRateLimit[]
 
   @@index([email])
   @@index([createdAt])
@@ -811,6 +821,91 @@ model EmergencyCard {
   updatedAt             DateTime     @updatedAt
 
   @@index([userId])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// PRIVATE MESSAGING
+// ============================================================================
+
+model Conversation {
+  id                    String          @id @default(cuid())
+  userAId               String
+  userBId               String
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  userA                 User            @relation("ConversationUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB                 User            @relation("ConversationUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  messages              DirectMessage[]
+
+  @@unique([userAId, userBId])
+  @@index([userAId])
+  @@index([userBId])
+  @@index([updatedAt])
+}
+
+model DirectMessage {
+  id                    String          @id @default(cuid())
+  conversationId        String
+  senderId              String
+  content               String          @db.Text
+  createdAt             DateTime        @default(now())
+  deletedAt             DateTime?
+
+  conversation          Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender                User            @relation("DirectMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@index([deletedAt])
+}
+
+model BlockedUser {
+  id                    String          @id @default(cuid())
+  blockerId             String
+  blockedId             String
+  createdAt             DateTime        @default(now())
+
+  blocker               User            @relation("BlockedByUser", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked               User            @relation("BlockedUser", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+}
+
+model MessageReport {
+  id                    String          @id @default(cuid())
+  reporterId            String
+  reportedUserId        String
+  conversationId        String?
+  reason                String          @db.VarChar(255)
+  description           String?         @db.Text
+  status                ReportStatus    @default(OPEN)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  reporter              User            @relation("MessageReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser          User            @relation("MessageReported", fields: [reportedUserId], references: [id], onDelete: Cascade)
+
+  @@index([reporterId])
+  @@index([reportedUserId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model MessageRateLimit {
+  id                    String          @id @default(cuid())
+  userId                String
+  actionType            String          @db.VarChar(50)
+  createdAt             DateTime        @default(now())
+
+  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([actionType])
   @@index([createdAt])
 }
 
