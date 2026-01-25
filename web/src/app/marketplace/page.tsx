@@ -16,7 +16,7 @@ const getAffiliateLink = (url: string) => {
     return url;
 };
 
-// DATA: 80+ Real Autism Essentials with SPECIFIC ICONS
+// DATA: 150+ Real Autism Essentials with SPECIFIC ICONS
 const allProducts = [
     // --- GIFTS FOR KIDS & PARENTS [NEW] ---
     {

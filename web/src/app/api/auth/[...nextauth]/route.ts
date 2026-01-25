@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { LoginSchema } from "@/lib/validators";
 import bcryptjs from "bcryptjs";
 import { logger } from "@/lib/logger";
+import { RATE_LIMITERS } from "@/lib/rateLimit";
 
 export const authOptions: NextAuthOptions = {
   // No adapter needed when using JWT strategy
@@ -34,6 +35,13 @@ export const authOptions: NextAuthOptions = {
           if (!parsed.success) {
             logger.warn({ errors: parsed.error.errors }, 'Login validation failed');
             return null;
+          }
+
+          // Check login rate limit (10 attempts per minute per email)
+          const canLogin = await RATE_LIMITERS.login.checkLimit(parsed.data.email.toLowerCase());
+          if (!canLogin) {
+            logger.warn({ email: parsed.data.email.substring(0, 3) + '***' }, 'Login rate limit exceeded');
+            throw new Error("TooManyAttempts");
           }
 
           try {
@@ -102,7 +110,11 @@ export const authOptions: NextAuthOptions = {
             }
             return null;
           }
-        } catch (outerErr) {
+        } catch (outerErr: any) {
+          // Re-throw rate limit errors to surface them properly
+          if (outerErr?.message === "TooManyAttempts") {
+            throw new Error("TooManyAttempts");
+          }
           logger.error({ error: outerErr }, 'Login outer error');
           return null;
         }

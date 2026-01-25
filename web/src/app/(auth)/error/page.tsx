@@ -21,6 +21,8 @@ function ErrorContent() {
     OAuthAccountNotLinked: "This email is already associated with another account.",
     SessionRequired: "Please sign in to access this page.",
     CredentialsSignin: "Invalid email or password. Please try again.",
+    TooManyAttempts: "Too many login attempts. Please wait a minute before trying again.",
+    EmailNotVerified: "Please verify your email address before signing in. Check your inbox for the verification link.",
   };
 
   const errorMessage = error ? errorMessages[error] || errorMessages.Default : errorMessages.Default;
