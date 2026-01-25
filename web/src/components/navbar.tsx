@@ -156,6 +156,28 @@ export default function NavBar() {
                             </Link>
                           );
                         })}
+                        {/* Sign Out button in Platform dropdown */}
+                        {group.label === "Platform" && session && (
+                          <>
+                            <div className="my-1 border-t border-[var(--border)]"></div>
+                            <button
+                              onClick={() => signOut({ callbackUrl: "/login" })}
+                              className="flex items-start gap-3 p-3 rounded-xl transition-all hover:bg-rose-50 dark:hover:bg-rose-950/20 w-full text-left"
+                            >
+                              <div className="mt-0.5 p-1.5 rounded-lg bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">
+                                <LogOut className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-bold text-rose-600 dark:text-rose-400">
+                                  Sign Out
+                                </div>
+                                <div className="text-[10px] text-[var(--muted)] leading-tight mt-0.5">
+                                  Log out of your account
+                                </div>
+                              </div>
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

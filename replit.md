@@ -82,14 +82,14 @@ These features are 100% free (no paid APIs) and designed for real-world use by f
 - **Care Compass**: Find Care, M-CHAT-R/F Screening
 - **Support**: Calm Tool, Crisis Help, Therapy Log, Emergency Cards
 - **Knowledge**: Resources, AI Companion
-- **Platform**: About, Trust & Safety, Settings
+- **Platform**: About, Marketplace, Trust & Safety, Settings, Sign Out
 
 ## Recent Updates (Jan 2026)
 - Added Breathing/Calm Tool with animated exercises
 - Created Crisis Resources page with emergency hotlines
 - Built Therapy Session Log feature with database persistence
 - Created Emergency Info Card generator with print functionality
-- Added prominent "Get Help" button to navbar (desktop + mobile)
+- Added prominent "Get Help" button to navbar (rose/red for visibility)
 - Added Medical Disclaimer, Privacy Policy, Terms of Service pages
 - Updated navbar with new Support navigation group
 - Added premium 3D card effects and glassmorphism to globals.css
@@ -100,3 +100,9 @@ These features are 100% free (no paid APIs) and designed for real-world use by f
 - Redesigned SortTabs with pill-style toggle buttons
 - Premium-styled BookmarkButton and ReportButton with micro-interactions
 - Enhanced LoadingSkeletons with premium animation effects
+- Added Marketplace to Platform navigation dropdown
+- Moved Sign Out to Platform dropdown (desktop) and mobile menu
+- Dashboard features 15 rotating inspirational quotes (compact size)
+- Improved theme toggle with clear Sun/Moon icons with labels
+- Cleaned up dashboard - removed redundant elements
+- Full responsiveness across all device sizes (mobile, tablet, desktop)

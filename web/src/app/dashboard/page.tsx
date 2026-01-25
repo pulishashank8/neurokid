@@ -181,14 +181,14 @@ export default function DashboardPage() {
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {supportTools.map((tool) => {
                 const Icon = tool.icon;
                 return (
                   <Link key={tool.href} href={tool.href} className="group">
-                    <div className="flex items-center gap-4 p-5 rounded-2xl bg-[var(--surface2)] border border-transparent hover:border-[var(--primary)]/30 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-                      <div className={`w-12 h-12 rounded-xl ${tool.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                        <Icon className="w-6 h-6" />
+                    <div className="flex items-center gap-4 p-4 sm:p-5 rounded-2xl bg-[var(--surface2)] border border-transparent hover:border-[var(--primary)]/30 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${tool.color} flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0`}>
+                        <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
                       </div>
                       <span className="text-sm font-semibold text-[var(--text)]">{tool.label}</span>
                     </div>
