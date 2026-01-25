@@ -5,7 +5,15 @@ import { updateProfileSchema } from "@/lib/validations/community";
 import { RATE_LIMITERS, rateLimitResponse } from "@/lib/rateLimit";
 import { withApiHandler, getRequestId } from "@/lib/apiHandler";
 import { createLogger } from "@/lib/logger";
-import DOMPurify from 'isomorphic-dompurify';
+
+// SUPER STABLE SANITIZER (No external dependencies)
+function simpleSanitize(html: string): string {
+  if (!html) return "";
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/on\w+="[^"]*"/gi, "")
+    .replace(/javascript:[^"']*/gi, "");
+}
 
 // GET /api/user/profile
 export async function GET() {
@@ -81,14 +89,7 @@ export const PUT = withApiHandler(async (request: NextRequest) => {
   const { username, displayName, bio, avatarUrl, location, website } = validation.data;
 
   // Sanitize bio
-  const sanitizedBio = bio ? DOMPurify.sanitize(bio, {
-    ALLOWED_TAGS: [
-      'b', 'i', 'em', 'strong', 'a', 'p', 'br'
-    ],
-    ALLOWED_ATTR: [
-      'href', 'target', 'rel'
-    ],
-  }) : bio;
+  const sanitizedBio = bio ? simpleSanitize(bio) : bio;
 
   logger.debug({ userId: session.user.id, username }, 'Updating profile');
 
