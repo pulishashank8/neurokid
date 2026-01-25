@@ -8,7 +8,15 @@ import { invalidateCache } from "@/lib/redis";
 import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
 import { createLogger } from "@/lib/logger";
 import { getRequestId, withApiHandler } from "@/lib/apiHandler";
-import DOMPurify from 'isomorphic-dompurify';
+
+// SUPER STABLE SANITIZER (No external dependencies)
+function simpleSanitize(html: string): string {
+  if (!html) return "";
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/on\w+="[^"]*"/gi, "")
+    .replace(/javascript:[^"']*/gi, "");
+}
 
 function enforceSafeLinks(html: string): string {
   return html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
@@ -164,24 +172,8 @@ export async function POST(
 
     const { content, parentCommentId, isAnonymous } = validation.data;
 
-    // Sanitize content - USE TRY CATCH
-    let sanitizedContent = content;
-    try {
-      const dirty = enforceSafeLinks(content);
-      sanitizedContent = DOMPurify.sanitize(dirty, {
-        ALLOWED_TAGS: [
-          'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'p', 'a', 'ul', 'ol',
-          'nl', 'li', 'b', 'i', 'strong', 'em', 'strike', 'code', 'hr', 'br', 'div',
-          'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'img'
-        ],
-        ALLOWED_ATTR: [
-          'href', 'name', 'target', 'rel', 'src', 'alt', 'title', 'width', 'height', 'class', 'style'
-        ],
-      });
-    } catch (libError) {
-      console.error("DOMPurify Error:", libError);
-      sanitizedContent = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
-    }
+    // Sanitize content with Zero-Dependency method
+    const sanitizedContent = simpleSanitize(content);
 
     // Create comment
     const [comment] = await prisma.$transaction([

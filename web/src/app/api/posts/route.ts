@@ -238,95 +238,178 @@ export const GET = withApiHandler(async (request: NextRequest) => {
   return NextResponse.json(response);
 }, { method: 'GET', routeName: '/api/posts' });
 
-// POST /api/posts - Create a new post (WITH CRASH PROTECTION)
+// POST /api/posts - Create a new post
 export const POST = withApiHandler(async (request: NextRequest) => {
-  try {
-    const requestId = getRequestId(request);
-    const logger = createLogger({ requestId });
+  const requestId = getRequestId(request);
+  const logger = createLogger({ requestId });
 
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      logger.warn('Unauthorized post creation attempt');
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    logger.warn('Unauthorized post creation attempt');
+    throw apiErrors.unauthorized();
+  }
 
-    // Rate limit: 5 posts per minute per user
-    const canCreatePost = await RATE_LIMITERS.createPost.checkLimit(session.user.id);
-    if (!canCreatePost) {
-      const retryAfter = await RATE_LIMITERS.createPost.getRetryAfter(session.user.id);
-      logger.warn({ userId: session.user.id }, 'Rate limit exceeded for post creation');
-      return rateLimitResponse(retryAfter);
-    }
+  // Rate limit: 5 posts per minute per user
+  const canCreatePost = await RATE_LIMITERS.createPost.checkLimit(session.user.id);
+  if (!canCreatePost) {
+    const retryAfter = await RATE_LIMITERS.createPost.getRetryAfter(session.user.id);
+    logger.warn({ userId: session.user.id }, 'Rate limit exceeded for post creation');
+    return rateLimitResponse(retryAfter);
+  }
 
-    const body = await request.json();
-    const validation = createPostSchema.safeParse(body);
+  const body = await request.json();
+  const validation = createPostSchema.safeParse(body);
 
-    if (!validation.success) {
-      logger.warn({ validationErrors: validation.error.errors }, 'Invalid post data');
-      return NextResponse.json({ error: "Validation failed", details: validation.error.errors }, { status: 400 });
-    }
-
-    const { title, content, categoryId, tagIds, isAnonymous } = validation.data;
-
-    // Sanitize content to prevent XSS - USE TRY CATCH FOR LIBRARY LOAD
-    let sanitizedContent = content;
-    try {
-      const dirty = content.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
-        const hasRel = /\brel\s*=/.test(attrs);
-        return `<a ${hasRel ? attrs : `${attrs} rel="noopener noreferrer"`}>`;
-      });
-      sanitizedContent = DOMPurify.sanitize(dirty, {
-        ALLOWED_TAGS: [
-          'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'p', 'a', 'ul', 'ol',
-          'nl', 'li', 'b', 'i', 'strong', 'em', 'strike', 'code', 'hr', 'br', 'div',
-          'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'img'
-        ],
-        ALLOWED_ATTR: [
-          'href', 'name', 'target', 'rel', 'src', 'alt', 'title', 'width', 'height', 'class', 'style'
-        ],
-      });
-    } catch (libError) {
-      console.error("DOMPurify Error:", libError);
-      // Fallback to raw content if sanitizer crashes (Emergency measure)
-      sanitizedContent = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
-    }
-
-    // Create post
-    const post = await prisma.post.create({
-      data: {
-        title,
-        content: sanitizedContent,
-        authorId: session.user.id,
-        categoryId,
-        isAnonymous,
-        status: "ACTIVE",
-        tags: tagIds && tagIds.length > 0 ? {
-          connect: tagIds.map((tagId) => ({ id: tagId })),
-        } : undefined,
+  if (!validation.success) {
+    logger.warn({ validationErrors: validation.error.errors }, 'Invalid post data');
+    // Return field-level errors
+    const fieldErrors: Record<string, string> = {};
+    validation.error.errors.forEach((err) => {
+      if (err.path.length > 0) {
+        fieldErrors[err.path[0] as string] = err.message;
+      }
+    });
+    return NextResponse.json(
+      {
+        error: "Validation failed",
+        fieldErrors,
+        details: validation.error.errors
       },
-      include: {
-        category: true,
-        tags: true,
-        author: {
-          select: {
-            id: true,
-            profile: {
-              select: { username: true, avatarUrl: true },
+      { status: 400 }
+    );
+  }
+
+  const { title, content, categoryId, tagIds, isAnonymous } = validation.data;
+
+  logger.debug({ userId: session.user.id, categoryId, isAnonymous }, 'Creating new post');
+
+  // ===== ANTI-SPAM CHECKS =====
+
+  // Check for excessive links (max 2 links per post)
+  const linkRegex = /https?:\/\/[^\s]+/gi;
+  const linkMatches = content.match(linkRegex) || [];
+  if (linkMatches.length > 2) {
+    return NextResponse.json(
+      { error: "Too many links. Maximum 2 links per post allowed." },
+      { status: 400 }
+    );
+  }
+
+  // Check for duplicate posts from same author in last 5 minutes
+  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+  const recentPost = await prisma.post.findFirst({
+    where: {
+      authorId: session.user.id,
+      title: title,
+      createdAt: {
+        gte: fiveMinutesAgo,
+      },
+    },
+  });
+
+  if (recentPost) {
+    return NextResponse.json(
+      { error: "Duplicate post detected. Please wait before posting similar content." },
+      { status: 400 }
+    );
+  }
+
+  // Sanitize content to prevent XSS
+  const dirty = enforceSafeLinks(content);
+  const sanitizedContent = DOMPurify.sanitize(dirty, {
+    ALLOWED_TAGS: [
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'p', 'a', 'ul', 'ol',
+      'nl', 'li', 'b', 'i', 'strong', 'em', 'strike', 'code', 'hr', 'br', 'div',
+      'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'img'
+    ],
+    ALLOWED_ATTR: [
+      'href', 'name', 'target', 'rel', 'src', 'alt', 'title', 'width', 'height', 'class', 'style'
+    ],
+  });
+
+  // Verify category exists
+  const category = await prisma.category.findUnique({
+    where: { id: categoryId },
+  });
+
+  if (!category) {
+    return NextResponse.json(
+      {
+        error: "Validation failed",
+        fieldErrors: { categoryId: "Category not found" }
+      },
+      { status: 400 }
+    );
+  }
+
+  // Verify tags exist if provided
+  if (tagIds && tagIds.length > 0) {
+    const existingTags = await prisma.tag.findMany({
+      where: { id: { in: tagIds } },
+      select: { id: true },
+    });
+
+    if (existingTags.length !== tagIds.length) {
+      logger.warn({ tagIds, foundCount: existingTags.length }, 'Invalid tags provided');
+      return NextResponse.json(
+        {
+          error: "Validation failed",
+          fieldErrors: { tagIds: "One or more tags not found" }
+        },
+        { status: 400 }
+      );
+    }
+  }
+
+  // Create post with tags
+  const post = await prisma.post.create({
+    data: {
+      title,
+      content: sanitizedContent,
+      authorId: session.user.id,
+      categoryId,
+      isAnonymous,
+      status: "ACTIVE",
+      tags: tagIds && tagIds.length > 0 ? {
+        connect: tagIds.map((tagId) => ({ id: tagId })),
+      } : undefined,
+    },
+    include: {
+      category: true,
+      tags: true,
+      author: {
+        select: {
+          id: true,
+          profile: {
+            select: {
+              username: true,
+              avatarUrl: true,
             },
           },
         },
       },
-    });
+    },
+  });
 
-    await invalidateCache("posts:*", { prefix: "posts" });
+  // Invalidate feed cache
+  await invalidateCache("posts:*", { prefix: "posts" });
 
-    logger.info({ postId: post.id, userId: session.user.id }, 'Post created successfully');
-    return NextResponse.json(post, { status: 201 });
-  } catch (outerError: any) {
-    console.error("CRITICAL POST ERROR:", outerError);
-    return NextResponse.json({
-      error: "Critical Server Error",
-      message: outerError.message || "Unknown error during post creation"
-    }, { status: 500 });
-  }
+  // Format validation response to match GET response structure (hide author if anonymous)
+  const safePost = {
+    ...post,
+    author: post.isAnonymous
+      ? {
+        id: "anonymous",
+        username: "Anonymous",
+        avatarUrl: null,
+      }
+      : {
+        id: post.author?.id || session.user.id,
+        username: post.author?.profile?.username || "Unknown",
+        avatarUrl: post.author?.profile?.avatarUrl || null,
+      }
+  };
+
+  logger.info({ postId: post.id, userId: session.user.id }, 'Post created successfully');
+  return NextResponse.json(safePost, { status: 201 });
 }, { method: 'POST', routeName: '/api/posts' });
