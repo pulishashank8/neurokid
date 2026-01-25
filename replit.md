@@ -157,6 +157,8 @@ The platform includes a notification system for messaging:
 - `POST /api/notifications/mark-seen` - Marks notifications as seen
 
 ## Recent Updates (Jan 2026)
+- Renamed "Upvoted" to "My Likes" across user profile and community sidebar
+- Added "My Likes" filter option in Community page sidebar with Heart icon
 - Added premium Messages card to dashboard with notification badges
 - Added notification system with badges in navbar and dashboard
 - Refactored messaging to LinkedIn-style connection request system
@@ -192,18 +194,19 @@ The platform includes LinkedIn-style user profiles accessible by clicking on pos
 - **Connection Request**: Send connection requests with optional message (300 char limit)
 - **Connection Status**: Shows pending, connected, or none status
 - **Posts Tab**: Public tab showing all posts by this user
-- **Upvoted Tab**: Private tab (own profile only) showing posts you've upvoted
+- **My Likes Tab**: Private tab (own profile only) showing posts you've liked
 - **Saved Tab**: Private tab (own profile only) showing bookmarked posts
 
 ### Privacy Model
 - Posts are publicly visible on any profile
-- Upvoted and Saved tabs only appear when viewing your own profile
+- My Likes and Saved tabs only appear when viewing your own profile
 - APIs enforce ownership check for private content
 
 ## Community Page Enhancements
 - **My Posts Filter**: Filter community feed to show only your posts
+- **My Likes Filter**: Filter community feed to show posts you've liked
 - **Messages Button**: Quick access to messaging from community header
-- **Category Sidebar**: Includes "My Posts" option with state management
+- **Category Sidebar**: Includes "My Posts" and "My Likes" options with state management
 - **Posts API**: Supports `authorId` filter parameter for user-specific feeds
 
 ## Known Issues & Deployment Notes
