@@ -7,6 +7,7 @@
     "dev:clean": "dev-clean.bat",
     "build": "next build",
     "start": "next start",
+    "prod": "NODE_ENV=production next dev",
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
