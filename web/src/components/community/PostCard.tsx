@@ -5,7 +5,7 @@ import { formatDistanceToNow } from "date-fns";
 import { VoteButtons } from "./VoteButtons";
 import { BookmarkButton } from "./BookmarkButton";
 import { ReportButton } from "./ReportButton";
-import { MessageCircle, Pin, Lock, Ban } from "lucide-react";
+import { MessageCircle, Pin, Lock, Ban, User } from "lucide-react";
 
 interface Post {
   id: string;
@@ -99,12 +99,22 @@ export function PostCard({
 
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--primary)] to-emerald-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                {post.isAnonymous ? "?" : post.author.username.charAt(0).toUpperCase()}
+              <div className="w-7 h-7 rounded-full bg-[var(--surface2)] flex items-center justify-center text-[var(--muted)] shadow-sm">
+                <User className="w-4 h-4" />
               </div>
-              <span className="font-medium text-sm text-[var(--text)]">
-                {post.isAnonymous ? "Anonymous" : post.author.username}
-              </span>
+              {post.isAnonymous ? (
+                <span className="font-medium text-sm text-[var(--muted)] italic">
+                  Anonymous
+                </span>
+              ) : (
+                <Link 
+                  href={`/user/${encodeURIComponent(post.author.username)}`}
+                  className="font-medium text-sm text-[var(--text)] hover:text-[var(--primary)] hover:underline transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {post.author.username}
+                </Link>
+              )}
             </div>
             
             <span className="w-1 h-1 rounded-full bg-[var(--border)]" />

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { User } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/Button";
@@ -155,17 +155,22 @@ export default function PostDetailPage({
               </div>
 
               <div className="flex items-start gap-3 sm:gap-4 mb-4">
-                <Image
-                  src={post.author.avatarUrl || "/default-avatar.svg"}
-                  alt={post.author.username}
-                  width={48}
-                  height={48}
-                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0"
-                />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[var(--surface2)] flex items-center justify-center text-[var(--muted)] flex-shrink-0">
+                  <User className="w-5 h-5 sm:w-6 sm:h-6" />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm sm:text-base font-semibold text-[var(--text-primary)]">
-                    {post.isAnonymous ? "Anonymous" : post.author.username}
-                  </p>
+                  {post.isAnonymous ? (
+                    <p className="text-sm sm:text-base font-semibold text-[var(--muted)] italic">
+                      Anonymous
+                    </p>
+                  ) : (
+                    <Link 
+                      href={`/user/${encodeURIComponent(post.author.username)}`}
+                      className="text-sm sm:text-base font-semibold text-[var(--text-primary)] hover:text-[var(--primary)] hover:underline transition-colors"
+                    >
+                      {post.author.username}
+                    </Link>
+                  )}
                   <p className="text-xs sm:text-sm text-[var(--text-muted)]">
                     {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
                   </p>

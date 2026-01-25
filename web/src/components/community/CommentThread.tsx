@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+import Link from "next/link";
+import { User } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
@@ -51,19 +52,24 @@ export function CommentThread({
       <div className="py-4 sm:py-6">
         {/* Comment Header */}
         <div className="flex items-start gap-3">
-          <Image
-            src={comment.author.avatarUrl || "/default-avatar.svg"}
-            alt={comment.author.username}
-            width={40}
-            height={40}
-            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex-shrink-0"
-          />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[var(--surface2)] flex items-center justify-center text-[var(--muted)] flex-shrink-0">
+            <User className="w-4 h-4 sm:w-5 sm:h-5" />
+          </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-xs sm:text-sm font-semibold text-[var(--text-primary)]">
-                {comment.author.username}
-              </p>
+              {comment.isAnonymous ? (
+                <p className="text-xs sm:text-sm font-semibold text-[var(--muted)] italic">
+                  Anonymous
+                </p>
+              ) : (
+                <Link 
+                  href={`/user/${encodeURIComponent(comment.author.username)}`}
+                  className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] hover:text-[var(--primary)] hover:underline transition-colors"
+                >
+                  {comment.author.username}
+                </Link>
+              )}
               <p className="text-xs text-[var(--text-muted)]">
                 {formatDistanceToNow(createdDate, { addSuffix: true })}
               </p>
