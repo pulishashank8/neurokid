@@ -4,10 +4,9 @@ import { Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import Image from "next/image";
 import { 
   Search, UserPlus, MessageCircle, Send, ArrowLeft, 
-  Check, X, Clock
+  Check, X, Clock, User, Sparkles
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -61,6 +60,39 @@ interface Message {
   content: string;
   isFromMe: boolean;
   createdAt: string;
+}
+
+function AvatarPlaceholder({ name, size = "md" }: { name?: string; size?: "sm" | "md" | "lg" }) {
+  const sizeClasses = {
+    sm: "w-10 h-10",
+    md: "w-12 h-12",
+    lg: "w-14 h-14"
+  };
+  const iconSizes = {
+    sm: "w-5 h-5",
+    md: "w-6 h-6",
+    lg: "w-7 h-7"
+  };
+  
+  const initial = name?.charAt(0)?.toUpperCase() || "";
+  const colors = [
+    "from-emerald-400 to-teal-500",
+    "from-blue-400 to-indigo-500",
+    "from-purple-400 to-pink-500",
+    "from-amber-400 to-orange-500",
+    "from-cyan-400 to-blue-500",
+  ];
+  const colorIndex = name ? name.charCodeAt(0) % colors.length : 0;
+  
+  return (
+    <div className={`${sizeClasses[size]} rounded-2xl bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center shadow-lg ring-2 ring-white/20`}>
+      {initial ? (
+        <span className="text-white font-bold text-lg drop-shadow-sm">{initial}</span>
+      ) : (
+        <User className={`${iconSizes[size]} text-white/90`} />
+      )}
+    </div>
+  );
 }
 
 function MessagesContent() {
@@ -349,8 +381,11 @@ function MessagesContent() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]"></div>
+      <div className="min-h-screen bg-gradient-to-br from-[var(--bg-primary)] via-[var(--bg-secondary)] to-[var(--bg-primary)] flex items-center justify-center">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-[var(--primary)]/20 rounded-full"></div>
+          <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-[var(--primary)] rounded-full animate-spin"></div>
+        </div>
       </div>
     );
   }
@@ -358,340 +393,368 @@ function MessagesContent() {
   const totalPending = pendingReceived.length + pendingSent.length;
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
-      <div className="container max-w-6xl mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)] mb-6">Messages</h1>
+    <div className="min-h-screen bg-gradient-to-br from-[var(--bg-primary)] via-[var(--bg-secondary)]/30 to-[var(--bg-primary)]">
+      <div className="container max-w-7xl mx-auto px-4 py-8 pt-24">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-emerald-600 shadow-lg shadow-[var(--primary)]/20">
+            <MessageCircle className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-[var(--text-primary)]">Messages</h1>
+            <p className="text-[var(--text-muted)] text-sm">Connect and chat with your community</p>
+          </div>
+        </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
-          <div className={`w-full lg:w-96 ${selectedConversation ? "hidden lg:block" : ""}`}>
-            <div className="flex bg-[var(--bg-secondary)] rounded-xl p-1 mb-4">
-              <button
-                onClick={() => setActiveTab("search")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === "search"
-                    ? "bg-[var(--primary)] text-white"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                }`}
-              >
-                <Search className="w-4 h-4" />
-                <span className="hidden sm:inline">Search</span>
-              </button>
-              <button
-                onClick={() => setActiveTab("pending")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all relative ${
-                  activeTab === "pending"
-                    ? "bg-[var(--primary)] text-white"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                }`}
-              >
-                <UserPlus className="w-4 h-4" />
-                <span className="hidden sm:inline">Requests</span>
-                {totalPending > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {totalPending}
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab("conversations")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === "conversations"
-                    ? "bg-[var(--primary)] text-white"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                }`}
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span className="hidden sm:inline">Chats</span>
-              </button>
-            </div>
+          <div className={`w-full lg:w-[400px] ${selectedConversation ? "hidden lg:block" : ""}`}>
+            <div className="backdrop-blur-xl bg-[var(--bg-surface)]/80 rounded-3xl border border-[var(--border-light)]/50 shadow-xl shadow-black/5 overflow-hidden">
+              <div className="p-2 border-b border-[var(--border-light)]/50">
+                <div className="flex bg-[var(--bg-primary)]/50 rounded-2xl p-1.5">
+                  <button
+                    onClick={() => setActiveTab("search")}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                      activeTab === "search"
+                        ? "bg-gradient-to-r from-[var(--primary)] to-emerald-500 text-white shadow-lg shadow-[var(--primary)]/30"
+                        : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]/50"
+                    }`}
+                  >
+                    <Search className="w-4 h-4" />
+                    <span>Search</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("pending")}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 relative ${
+                      activeTab === "pending"
+                        ? "bg-gradient-to-r from-[var(--primary)] to-emerald-500 text-white shadow-lg shadow-[var(--primary)]/30"
+                        : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]/50"
+                    }`}
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    <span>Requests</span>
+                    {totalPending > 0 && (
+                      <span className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-rose-500 to-pink-600 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg shadow-rose-500/30 animate-pulse">
+                        {totalPending}
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("conversations")}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                      activeTab === "conversations"
+                        ? "bg-gradient-to-r from-[var(--primary)] to-emerald-500 text-white shadow-lg shadow-[var(--primary)]/30"
+                        : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]/50"
+                    }`}
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Chats</span>
+                  </button>
+                </div>
+              </div>
 
-            <div className="bg-[var(--bg-secondary)] rounded-xl overflow-hidden min-h-[400px]">
-              {activeTab === "search" && (
-                <div className="p-4">
-                  <div className="relative mb-4">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
-                    <input
-                      type="text"
-                      placeholder="Search by username..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 bg-[var(--bg-primary)] border border-[var(--border-light)] rounded-xl text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                    />
-                  </div>
-
-                  {searching ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--primary)]"></div>
+              <div className="min-h-[500px] max-h-[600px] overflow-y-auto">
+                {activeTab === "search" && (
+                  <div className="p-5">
+                    <div className="relative mb-5">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)]/10 to-emerald-500/10 flex items-center justify-center">
+                        <Search className="w-5 h-5 text-[var(--primary)]" />
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Find people by username..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-16 pr-5 py-4 bg-[var(--bg-primary)] border-2 border-[var(--border-light)] rounded-2xl text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--primary)]/10 transition-all duration-300"
+                      />
                     </div>
-                  ) : searchResults.length > 0 ? (
-                    <div className="space-y-2">
-                      {searchResults.map((user) => (
-                        <div
-                          key={user.id}
-                          className="flex items-center justify-between p-3 rounded-xl hover:bg-[var(--bg-primary)] transition-colors"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Image
-                              src={user.avatarUrl || "/default-avatar.svg"}
-                              alt={user.username}
-                              width={40}
-                              height={40}
-                              className="rounded-full"
-                            />
-                            <div>
-                              <p className="font-medium text-[var(--text-primary)]">
-                                {user.displayName}
-                              </p>
-                              <p className="text-sm text-[var(--text-muted)]">@{user.username}</p>
-                            </div>
-                          </div>
 
-                          {user.connectionStatus === "none" && (
-                            <button
-                              onClick={() => setShowConnectionModal(user.id)}
-                              className="px-3 py-1.5 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary-hover)] transition-colors"
-                            >
-                              Connect
-                            </button>
-                          )}
-                          {user.connectionStatus === "pending_sent" && (
-                            <span className="px-3 py-1.5 bg-[var(--bg-elevated)] text-[var(--text-muted)] text-sm rounded-lg flex items-center gap-1">
-                              <Clock className="w-4 h-4" /> Pending
-                            </span>
-                          )}
-                          {user.connectionStatus === "pending_received" && (
-                            <span className="px-3 py-1.5 bg-amber-500/20 text-amber-600 text-sm rounded-lg">
-                              Respond
-                            </span>
-                          )}
-                          {user.connectionStatus === "connected" && (
-                            <span className="px-3 py-1.5 bg-green-500/20 text-green-600 text-sm rounded-lg flex items-center gap-1">
-                              <Check className="w-4 h-4" /> Connected
-                            </span>
-                          )}
+                    {searching ? (
+                      <div className="flex flex-col items-center justify-center py-12">
+                        <div className="relative">
+                          <div className="w-12 h-12 border-4 border-[var(--primary)]/20 rounded-full"></div>
+                          <div className="absolute top-0 left-0 w-12 h-12 border-4 border-transparent border-t-[var(--primary)] rounded-full animate-spin"></div>
                         </div>
-                      ))}
-                    </div>
-                  ) : searchQuery.length >= 2 ? (
-                    <div className="text-center py-8 text-[var(--text-muted)]">
-                      No users found matching &quot;{searchQuery}&quot;
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-[var(--text-muted)]">
-                      <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p>Enter a username to search</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {activeTab === "pending" && (
-                <div className="divide-y divide-[var(--border-light)]">
-                  {pendingReceived.length > 0 && (
-                    <div className="p-4">
-                      <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase mb-3">
-                        Received ({pendingReceived.length})
-                      </h3>
-                      <div className="space-y-3">
-                        {pendingReceived.map((req) => (
-                          <div
-                            key={req.id}
-                            className="p-3 bg-[var(--bg-primary)] rounded-xl"
-                          >
-                            <div className="flex items-start gap-3">
-                              <Image
-                                src={req.sender?.avatarUrl || "/default-avatar.svg"}
-                                alt={req.sender?.username || ""}
-                                width={40}
-                                height={40}
-                                className="rounded-full"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-[var(--text-primary)]">
-                                  {req.sender?.displayName}
-                                </p>
-                                <p className="text-sm text-[var(--text-muted)]">
-                                  @{req.sender?.username}
-                                </p>
-                                {req.message && (
-                                  <p className="mt-2 text-sm text-[var(--text-secondary)] bg-[var(--bg-secondary)] p-2 rounded-lg">
-                                    &quot;{req.message}&quot;
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex gap-2 mt-3">
-                              <button
-                                onClick={() => respondToRequest(req.id, "accept")}
-                                className="flex-1 py-2 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-[var(--primary-hover)] transition-colors flex items-center justify-center gap-1"
-                              >
-                                <Check className="w-4 h-4" /> Accept
-                              </button>
-                              <button
-                                onClick={() => respondToRequest(req.id, "decline")}
-                                className="flex-1 py-2 bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-sm font-medium rounded-lg hover:bg-[var(--bg-elevated-hover)] transition-colors flex items-center justify-center gap-1"
-                              >
-                                <X className="w-4 h-4" /> Decline
-                              </button>
-                            </div>
-                          </div>
-                        ))}
+                        <p className="text-[var(--text-muted)] mt-4 text-sm">Searching...</p>
                       </div>
-                    </div>
-                  )}
-
-                  {pendingSent.length > 0 && (
-                    <div className="p-4">
-                      <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase mb-3">
-                        Sent ({pendingSent.length})
-                      </h3>
+                    ) : searchResults.length > 0 ? (
                       <div className="space-y-3">
-                        {pendingSent.map((req) => (
+                        {searchResults.map((user) => (
                           <div
-                            key={req.id}
-                            className="flex items-center justify-between p-3 bg-[var(--bg-primary)] rounded-xl"
+                            key={user.id}
+                            className="group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-[var(--bg-primary)] to-[var(--bg-elevated)]/50 border border-[var(--border-light)]/50 hover:border-[var(--primary)]/30 hover:shadow-lg hover:shadow-[var(--primary)]/5 transition-all duration-300"
                           >
-                            <div className="flex items-center gap-3">
-                              <Image
-                                src={req.receiver?.avatarUrl || "/default-avatar.svg"}
-                                alt={req.receiver?.username || ""}
-                                width={40}
-                                height={40}
-                                className="rounded-full"
-                              />
+                            <div className="flex items-center gap-4">
+                              <AvatarPlaceholder name={user.displayName} size="md" />
                               <div>
-                                <p className="font-medium text-[var(--text-primary)]">
-                                  {req.receiver?.displayName}
+                                <p className="font-semibold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors">
+                                  {user.displayName}
                                 </p>
-                                <p className="text-sm text-[var(--text-muted)]">
-                                  @{req.receiver?.username}
-                                </p>
+                                <p className="text-sm text-[var(--text-muted)]">@{user.username}</p>
                               </div>
                             </div>
-                            <button
-                              onClick={() => cancelRequest(req.id)}
-                              className="px-3 py-1.5 text-red-500 text-sm hover:bg-red-500/10 rounded-lg transition-colors"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
-                  {pendingReceived.length === 0 && pendingSent.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-12 text-[var(--text-muted)]">
-                      <UserPlus className="w-12 h-12 mb-3 opacity-50" />
-                      <p>No pending requests</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {activeTab === "conversations" && (
-                <div>
-                  {loading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--primary)]"></div>
-                    </div>
-                  ) : conversations.length > 0 ? (
-                    <div className="divide-y divide-[var(--border-light)]">
-                      {conversations.map((conv) => (
-                        <button
-                          key={conv.id}
-                          onClick={() => selectConversation(conv.id)}
-                          className={`w-full p-4 flex items-center gap-3 hover:bg-[var(--bg-primary)] transition-colors text-left ${
-                            selectedConversation === conv.id ? "bg-[var(--bg-primary)]" : ""
-                          }`}
-                        >
-                          <Image
-                            src={conv.otherUser.avatarUrl || "/default-avatar.svg"}
-                            alt={conv.otherUser.username}
-                            width={48}
-                            height={48}
-                            className="rounded-full"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <p className="font-medium text-[var(--text-primary)] truncate">
-                                {conv.otherUser.displayName}
-                              </p>
-                              {conv.lastMessage && (
-                                <span className="text-xs text-[var(--text-muted)]">
-                                  {formatTime(conv.lastMessage.createdAt)}
-                                </span>
-                              )}
-                            </div>
-                            {conv.lastMessage && (
-                              <p className="text-sm text-[var(--text-muted)] truncate">
-                                {conv.lastMessage.isFromMe ? "You: " : ""}
-                                {conv.lastMessage.content}
-                              </p>
+                            {user.connectionStatus === "none" && (
+                              <button
+                                onClick={() => setShowConnectionModal(user.id)}
+                                className="px-5 py-2.5 bg-gradient-to-r from-[var(--primary)] to-emerald-500 text-white text-sm font-semibold rounded-xl hover:shadow-lg hover:shadow-[var(--primary)]/30 hover:scale-105 active:scale-95 transition-all duration-200"
+                              >
+                                Connect
+                              </button>
+                            )}
+                            {user.connectionStatus === "pending_sent" && (
+                              <span className="px-4 py-2.5 bg-amber-500/10 text-amber-600 text-sm font-medium rounded-xl flex items-center gap-2 border border-amber-500/20">
+                                <Clock className="w-4 h-4" /> Pending
+                              </span>
+                            )}
+                            {user.connectionStatus === "pending_received" && (
+                              <span className="px-4 py-2.5 bg-blue-500/10 text-blue-600 text-sm font-medium rounded-xl border border-blue-500/20">
+                                Respond
+                              </span>
+                            )}
+                            {user.connectionStatus === "connected" && (
+                              <span className="px-4 py-2.5 bg-emerald-500/10 text-emerald-600 text-sm font-medium rounded-xl flex items-center gap-2 border border-emerald-500/20">
+                                <Check className="w-4 h-4" /> Connected
+                              </span>
                             )}
                           </div>
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-12 text-[var(--text-muted)]">
-                      <MessageCircle className="w-12 h-12 mb-3 opacity-50" />
-                      <p>No conversations yet</p>
-                      <p className="text-sm mt-1">Search for users to connect</p>
-                    </div>
-                  )}
-                </div>
-              )}
+                        ))}
+                      </div>
+                    ) : searchQuery.length >= 2 ? (
+                      <div className="text-center py-12">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--bg-elevated)] flex items-center justify-center">
+                          <Search className="w-8 h-8 text-[var(--text-muted)]" />
+                        </div>
+                        <p className="text-[var(--text-muted)]">No users found matching &quot;{searchQuery}&quot;</p>
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-[var(--primary)]/10 to-emerald-500/10 flex items-center justify-center">
+                          <Sparkles className="w-10 h-10 text-[var(--primary)]" />
+                        </div>
+                        <p className="text-[var(--text-primary)] font-medium mb-1">Find Your Community</p>
+                        <p className="text-[var(--text-muted)] text-sm">Enter a username to start connecting</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === "pending" && (
+                  <div className="divide-y divide-[var(--border-light)]/50">
+                    {pendingReceived.length > 0 && (
+                      <div className="p-5">
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                          <h3 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-wider">
+                            Received ({pendingReceived.length})
+                          </h3>
+                        </div>
+                        <div className="space-y-4">
+                          {pendingReceived.map((req) => (
+                            <div
+                              key={req.id}
+                              className="p-5 bg-gradient-to-br from-[var(--bg-primary)] to-[var(--bg-elevated)]/30 rounded-2xl border border-[var(--border-light)]/50 hover:border-[var(--primary)]/20 transition-all duration-300"
+                            >
+                              <div className="flex items-start gap-4">
+                                <AvatarPlaceholder name={req.sender?.displayName} size="md" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold text-[var(--text-primary)]">
+                                    {req.sender?.displayName}
+                                  </p>
+                                  <p className="text-sm text-[var(--text-muted)]">
+                                    @{req.sender?.username}
+                                  </p>
+                                  {req.message && (
+                                    <div className="mt-3 p-3 bg-[var(--bg-surface)]/50 rounded-xl border-l-3 border-[var(--primary)]">
+                                      <p className="text-sm text-[var(--text-secondary)] italic">
+                                        &quot;{req.message}&quot;
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex gap-3 mt-4">
+                                <button
+                                  onClick={() => respondToRequest(req.id, "accept")}
+                                  className="flex-1 py-3 bg-gradient-to-r from-[var(--primary)] to-emerald-500 text-white text-sm font-semibold rounded-xl hover:shadow-lg hover:shadow-[var(--primary)]/30 transition-all duration-200 flex items-center justify-center gap-2"
+                                >
+                                  <Check className="w-4 h-4" /> Accept
+                                </button>
+                                <button
+                                  onClick={() => respondToRequest(req.id, "decline")}
+                                  className="flex-1 py-3 bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-sm font-semibold rounded-xl hover:bg-[var(--bg-elevated-hover)] border border-[var(--border-light)] transition-all duration-200 flex items-center justify-center gap-2"
+                                >
+                                  <X className="w-4 h-4" /> Decline
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {pendingSent.length > 0 && (
+                      <div className="p-5">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Clock className="w-4 h-4 text-amber-500" />
+                          <h3 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-wider">
+                            Sent ({pendingSent.length})
+                          </h3>
+                        </div>
+                        <div className="space-y-3">
+                          {pendingSent.map((req) => (
+                            <div
+                              key={req.id}
+                              className="flex items-center justify-between p-4 bg-gradient-to-r from-[var(--bg-primary)] to-[var(--bg-elevated)]/30 rounded-2xl border border-[var(--border-light)]/50"
+                            >
+                              <div className="flex items-center gap-4">
+                                <AvatarPlaceholder name={req.receiver?.displayName} size="md" />
+                                <div>
+                                  <p className="font-semibold text-[var(--text-primary)]">
+                                    {req.receiver?.displayName}
+                                  </p>
+                                  <p className="text-sm text-[var(--text-muted)]">
+                                    @{req.receiver?.username}
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => cancelRequest(req.id)}
+                                className="px-4 py-2 text-rose-500 text-sm font-medium hover:bg-rose-500/10 rounded-xl transition-all duration-200 border border-transparent hover:border-rose-500/20"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {pendingReceived.length === 0 && pendingSent.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-16">
+                        <div className="w-20 h-20 mb-4 rounded-3xl bg-gradient-to-br from-[var(--primary)]/10 to-emerald-500/10 flex items-center justify-center">
+                          <UserPlus className="w-10 h-10 text-[var(--primary)]" />
+                        </div>
+                        <p className="text-[var(--text-primary)] font-medium mb-1">No Pending Requests</p>
+                        <p className="text-[var(--text-muted)] text-sm">Search for users to connect</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === "conversations" && (
+                  <div>
+                    {loading ? (
+                      <div className="flex flex-col items-center justify-center py-16">
+                        <div className="relative">
+                          <div className="w-12 h-12 border-4 border-[var(--primary)]/20 rounded-full"></div>
+                          <div className="absolute top-0 left-0 w-12 h-12 border-4 border-transparent border-t-[var(--primary)] rounded-full animate-spin"></div>
+                        </div>
+                      </div>
+                    ) : conversations.length > 0 ? (
+                      <div className="p-2">
+                        {conversations.map((conv) => (
+                          <button
+                            key={conv.id}
+                            onClick={() => selectConversation(conv.id)}
+                            className={`w-full p-4 flex items-center gap-4 rounded-2xl transition-all duration-300 text-left mb-1 ${
+                              selectedConversation === conv.id 
+                                ? "bg-gradient-to-r from-[var(--primary)]/10 to-emerald-500/10 border-2 border-[var(--primary)]/30" 
+                                : "hover:bg-[var(--bg-elevated)]/50 border-2 border-transparent"
+                            }`}
+                          >
+                            <AvatarPlaceholder name={conv.otherUser.displayName} size="lg" />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <p className={`font-semibold truncate ${
+                                  selectedConversation === conv.id 
+                                    ? "text-[var(--primary)]" 
+                                    : "text-[var(--text-primary)]"
+                                }`}>
+                                  {conv.otherUser.displayName}
+                                </p>
+                                {conv.lastMessage && (
+                                  <span className="text-xs text-[var(--text-muted)] font-medium ml-2 flex-shrink-0">
+                                    {formatTime(conv.lastMessage.createdAt)}
+                                  </span>
+                                )}
+                              </div>
+                              {conv.lastMessage && (
+                                <p className="text-sm text-[var(--text-muted)] truncate">
+                                  {conv.lastMessage.isFromMe && (
+                                    <span className="text-[var(--primary)]">You: </span>
+                                  )}
+                                  {conv.lastMessage.content}
+                                </p>
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-16">
+                        <div className="w-20 h-20 mb-4 rounded-3xl bg-gradient-to-br from-[var(--primary)]/10 to-emerald-500/10 flex items-center justify-center">
+                          <MessageCircle className="w-10 h-10 text-[var(--primary)]" />
+                        </div>
+                        <p className="text-[var(--text-primary)] font-medium mb-1">No Conversations Yet</p>
+                        <p className="text-[var(--text-muted)] text-sm text-center px-4">Connect with others to start messaging</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           <div className={`flex-1 ${!selectedConversation ? "hidden lg:flex lg:items-center lg:justify-center" : ""}`}>
             {selectedConversation ? (
-              <div className="bg-[var(--bg-secondary)] rounded-xl h-[600px] flex flex-col">
-                <div className="p-4 border-b border-[var(--border-light)] flex items-center gap-3">
-                  <button
-                    onClick={() => {
-                      setSelectedConversation(null);
-                      router.push("/messages", { scroll: false });
-                    }}
-                    className="lg:hidden p-2 hover:bg-[var(--bg-primary)] rounded-lg transition-colors"
-                  >
-                    <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
-                  </button>
-                  {otherUser && (
-                    <>
-                      <Image
-                        src={otherUser.avatarUrl || "/default-avatar.svg"}
-                        alt={otherUser.username}
-                        width={40}
-                        height={40}
-                        className="rounded-full"
-                      />
-                      <div>
-                        <p className="font-medium text-[var(--text-primary)]">
-                          {otherUser.displayName}
-                        </p>
-                        <p className="text-sm text-[var(--text-muted)]">@{otherUser.username}</p>
-                      </div>
-                    </>
-                  )}
+              <div className="backdrop-blur-xl bg-[var(--bg-surface)]/80 rounded-3xl border border-[var(--border-light)]/50 shadow-xl shadow-black/5 h-[650px] flex flex-col overflow-hidden">
+                <div className="px-6 py-4 border-b border-[var(--border-light)]/50 bg-gradient-to-r from-[var(--bg-surface)] to-[var(--bg-elevated)]/30">
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => {
+                        setSelectedConversation(null);
+                        router.push("/messages", { scroll: false });
+                      }}
+                      className="lg:hidden p-2.5 hover:bg-[var(--bg-primary)] rounded-xl transition-all duration-200"
+                    >
+                      <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
+                    </button>
+                    {otherUser && (
+                      <>
+                        <AvatarPlaceholder name={otherUser.displayName} size="md" />
+                        <div className="flex-1">
+                          <p className="font-semibold text-[var(--text-primary)] text-lg">
+                            {otherUser.displayName}
+                          </p>
+                          <p className="text-sm text-[var(--text-muted)]">@{otherUser.username}</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-transparent to-[var(--bg-primary)]/20">
+                  {messages.length === 0 && (
+                    <div className="flex flex-col items-center justify-center h-full text-center">
+                      <div className="w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-[var(--primary)]/10 to-emerald-500/10 flex items-center justify-center">
+                        <Send className="w-8 h-8 text-[var(--primary)]" />
+                      </div>
+                      <p className="text-[var(--text-muted)]">Start the conversation!</p>
+                    </div>
+                  )}
                   {messages.map((msg) => (
                     <div
                       key={msg.id}
                       className={`flex ${msg.isFromMe ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[70%] px-4 py-2 rounded-2xl ${
+                        className={`max-w-[75%] px-5 py-3 ${
                           msg.isFromMe
-                            ? "bg-[var(--primary)] text-white rounded-br-md"
-                            : "bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-bl-md"
+                            ? "bg-gradient-to-br from-[var(--primary)] to-emerald-500 text-white rounded-2xl rounded-br-md shadow-lg shadow-[var(--primary)]/20"
+                            : "bg-[var(--bg-surface)] border border-[var(--border-light)]/50 text-[var(--text-primary)] rounded-2xl rounded-bl-md shadow-md"
                         }`}
                       >
-                        <p>{msg.content}</p>
-                        <p className={`text-xs mt-1 ${msg.isFromMe ? "text-white/70" : "text-[var(--text-muted)]"}`}>
+                        <p className="leading-relaxed">{msg.content}</p>
+                        <p className={`text-xs mt-2 ${msg.isFromMe ? "text-white/70" : "text-[var(--text-muted)]"}`}>
                           {formatTime(msg.createdAt)}
                         </p>
                       </div>
@@ -700,19 +763,19 @@ function MessagesContent() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                <form onSubmit={sendMessage} className="p-4 border-t border-[var(--border-light)]">
-                  <div className="flex gap-2">
+                <form onSubmit={sendMessage} className="p-4 border-t border-[var(--border-light)]/50 bg-[var(--bg-surface)]">
+                  <div className="flex gap-3">
                     <input
                       type="text"
-                      placeholder="Type a message..."
+                      placeholder="Type your message..."
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
-                      className="flex-1 px-4 py-3 bg-[var(--bg-primary)] border border-[var(--border-light)] rounded-xl text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                      className="flex-1 px-5 py-4 bg-[var(--bg-primary)] border-2 border-[var(--border-light)] rounded-2xl text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--primary)]/10 transition-all duration-300"
                     />
                     <button
                       type="submit"
                       disabled={!newMessage.trim() || sendingMessage}
-                      className="px-4 py-3 bg-[var(--primary)] text-white rounded-xl hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-5 py-4 bg-gradient-to-r from-[var(--primary)] to-emerald-500 text-white rounded-2xl hover:shadow-lg hover:shadow-[var(--primary)]/30 hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
                     >
                       <Send className="w-5 h-5" />
                     </button>
@@ -720,10 +783,12 @@ function MessagesContent() {
                 </form>
               </div>
             ) : (
-              <div className="text-center text-[var(--text-muted)]">
-                <MessageCircle className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">Select a conversation</p>
-                <p className="text-sm mt-1">Choose a chat from the list to start messaging</p>
+              <div className="text-center">
+                <div className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-[var(--primary)]/10 to-emerald-500/10 flex items-center justify-center shadow-lg shadow-[var(--primary)]/5">
+                  <MessageCircle className="w-12 h-12 text-[var(--primary)]" />
+                </div>
+                <p className="text-xl font-semibold text-[var(--text-primary)] mb-2">Select a Conversation</p>
+                <p className="text-[var(--text-muted)]">Choose a chat from the list to start messaging</p>
               </div>
             )}
           </div>
@@ -731,31 +796,41 @@ function MessagesContent() {
       </div>
 
       {showConnectionModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--bg-secondary)] rounded-2xl p-6 max-w-md w-full">
-            <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-              Send Connection Request
-            </h3>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--bg-surface)] rounded-3xl p-8 max-w-md w-full shadow-2xl border border-[var(--border-light)]/50 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-emerald-500 shadow-lg shadow-[var(--primary)]/30">
+                <UserPlus className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-[var(--text-primary)]">
+                  Send Connection Request
+                </h3>
+                <p className="text-sm text-[var(--text-muted)]">Add a personal message</p>
+              </div>
+            </div>
             <textarea
-              placeholder="Add a message (optional)..."
+              placeholder="Hi! I'd love to connect with you..."
               value={connectionMessage}
               onChange={(e) => setConnectionMessage(e.target.value)}
-              rows={3}
-              className="w-full px-4 py-3 bg-[var(--bg-primary)] border border-[var(--border-light)] rounded-xl text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none mb-4"
+              rows={4}
+              maxLength={300}
+              className="w-full px-5 py-4 bg-[var(--bg-primary)] border-2 border-[var(--border-light)] rounded-2xl text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--primary)]/10 resize-none mb-2 transition-all duration-300"
             />
-            <div className="flex gap-3">
+            <p className="text-xs text-[var(--text-muted)] text-right mb-6">{connectionMessage.length}/300</p>
+            <div className="flex gap-4">
               <button
                 onClick={() => {
                   setShowConnectionModal(null);
                   setConnectionMessage("");
                 }}
-                className="flex-1 py-2.5 bg-[var(--bg-elevated)] text-[var(--text-secondary)] font-medium rounded-xl hover:bg-[var(--bg-elevated-hover)] transition-colors"
+                className="flex-1 py-3.5 bg-[var(--bg-elevated)] text-[var(--text-secondary)] font-semibold rounded-2xl hover:bg-[var(--bg-elevated-hover)] border border-[var(--border-light)] transition-all duration-200"
               >
                 Cancel
               </button>
               <button
                 onClick={() => sendConnectionRequest(showConnectionModal)}
-                className="flex-1 py-2.5 bg-[var(--primary)] text-white font-medium rounded-xl hover:bg-[var(--primary-hover)] transition-colors"
+                className="flex-1 py-3.5 bg-gradient-to-r from-[var(--primary)] to-emerald-500 text-white font-semibold rounded-2xl hover:shadow-lg hover:shadow-[var(--primary)]/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
               >
                 Send Request
               </button>
@@ -770,8 +845,11 @@ function MessagesContent() {
 export default function MessagesPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]"></div>
+      <div className="min-h-screen bg-gradient-to-br from-[var(--bg-primary)] via-[var(--bg-secondary)] to-[var(--bg-primary)] flex items-center justify-center">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-[var(--primary)]/20 rounded-full"></div>
+          <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-[var(--primary)] rounded-full animate-spin"></div>
+        </div>
       </div>
     }>
       <MessagesContent />
