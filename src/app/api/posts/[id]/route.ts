@@ -30,11 +30,11 @@ export const GET = withApiHandler(async (
     console.log(`[GET /api/posts/${id}] Starting request...`);
 
     if (!id) {
-      return NextResponse.json({ error: "Post ID missing" }, { status: 400 });
+      return errorResponse("VALIDATION_ERROR", "Post ID missing", 400);
     }
 
     if (id.length > 50) {
-      return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+      return errorResponse("VALIDATION_ERROR", "Invalid ID", 400);
     }
 
     console.log(`[GET /api/posts/${id}] Fetching from Prisma...`);
@@ -78,7 +78,7 @@ export const GET = withApiHandler(async (
 
     if (!post) {
       console.log(`[GET /api/posts/${id}] Post not found`);
-      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+      return notFoundError("Post");
     }
 
     console.log(`[GET /api/posts/${id}] Post found: ${post.title}`);
@@ -114,14 +114,10 @@ export const GET = withApiHandler(async (
     };
 
     console.log(`[GET /api/posts/${id}] Sending response`);
-    return NextResponse.json(formattedPost);
+    return successResponse(formattedPost);
   } catch (error: any) {
     console.error(`[GET /api/posts/FAILED] Error:`, error);
-    return NextResponse.json({
-      error: "Internal Server Error",
-      details: error.message,
-      stack: error.stack
-    }, { status: 500 });
+    return errorResponse("INTERNAL_ERROR", "Internal Server Error", 500);
   }
 });
 
