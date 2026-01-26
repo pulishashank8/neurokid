@@ -19,6 +19,7 @@ interface ProviderStats {
 export default function ProviderStatsPage() {
   const [stats, setStats] = useState<ProviderStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProviderStats();
@@ -27,10 +28,22 @@ export default function ProviderStatsPage() {
   async function fetchProviderStats() {
     try {
       const res = await fetch('/api/owner/stats?type=providers');
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.location.href = '/owner/login';
+          return;
+        }
+        throw new Error('Failed to fetch stats');
+      }
       const data = await res.json();
-      setStats(data);
+      if (data.totalProviders !== undefined) {
+        setStats(data);
+      } else {
+        setStats({ totalProviders: 0, verifiedProviders: 0, totalReviews: 0, topProviders: [] });
+      }
     } catch (error) {
       console.error('Error fetching provider stats:', error);
+      setError('Failed to load provider statistics');
     } finally {
       setLoading(false);
     }
@@ -40,6 +53,17 @@ export default function ProviderStatsPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center text-red-500">
+          <Building2 size={48} className="mx-auto mb-2" />
+          <p>{error}</p>
+        </div>
       </div>
     );
   }

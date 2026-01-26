@@ -12,6 +12,7 @@ interface ScreeningStats {
 export default function ScreeningStatsPage() {
   const [stats, setStats] = useState<ScreeningStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchScreeningStats();
@@ -20,10 +21,23 @@ export default function ScreeningStatsPage() {
   async function fetchScreeningStats() {
     try {
       const res = await fetch('/api/owner/stats?type=screening');
+      if (!res.ok) {
+        if (res.status === 401) {
+          setError('Session expired. Please log in again.');
+          window.location.href = '/owner/login';
+          return;
+        }
+        throw new Error('Failed to fetch stats');
+      }
       const data = await res.json();
-      setStats(data);
+      if (data.totalScreenings !== undefined) {
+        setStats(data);
+      } else {
+        setStats({ totalScreenings: 0, screeningsByType: [], screenings: [] });
+      }
     } catch (error) {
       console.error('Error fetching screening stats:', error);
+      setError('Failed to load screening statistics');
     } finally {
       setLoading(false);
     }
@@ -33,6 +47,17 @@ export default function ScreeningStatsPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center text-red-500">
+          <AlertTriangle size={48} className="mx-auto mb-2" />
+          <p>{error}</p>
+        </div>
       </div>
     );
   }

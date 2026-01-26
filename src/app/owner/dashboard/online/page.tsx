@@ -28,6 +28,7 @@ interface OnlineStats {
 export default function OnlineUsersPage() {
   const [stats, setStats] = useState<OnlineStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOnlineStats();
@@ -38,10 +39,22 @@ export default function OnlineUsersPage() {
   async function fetchOnlineStats() {
     try {
       const res = await fetch('/api/owner/stats?type=online');
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.location.href = '/owner/login';
+          return;
+        }
+        throw new Error('Failed to fetch stats');
+      }
       const data = await res.json();
-      setStats(data);
+      if (data.onlineCount !== undefined) {
+        setStats(data);
+      } else {
+        setStats({ onlineCount: 0, onlineSessions: [], recentLogins: [] });
+      }
     } catch (error) {
       console.error('Error fetching online stats:', error);
+      setError('Failed to load online user data');
     } finally {
       setLoading(false);
     }
@@ -51,6 +64,17 @@ export default function OnlineUsersPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center text-red-500">
+          <WifiOff size={48} className="mx-auto mb-2" />
+          <p>{error}</p>
+        </div>
       </div>
     );
   }

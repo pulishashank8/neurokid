@@ -23,6 +23,7 @@ interface SearchStats {
 export default function SearchAnalyticsPage() {
   const [stats, setStats] = useState<SearchStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSearchStats();
@@ -31,10 +32,22 @@ export default function SearchAnalyticsPage() {
   async function fetchSearchStats() {
     try {
       const res = await fetch('/api/owner/stats?type=searches');
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.location.href = '/owner/login';
+          return;
+        }
+        throw new Error('Failed to fetch stats');
+      }
       const data = await res.json();
-      setStats(data);
+      if (data.recentSearches !== undefined) {
+        setStats(data);
+      } else {
+        setStats({ recentSearches: [], searchesByType: [], topQueries: [] });
+      }
     } catch (error) {
       console.error('Error fetching search stats:', error);
+      setError('Failed to load search analytics');
     } finally {
       setLoading(false);
     }
@@ -48,6 +61,17 @@ export default function SearchAnalyticsPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center text-red-500">
+          <Search size={48} className="mx-auto mb-2" />
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="mb-8">
@@ -56,7 +80,7 @@ export default function SearchAnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {stats?.searchesByType.map((type) => (
+        {(stats?.searchesByType || []).map((type) => (
           <div key={type.searchType} className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-blue-100 rounded-lg">
