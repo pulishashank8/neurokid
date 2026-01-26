@@ -6,9 +6,11 @@ export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
     errorFormat: "pretty",
+    datasourceUrl: process.env.DATABASE_URL,
   });
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+// Cache Prisma client in both development AND production
+globalForPrisma.prisma = prisma;
 
 // Default export for compatibility
 export default prisma;

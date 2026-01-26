@@ -1,0 +1,109 @@
+2:39:00
+22:44:50
+22:50:20
+22:55:50
+23:01:20
+23:09:00
+Time
+Status
+Host
+Request
+Messages
+Jan 25 23:08:35.71
+GET
+---
+neurokid1-kr9nycg9d-pulishashank8s-projects.vercel.app
+/icon.svg
+Jan 25 23:08:30.20
+GET
+---
+www.neurokid.help
+/wordpress/wp-admin/setup-config.php
+Jan 25 23:08:11.31
+GET
+---
+www.neurokid.help
+/wordpress/wp-admin/setup-config.php
+Jan 25 23:08:04.78
+GET
+500
+www.neurokid.help
+/api/notifications
+Error fetching notifications: Error [PrismaClientUnknownRequestError]: Invalid `prisma.directMessage.count()` invocation: Error in connector: Error querying the database: FATAL: MaxClientsInSessionMode: max clients reached - in Session mode max clients are limited to pool_size at async E (.next/server/chunks/[root-of-the-server]__7836bfc3._.js:1:7672) at async c (.next/server/chunks/[root-of-the-server]__7836bfc3._.js:1:11115) { clientVersion: '5.22.0' }
+Jan 25 23:07:34.78
+GET
+500
+www.neurokid.help
+/api/notifications
+Error fetching notifications: Error [PrismaClientUnknownRequestError]: Invalid `prisma.directMessage.count()` invocation: Error in connector: Error querying the database: FATAL: MaxClientsInSessionMode: max clients reached - in Session mode max clients are limited to pool_size at async E (.next/server/chunks/[root-of-the-server]__7836bfc3._.js:1:7672) at async c (.next/server/chunks/[root-of-the-server]__7836bfc3._.js:1:11115) { clientVersion: '5.22.0' }
+Jan 25 23:07:23.63
+HEAD
+204
+www.neurokid.help
+/owner/dashboard
+Jan 25 23:07:21.74
+GET
+500
+www.neurokid.help
+/owner/dashboard
+Error [PrismaClientUnknownRequestError]: Invalid `prisma.user.count()` invocation: Error in connector: Error querying the database: FATAL: MaxClientsInSessionMode: max clients reached - in Session mode max clients are limited to pool_size at async q (.next/server/chunks/ssr/[root-of-the-server]__d0a7519c._.js:1:4198) at async s (.next/server/chunks/ssr/[root-of-the-server]__d0a7519c._.js:1:5689) { clientVersion: '5.22.0', digest: '2899674283' }
+Jan 25 23:07:21.50
+GET
+307
+www.neurokid.help
+/owner
+Jan 25 23:07:15.83
+GET
+---
+www.neurokid.help
+/wp-admin/setup-config.php
+Jan 25 23:07:09.14
+GET
+200
+www.neurokid.help
+/user/meher_sunitha
+Jan 25 23:07:09.13
+GET
+200
+www.neurokid.help
+/community
+Jan 25 23:07:09.11
+GET
+200
+www.neurokid.help
+/community/cmku80m6w0003wgmkvpv11bd4
+Jan 25 23:07:09.09
+GET
+200
+www.neurokid.help
+/user/sarah_parent
+Jan 25 23:07:09.08
+GET
+200
+www.neurokid.help
+/community
+Jan 25 23:07:09.04
+GET
+200
+www.neurokid.help
+/community/cmku5mcml003mamzn1eo60trh
+Jan 25 23:07:09.03
+GET
+200
+www.neurokid.help
+/user/meher_sunitha
+Jan 25 23:07:09.01
+GET
+200
+www.neurokid.help
+/community
+Jan 25 23:07:08.93
+GET
+200
+www.neurokid.help
+/user/sarah_parent
+Jan 25 23:07:08.93
+GET
+200
+www.neurokid.help
+/community/cmku80m6w0003wgmkvpv11bd4
