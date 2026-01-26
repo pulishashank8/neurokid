@@ -23,9 +23,9 @@ def send_pending_emails() -> int:
         cursor = conn.cursor()
         
         cursor.execute('''
-            SELECT id, "userId", type, data 
+            SELECT id, "userId", type, payload 
             FROM "Notification" 
-            WHERE "emailSent" = false AND "createdAt" > NOW() - INTERVAL '24 hours'
+            WHERE "readAt" IS NULL AND "createdAt" > NOW() - INTERVAL '24 hours'
             LIMIT 100
         ''')
         
@@ -43,7 +43,7 @@ def send_pending_emails() -> int:
                 notification_id = notification[0]
                 
                 cursor.execute(
-                    'UPDATE "Notification" SET "emailSent" = true WHERE id = %s',
+                    'UPDATE "Notification" SET "readAt" = NOW() WHERE id = %s',
                     (notification_id,)
                 )
                 sent_count += 1

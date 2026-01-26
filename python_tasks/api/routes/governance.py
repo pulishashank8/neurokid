@@ -78,8 +78,9 @@ async def export_user_data(user_id: str):
     from api.database import execute_query, AuditRepository
     
     user = execute_query('''
-        SELECT u.id, u.email, u."createdAt", u."lastLoginAt", u.role,
-               p.username, p."displayName", p.bio, p.location
+        SELECT u.id, u.email, u."createdAt", u."lastLoginAt",
+               p.username, p."displayName", p.bio, p.location,
+               (SELECT r.role FROM "UserRole" r WHERE r."userId" = u.id LIMIT 1) as role
         FROM "User" u
         LEFT JOIN "Profile" p ON u.id = p."userId"
         WHERE u.id = %s

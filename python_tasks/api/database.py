@@ -46,8 +46,9 @@ class UserRepository:
     @staticmethod
     def get_all(limit: int = 50, offset: int = 0, search: str = None) -> List[Dict]:
         query = '''
-            SELECT u.id, u.email, u."createdAt", u."lastLoginAt", u.role,
-                   p.username, p."displayName", p."avatarUrl"
+            SELECT u.id, u.email, u."createdAt", u."lastLoginAt",
+                   p.username, p."displayName", p."avatarUrl",
+                   (SELECT r.role FROM "UserRole" r WHERE r."userId" = u.id LIMIT 1) as role
             FROM "User" u
             LEFT JOIN "Profile" p ON u.id = p."userId"
         '''
@@ -62,8 +63,9 @@ class UserRepository:
     @staticmethod
     def get_by_id(user_id: str) -> Optional[Dict]:
         query = '''
-            SELECT u.id, u.email, u."createdAt", u."lastLoginAt", u.role,
-                   p.username, p."displayName", p.bio, p."avatarUrl", p.location
+            SELECT u.id, u.email, u."createdAt", u."lastLoginAt",
+                   p.username, p."displayName", p.bio, p."avatarUrl", p.location,
+                   (SELECT r.role FROM "UserRole" r WHERE r."userId" = u.id LIMIT 1) as role
             FROM "User" u
             LEFT JOIN "Profile" p ON u.id = p."userId"
             WHERE u.id = %s
@@ -218,7 +220,7 @@ class AnalyticsRepository:
             LEFT JOIN "Post" po ON u.id = po."authorId"
             LEFT JOIN "Comment" c ON u.id = c."authorId"
             GROUP BY u.id, p.username, p."displayName"
-            ORDER BY "postCount" + "commentCount" DESC
+            ORDER BY COUNT(DISTINCT po.id) + COUNT(DISTINCT c.id) DESC
             LIMIT %s
         '''
         return execute_query(query, (limit,))
@@ -228,8 +230,8 @@ class AuditRepository:
     @staticmethod
     def get_logs(limit: int = 100, offset: int = 0, action: str = None, user_id: str = None) -> List[Dict]:
         query = '''
-            SELECT a.id, a.action, a."userId", a.resource, a."resourceId", 
-                   a.details, a."createdAt", p.username
+            SELECT a.id, a.action, a."userId", a."targetType" as resource, a."targetId" as "resourceId", 
+                   a.changes as details, a."createdAt", p.username
             FROM "AuditLog" a
             LEFT JOIN "User" u ON a."userId" = u.id
             LEFT JOIN "Profile" p ON u.id = p."userId"
@@ -251,7 +253,7 @@ class AuditRepository:
                    resource_id: str = None, details: dict = None) -> None:
         import json
         query = '''
-            INSERT INTO "AuditLog" (id, action, "userId", resource, "resourceId", details, "createdAt")
+            INSERT INTO "AuditLog" (id, action, "userId", "targetType", "targetId", changes, "createdAt")
             VALUES (gen_random_uuid(), %s, %s, %s, %s, %s, NOW())
         '''
         execute_write(query, (action, user_id, resource, resource_id, json.dumps(details) if details else None))
