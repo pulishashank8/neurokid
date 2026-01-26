@@ -137,6 +137,13 @@ Preferred communication style: Simple, everyday language.
   - Data cleanup operations
   - Data catalog
 
+#### Scalability Features (100K+ users):
+- **Hybrid Cache** (`api/cache.py`): Redis with in-memory fallback, deterministic SHA256 keys, SCAN-based invalidation
+- **Rate Limiting** (`api/rate_limiter.py`): Token bucket algorithm (100 capacity, 10/s refill), global middleware enforcement
+- **Connection Pooling** (`api/database.py`): ThreadedConnectionPool (2-20 connections)
+- **Task Queue** (`api/task_queue.py`): In-process worker threads for background jobs
+- **Stats Endpoint**: `/api/python/stats` returns cache, rate limiter, and task queue metrics
+
 #### Scheduled Background Tasks:
 - Audit log cleanup (daily at 2:00 AM)
 - Analytics processing (daily at 3:00 AM)
