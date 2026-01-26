@@ -1,4 +1,4 @@
-import NavBar from "@/components/navbar";
+import ConditionalNavBar from "@/components/ConditionalNavBar";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
@@ -33,7 +33,7 @@ export default function RootLayout({
       >
         <SessionProvider>
           <ProfileGuard>
-            <NavBar />
+            <ConditionalNavBar />
             <main className="min-h-screen">
               {children}
             </main>

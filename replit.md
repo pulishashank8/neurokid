@@ -61,18 +61,24 @@ Preferred communication style: Simple, everyday language.
 - **Google Places API**: Location-based provider search (optional)
 - **Resend**: Transactional email for verification and notifications
 
-### Admin Dashboard
-- Separate Next.js application in `/admin` directory
+### Owner Dashboard (Private Admin)
+- Accessible at `/owner` route within the main application
 - Password-protected with ADMIN_PASSWORD secret (secure session tokens)
-- Shares Prisma schema and database connection with main application
-- Runs on port 3001
+- Completely separate from user-facing pages
+- Access URL: `yourdomain.com/owner`
 - Features:
   - **Dashboard Overview**: Total users, active users, new users, posts, comments, votes statistics
   - **Users Section**: List all users with search, pagination, view user details with full activity
+  - **User Detail Page**: View individual user's posts, comments, votes, audit logs, login history
   - **Posts Section**: All forum posts with author, category, engagement metrics
   - **Comments Section**: All comments with post context and author info
   - **Votes Section**: Track all upvotes/downvotes with filtering by type
   - **Activity Log**: Audit trail of all user actions with action filtering
+
+### Admin Console (Role-Based)
+- Accessible at `/admin` route for users with ADMIN role
+- Uses NextAuth.js session-based authentication
+- Features data governance tools (data catalog, lineage, etc.)
 
 ### Testing
 - **Vitest**: Test framework with integration tests
