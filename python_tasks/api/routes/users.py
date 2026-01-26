@@ -2,13 +2,15 @@
 
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
 class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: str
     email: str
     createdAt: datetime
@@ -17,9 +19,6 @@ class UserResponse(BaseModel):
     username: Optional[str] = None
     displayName: Optional[str] = None
     avatarUrl: Optional[str] = None
-
-    class Config:
-        from_attributes = True
 
 
 class UserDetailResponse(UserResponse):

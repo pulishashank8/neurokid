@@ -2,13 +2,15 @@
 
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
 
 class PostResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: str
     title: str
     createdAt: datetime
@@ -17,9 +19,6 @@ class PostResponse(BaseModel):
     isPinned: bool
     categoryName: Optional[str] = None
     authorUsername: Optional[str] = None
-
-    class Config:
-        from_attributes = True
 
 
 class PostListResponse(BaseModel):

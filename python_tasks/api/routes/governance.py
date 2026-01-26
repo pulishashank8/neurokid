@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 import json
 
@@ -10,6 +10,8 @@ router = APIRouter(prefix="/governance", tags=["governance"])
 
 
 class AuditLogResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: str
     action: str
     userId: Optional[str] = None
@@ -18,9 +20,6 @@ class AuditLogResponse(BaseModel):
     details: Optional[dict] = None
     createdAt: datetime
     username: Optional[str] = None
-
-    class Config:
-        from_attributes = True
 
 
 class AuditLogListResponse(BaseModel):
