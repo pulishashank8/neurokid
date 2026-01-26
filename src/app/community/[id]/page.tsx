@@ -77,9 +77,10 @@ export default function PostDetailPage({
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         console.error("Fetch post error:", errorData);
-        throw new Error(errorData.details || errorData.error || "Failed to fetch post");
+        throw new Error(errorData.error?.message || errorData.details || "Failed to fetch post");
       }
-      return res.json() as Promise<Post>;
+      const json = await res.json();
+      return (json.data || json) as Post;
     },
     enabled: !!postId,
   });
@@ -91,7 +92,8 @@ export default function PostDetailPage({
       if (!postId) return null;
       const res = await fetch(`/api/posts/${postId}/comments`);
       if (!res.ok) throw new Error("Failed to fetch comments");
-      return res.json();
+      const json = await res.json();
+      return json.data || json;
     },
     enabled: !!postId,
   });
