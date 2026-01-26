@@ -1,38 +1,40 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { dataGovernanceService } from "@/services/dataGovernanceService";
+import { logSecurityEvent } from "@/lib/securityAudit";
+import { successResponse, errorResponse } from "@/lib/apiResponse";
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return errorResponse("UNAUTHORIZED", "Unauthorized", 401);
     }
 
-    // Anonymize user's posts and comments before deletion
-    await prisma.post.updateMany({
-      where: { authorId: session.user.id },
-      data: { isAnonymous: true },
+    const body = await request.json().catch(() => ({}));
+    const deleteType = body.deleteType || 'anonymize';
+
+    if (deleteType === 'complete') {
+      await dataGovernanceService.deleteUserCompletely(session.user.id, session.user.id);
+    } else {
+      await dataGovernanceService.anonymizeUserData(session.user.id, session.user.id);
+    }
+
+    await logSecurityEvent({
+      action: 'ACCOUNT_DELETED',
+      userId: session.user.id,
+      resource: 'user',
+      resourceId: session.user.id,
+      details: { deleteType },
     });
 
-    await prisma.comment.updateMany({
-      where: { authorId: session.user.id },
-      data: { isAnonymous: true },
-    });
-
-    // Delete user (cascading deletes will handle related records)
-    await prisma.user.delete({
-      where: { id: session.user.id },
-    });
-
-    return NextResponse.json({
-      message: "Account deleted successfully",
+    return successResponse({
+      message: deleteType === 'complete' 
+        ? "Account permanently deleted" 
+        : "Account data anonymized successfully",
     });
   } catch (error) {
     console.error("Delete account error:", error);
-    return NextResponse.json(
-      { error: "Failed to delete account" },
-      { status: 500 }
-    );
+    return errorResponse("INTERNAL_ERROR", "Failed to delete account", 500);
   }
 }

@@ -196,6 +196,11 @@ export const RATE_LIMITERS = {
   userProfile: new RateLimiter("userProfile", 60, 60), // 60/min per IP
   forgotPassword: new RateLimiter("forgotPassword", 3, 300), // 3 per 5 min per email
   forgotPasswordDaily: new RateLimiter("forgotPasswordDaily", 5, 86400), // 5/day per email
+  resetPassword: new RateLimiter("resetPassword", 5, 300), // 5 per 5 min per IP
+  verifyEmail: new RateLimiter("verifyEmail", 10, 60), // 10/min per IP
+  resendVerification: new RateLimiter("resendVerification", 3, 300), // 3 per 5 min per email
+  verification: new RateLimiter("verification", 1, 60), // 1 per min cooldown per email
+  verificationDaily: new RateLimiter("verificationDaily", 10, 86400), // 10/day per email
 };
 
 /**

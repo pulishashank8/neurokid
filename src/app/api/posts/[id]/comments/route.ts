@@ -8,23 +8,9 @@ import { invalidateCache } from "@/lib/redis";
 import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
 import { createLogger } from "@/lib/logger";
 import { getRequestId, withApiHandler } from "@/lib/apiHandler";
-
-// SUPER STABLE SANITIZER (No external dependencies)
-function simpleSanitize(html: string): string {
-  if (!html) return "";
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-    .replace(/on\w+="[^"]*"/gi, "")
-    .replace(/javascript:[^"']*/gi, "");
-}
-
-function enforceSafeLinks(html: string): string {
-  return html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
-    const hasRel = /\brel\s*=/.test(attrs);
-    const normalizedAttrs = hasRel ? attrs : `${attrs} rel="noopener noreferrer"`;
-    return `<a ${normalizedAttrs}>`;
-  });
-}
+import { sanitizeHtml } from "@/lib/security";
+import { successResponse, errorResponse, notFoundError, unauthorizedError } from "@/lib/apiResponse";
+import { logSecurityEvent } from "@/lib/securityAudit";
 
 // GET /api/posts/[id]/comments - Get threaded comments
 export const GET = withApiHandler(async (
@@ -62,7 +48,7 @@ export const GET = withApiHandler(async (
 
     if (!post) {
       logger.warn({ postId: id }, 'Post not found');
-      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+      return notFoundError("Post");
     }
 
     // Fetch comments for the post with safety limit
@@ -133,13 +119,10 @@ export const GET = withApiHandler(async (
     });
 
     logger.info({ postId: id, commentCount: comments.length }, 'Comments fetched successfully');
-    return NextResponse.json({ comments: rootComments });
+    return successResponse({ comments: rootComments });
   } catch (error: any) {
     console.error("Error fetching comments:", error);
-    return NextResponse.json(
-      { error: "Failed to load comments" },
-      { status: 500 }
-    );
+    return errorResponse("INTERNAL_ERROR", "Failed to load comments", 500);
   }
 }, { method: 'GET', routeName: '/api/posts/[id]/comments' });
 
@@ -151,20 +134,18 @@ export async function POST(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedError();
     }
 
     const { id } = await params;
     const body = await request.json();
 
-    // Add postId to body for validation
     const validation = createCommentSchema.safeParse({ ...body, postId: id });
 
     if (!validation.success) {
-      return NextResponse.json({ error: "Invalid input", details: validation.error.errors }, { status: 400 });
+      return errorResponse("VALIDATION_ERROR", "Invalid input", 400, validation.error.errors);
     }
 
-    // Rate limit: 10 comments per minute per user
     const canComment = await RATE_LIMITERS.createComment.checkLimit(session.user.id);
     if (!canComment) {
       const retryAfter = await RATE_LIMITERS.createComment.getRetryAfter(session.user.id);
@@ -173,10 +154,8 @@ export async function POST(
 
     const { content, parentCommentId, isAnonymous } = validation.data;
 
-    // Sanitize content with Zero-Dependency method
-    const sanitizedContent = simpleSanitize(content);
+    const sanitizedContent = sanitizeHtml(content);
 
-    // Create comment
     const [comment] = await prisma.$transaction([
       prisma.comment.create({
         data: {
@@ -206,11 +185,9 @@ export async function POST(
 
     await invalidateCache(`comments:${id}:*`, { prefix: "posts" });
 
-    return NextResponse.json(comment, { status: 201 });
+    return successResponse(comment, 201);
   } catch (outerError: any) {
     console.error("CRITICAL COMMENT ERROR:", outerError);
-    return NextResponse.json({
-      error: "Failed to create comment"
-    }, { status: 500 });
+    return errorResponse("INTERNAL_ERROR", "Failed to create comment", 500);
   }
 }

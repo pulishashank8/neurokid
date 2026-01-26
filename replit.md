@@ -48,6 +48,30 @@ Preferred communication style: Simple, everyday language.
 - Lazy Redis initialization with graceful fallback
 - Environment validation with Zod at startup
 - Sensitive field redaction in logs
+- Service layer pattern for business logic separation (`src/services/`)
+- Standardized API response structure (`src/lib/apiResponse.ts`)
+
+### Security Architecture
+- **Rate Limiting**: Token bucket algorithm with Redis/in-memory fallback
+  - Login: 10/min per email
+  - Registration: 5/hour per IP
+  - Password reset: 5 per 5 min
+  - API endpoints: Various limits based on action type
+- **Security Headers**: CSP, HSTS, X-Frame-Options, X-Content-Type-Options
+- **XSS Protection**: HTML sanitization for user-generated content (`src/lib/security.ts`)
+- **IDOR Protection**: Resource ownership verification utilities
+- **Security Audit Logging**: All security events logged to database (`src/lib/securityAudit.ts`)
+
+### Feature Flags
+- Safe rollout system for new features (`src/lib/featureFlags.ts`)
+- Environment variable overrides: `FEATURE_<FLAG_NAME>=true`
+- Percentage-based rollout support
+
+### Data Governance
+- User data export capability (GDPR/CCPA compliant)
+- Data anonymization and deletion services
+- Audit log retention policies
+- See `docs/DATA_GOVERNANCE.md` for full documentation
 
 ## External Dependencies
 

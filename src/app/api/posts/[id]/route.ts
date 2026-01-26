@@ -7,7 +7,9 @@ import { canModerate } from "@/lib/rbac";
 import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
 import { withApiHandler, getRequestId } from "@/lib/apiHandler";
 import { createLogger } from "@/lib/logger";
-// import sanitizeHtml from 'sanitize-html';
+import { sanitizeHtml } from "@/lib/security";
+import { successResponse, errorResponse, forbiddenError, notFoundError, unauthorizedError } from "@/lib/apiResponse";
+import { logSecurityEvent } from "@/lib/securityAudit";
 
 function enforceSafeLinks(html: string): string {
   return html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
@@ -131,7 +133,7 @@ export async function PATCH(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedError();
     }
 
     const { id } = await params;
@@ -139,39 +141,39 @@ export async function PATCH(
     const validation = updatePostSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: validation.error.errors },
-        { status: 400 }
-      );
+      return errorResponse("VALIDATION_ERROR", "Invalid input", 400, validation.error.errors);
     }
 
-    // Check if post exists
     const post = await prisma.post.findUnique({
       where: { id },
       select: { authorId: true },
     });
 
     if (!post) {
-      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+      return notFoundError("Post");
     }
 
-    // Check permissions - author or moderator can edit
     const isModerator = await canModerate(session.user.id);
     if (post.authorId !== session.user.id && !isModerator) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      await logSecurityEvent({
+        action: 'UNAUTHORIZED_ACCESS',
+        userId: session.user.id,
+        resource: 'post',
+        resourceId: id,
+        details: { action: 'update_attempt' },
+      });
+      return forbiddenError();
     }
 
     const { title, content, categoryId, tagIds } = validation.data;
 
-    // Sanitize content if provided
     const updateData: any = {};
-    if (title) updateData.title = title;
+    if (title) updateData.title = sanitizeHtml(title);
     if (content) {
-      updateData.content = enforceSafeLinks(content);
+      updateData.content = sanitizeHtml(enforceSafeLinks(content));
     }
     if (categoryId) updateData.categoryId = categoryId;
 
-    // Handle tags update
     if (tagIds) {
       updateData.tags = {
         set: tagIds.map((tagId) => ({ id: tagId })),
@@ -198,13 +200,10 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json(updatedPost);
+    return successResponse(updatedPost);
   } catch (error) {
     console.error("Error updating post:", error);
-    return NextResponse.json(
-      { error: "Failed to update post" },
-      { status: 500 }
-    );
+    return errorResponse("INTERNAL_ERROR", "Failed to update post", 500);
   }
 }
 
@@ -216,39 +215,48 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return unauthorizedError();
     }
 
     const { id } = await params;
 
-    // Check if post exists
     const post = await prisma.post.findUnique({
       where: { id },
       select: { authorId: true },
     });
 
     if (!post) {
-      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+      return notFoundError("Post");
     }
 
-    // Check permissions - author or moderator can delete
     const isModerator = await canModerate(session.user.id);
     if (post.authorId !== session.user.id && !isModerator) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      await logSecurityEvent({
+        action: 'UNAUTHORIZED_ACCESS',
+        userId: session.user.id,
+        resource: 'post',
+        resourceId: id,
+        details: { action: 'delete_attempt' },
+      });
+      return forbiddenError();
     }
 
-    // Soft delete by changing status
     await prisma.post.update({
       where: { id },
       data: { status: "REMOVED" },
     });
 
-    return NextResponse.json({ message: "Post deleted successfully" });
+    await logSecurityEvent({
+      action: 'CONTENT_MODERATION',
+      userId: session.user.id,
+      resource: 'post',
+      resourceId: id,
+      details: { action: 'deleted' },
+    });
+
+    return successResponse({ message: "Post deleted successfully" });
   } catch (error) {
     console.error("Error deleting post:", error);
-    return NextResponse.json(
-      { error: "Failed to delete post" },
-      { status: 500 }
-    );
+    return errorResponse("INTERNAL_ERROR", "Failed to delete post", 500);
   }
 }

@@ -5,6 +5,7 @@ import bcryptjs from "bcryptjs";
 import { withApiHandler, getRequestId } from "@/lib/apiHandler";
 import { createLogger } from "@/lib/logger";
 import { z } from "zod";
+import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
 
 // Validator for reset password
 const ResetPasswordSchema = z.object({
@@ -25,6 +26,15 @@ const ResetPasswordSchema = z.object({
 export const POST = withApiHandler(async (request: NextRequest) => {
     const requestId = getRequestId(request);
     const logger = createLogger({ requestId });
+
+    // Rate limiting
+    const ip = getClientIp(request);
+    const canProceed = await RATE_LIMITERS.resetPassword.checkLimit(ip);
+    if (!canProceed) {
+        const retryAfter = await RATE_LIMITERS.resetPassword.getRetryAfter(ip);
+        logger.warn({ ip }, 'Reset password rate limit exceeded');
+        return rateLimitResponse(retryAfter);
+    }
 
     let body;
     try {

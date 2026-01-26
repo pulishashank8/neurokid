@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
+import { RATE_LIMITERS, getClientIp } from "@/lib/rateLimit";
 
 export async function GET(request: NextRequest) {
     try {
+        // Rate limiting
+        const ip = getClientIp(request);
+        const canProceed = await RATE_LIMITERS.verifyEmail.checkLimit(ip);
+        if (!canProceed) {
+            return NextResponse.redirect(new URL('/login?error=TooManyAttempts', request.url));
+        }
+
         const { searchParams } = new URL(request.url);
         const token = searchParams.get("token");
 

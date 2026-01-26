@@ -2,17 +2,45 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Simplified security headers middleware
- * Auth and logging temporarily disabled to fix loading issues
+ * Security headers middleware
+ * Implements OWASP-recommended security headers
  */
 
 export async function middleware(_request: NextRequest) {
   const response = NextResponse.next();
 
-  // Basic security headers
+  // Prevent clickjacking attacks
   response.headers.set("X-Frame-Options", "DENY");
+  
+  // Prevent MIME type sniffing
   response.headers.set("X-Content-Type-Options", "nosniff");
+  
+  // Control referrer information
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  
+  // XSS protection (legacy browsers)
+  response.headers.set("X-XSS-Protection", "1; mode=block");
+  
+  // HTTPS enforcement (1 year, include subdomains)
+  response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  
+  // Permissions policy - disable unnecessary browser features
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), interest-cohort=()");
+  
+  // Content Security Policy - protect against XSS and injection
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel-scripts.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https: http:",
+    "connect-src 'self' https://*.supabase.co https://vercel.live https://*.vercel.app wss://*.supabase.co",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+  ].join("; ");
+  response.headers.set("Content-Security-Policy", csp);
 
   return response;
 }

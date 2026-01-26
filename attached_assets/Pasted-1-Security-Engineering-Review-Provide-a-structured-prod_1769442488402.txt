@@ -1,0 +1,172 @@
+1️⃣ Security Engineering Review
+
+Provide a structured, production-grade security assessment tailored to this type of platform (community + health-adjacent support app).
+
+Cover:
+
+• OWASP-level web application risks relevant to:
+– User-generated content (posts, comments, messages)
+– Authentication and session handling
+– API endpoints
+
+• Authentication & Authorization
+– Role-based access control
+– Protection of admin/moderation actions
+– Protection of private messaging endpoints
+
+• Secure API Design
+– Preventing IDOR (Insecure Direct Object Reference)
+– Proper HTTP status codes
+– Rate limiting strategies for posts, comments, login, messaging
+
+• Input Validation & Output Encoding
+– Preventing XSS from community posts/comments
+– Preventing injection-style issues
+
+• Secrets Management
+– API keys, database credentials, tokens
+– Safe usage patterns in server vs client
+
+• Logging & Monitoring for Security Events
+– Suspicious login attempts
+– Abuse of messaging or posting
+– Admin/moderation activity
+
+• Dependency Security
+– Vulnerable packages
+– Supply chain risk awareness
+
+• Infrastructure-Level Concerns (light review)
+– HTTPS
+– Secure headers
+– CORS sanity
+
+For each recommendation:
+• Explain the real risk
+• Suggest a low-risk fix that preserves current behavior
+• Mark priority: High / Medium / Low
+
+⸻
+
+2️⃣ Data Governance & Data Engineering Improvements
+
+Treat this as a health-adjacent support platform, where trust and data responsibility matter.
+
+Recommend governance practices without requiring a full rebuild:
+
+• Data Classification
+– Identify types of data: public, account data, sensitive user-generated content
+
+• Data Access Control
+– Who can access what (users, moderators, admins)
+– Special attention to private messaging and reports
+
+• Encryption
+– Data in transit (HTTPS assumptions)
+– Data at rest (conceptual best practices)
+
+• Audit Logging
+– Important events to log (moderation actions, account changes, message/report actions)
+
+• Data Retention
+– Strategy for old logs, deleted accounts, removed posts
+
+• Backup & Recovery (high-level)
+– Minimal viable disaster recovery thinking
+
+• Compliance-Ready Thinking
+– User data export/delete capability
+– Transparency in data handling
+
+Focus on practical, incremental improvements, not enterprise overkill.
+
+⸻
+
+3️⃣ Software Engineering & Architecture Improvements
+
+Make this project look like it was built by an experienced engineering team.
+
+Cover:
+
+• Codebase Structure
+– Separation of concerns between UI, API routes, business logic, data access
+
+• Modularization
+– Breaking large files into logical service layers
+
+• API Architecture
+– Consistent response structure
+– Error handling patterns
+– Avoiding logic in route handlers
+
+• Observability
+– Minimal structured logging strategy
+– Error monitoring mindset
+
+• Testing Strategy
+– High-value unit tests
+– Critical integration tests (auth, posts, messaging)
+
+• CI/CD Concepts
+– Safe deployments
+– Environment separation
+– Versioning discipline
+
+• Documentation
+– What should be documented for maintainability
+
+All suggestions must be non-breaking and incremental.
+
+⸻
+
+4️⃣ Python Integration Strategy (20–30% of the System)
+
+Recommend where Python makes architectural sense for THIS platform.
+
+Do NOT replace the existing stack. Add Python where it adds value.
+
+Identify ideal areas such as:
+
+• Background Jobs
+– Scheduled tasks
+– Moderation analysis
+– Data cleanup
+
+• Data Processing
+– Analytics
+– Content analysis
+– Reporting
+
+• AI/ML Related Logic
+– Model wrappers
+– NLP classification
+– Content scoring
+
+• Internal APIs / Services
+– Lightweight microservices
+
+Suggest frameworks with reasoning:
+• FastAPI (high-performance APIs)
+• Celery or RQ (background tasks)
+• Lightweight worker pattern
+
+Explain:
+
+• How Python services should communicate with the existing backend (HTTP/internal API)
+• How to introduce Python gradually without touching existing core routes
+• How to deploy Python services alongside the current system
+• Performance and scaling considerations
+
+⸻
+
+5️⃣ Stability Protection Plan
+
+Because the app already works:
+
+Provide a low-risk migration strategy:
+
+• Introduce changes behind feature flags
+• Keep old and new logic running in parallel where needed
+• Add monitoring before full rollout
+• Define rollback strategy for any new Python service
+• Ensure backward compatibility of APIs

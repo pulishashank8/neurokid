@@ -199,3 +199,129 @@ export function sanitizeUrl(url: string): string | null {
     return null;
   }
 }
+
+/**
+ * XSS Protection - Escape HTML entities in user-generated content
+ * Use this for plain text content that should not contain HTML
+ */
+export function escapeHtml(text: string): string {
+  const htmlEntities: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#x27;',
+    '/': '&#x2F;',
+    '`': '&#x60;',
+    '=': '&#x3D;',
+  };
+  
+  return text.replace(/[&<>"'`=/]/g, (char) => htmlEntities[char] || char);
+}
+
+/**
+ * Sanitize HTML content - Strip dangerous tags but allow safe formatting
+ * Use this for rich text content like posts and comments
+ */
+export function sanitizeHtml(html: string): string {
+  if (typeof html !== 'string') return '';
+  
+  // Remove script tags and their content
+  let sanitized = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  
+  // Remove event handlers (onclick, onerror, etc.)
+  sanitized = sanitized.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '');
+  sanitized = sanitized.replace(/\s*on\w+\s*=\s*[^\s>]*/gi, '');
+  
+  // Remove javascript: URLs
+  sanitized = sanitized.replace(/javascript:/gi, '');
+  
+  // Remove data: URLs in src attributes (potential XSS vector)
+  sanitized = sanitized.replace(/src\s*=\s*["']?data:/gi, 'src="');
+  
+  // Remove style tags
+  sanitized = sanitized.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+  
+  // Remove iframe, object, embed tags
+  sanitized = sanitized.replace(/<(iframe|object|embed|form|input|button)[^>]*>/gi, '');
+  sanitized = sanitized.replace(/<\/(iframe|object|embed|form|input|button)>/gi, '');
+  
+  // Remove base tags
+  sanitized = sanitized.replace(/<base\b[^>]*>/gi, '');
+  
+  return sanitized;
+}
+
+/**
+ * IDOR Protection - Verify resource ownership
+ * Use this to ensure users can only access their own resources
+ */
+export function verifyResourceOwnership(
+  resourceOwnerId: string | undefined | null,
+  currentUserId: string | undefined | null,
+  allowAdmin = false,
+  userRoles: string[] = []
+): { allowed: boolean; reason: string } {
+  if (!currentUserId) {
+    return { allowed: false, reason: 'User not authenticated' };
+  }
+  
+  if (!resourceOwnerId) {
+    return { allowed: false, reason: 'Resource not found' };
+  }
+  
+  // Owner can always access their own resources
+  if (resourceOwnerId === currentUserId) {
+    return { allowed: true, reason: 'Owner access' };
+  }
+  
+  // Admin bypass if allowed
+  if (allowAdmin && userRoles.includes('ADMIN')) {
+    return { allowed: true, reason: 'Admin access' };
+  }
+  
+  // Moderator access for moderation purposes
+  if (allowAdmin && userRoles.includes('MODERATOR')) {
+    return { allowed: true, reason: 'Moderator access' };
+  }
+  
+  return { allowed: false, reason: 'Access denied - not resource owner' };
+}
+
+/**
+ * Validate object ID format
+ * Prevents IDOR attacks via malformed IDs
+ */
+export function isValidId(id: unknown): boolean {
+  if (typeof id !== 'string') return false;
+  if (id.length === 0 || id.length > 128) return false;
+  
+  // Allow cuid, uuid, and alphanumeric IDs
+  return /^[a-zA-Z0-9_-]+$/.test(id);
+}
+
+/**
+ * Security audit log entry type
+ */
+export interface SecurityEvent {
+  type: 'auth_failure' | 'auth_success' | 'rate_limit' | 'idor_attempt' | 'xss_attempt' | 'suspicious_activity';
+  userId?: string;
+  ip?: string;
+  userAgent?: string;
+  details?: Record<string, unknown>;
+  timestamp: Date;
+}
+
+/**
+ * Create security event for logging
+ */
+export function createSecurityEvent(
+  type: SecurityEvent['type'],
+  options: Partial<Omit<SecurityEvent, 'type' | 'timestamp'>> = {}
+): SecurityEvent {
+  return {
+    type,
+    timestamp: new Date(),
+    ...options,
+  };
+}
