@@ -52,6 +52,33 @@ app.add_middleware(
 
 
 @app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    """Global rate limiting middleware"""
+    from api.rate_limiter import rate_limiter, get_client_ip
+    
+    excluded_paths = ["/", "/health", "/docs", "/redoc", "/openapi.json"]
+    if request.url.path in excluded_paths:
+        return await call_next(request)
+    
+    client_ip = get_client_ip(request)
+    rate_key = f"{client_ip}:{request.url.path}"
+    
+    if not rate_limiter.is_allowed(rate_key, capacity=100, refill_rate=10):
+        return JSONResponse(
+            status_code=429,
+            content={
+                "success": False,
+                "error": {
+                    "code": "RATE_LIMITED",
+                    "message": "Too many requests. Please try again later."
+                }
+            }
+        )
+    
+    return await call_next(request)
+
+
+@app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     request_id = request.headers.get("X-Request-ID", str(uuid.uuid4())[:8])
     start_time = datetime.now()
@@ -135,6 +162,9 @@ async def health_check():
 async def api_stats():
     """Get API usage statistics"""
     from api.cache import cache
+    from api.task_queue import task_queue
+    from api.rate_limiter import rate_limiter
+    
     return {
         "endpoints": {
             "users": "/api/python/users",
@@ -149,7 +179,9 @@ async def api_stats():
             "Data governance and GDPR compliance",
             "Audit logging and retention"
         ],
-        "cache": cache.stats()
+        "cache": cache.stats(),
+        "task_queue": task_queue.stats(),
+        "rate_limiter": rate_limiter.stats()
     }
 
 
