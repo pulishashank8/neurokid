@@ -8,6 +8,7 @@ import { rateLimitResponse, RATE_LIMITERS } from "@/lib/rateLimit";
 import { withApiHandler, getRequestId } from "@/lib/apiHandler";
 import { createLogger } from "@/lib/logger";
 import { apiErrors } from "@/lib/apiError";
+import { sortByHot } from "@/services/rankingService";
 
 // SUPER STABLE SANITIZER (No external dependencies)
 function simpleSanitize(html: string): string {
@@ -16,15 +17,6 @@ function simpleSanitize(html: string): string {
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
     .replace(/on\w+="[^"]*"/gi, "")
     .replace(/javascript:[^"']*/gi, "");
-}
-
-// Reddit-style Hot algorithm: time-decayed score based on votes
-function calculateHotScore(voteScore: number, createdAt: Date): number {
-  const sign = voteScore > 0 ? 1 : voteScore < 0 ? -1 : 0;
-  const magnitude = Math.log10(Math.max(Math.abs(voteScore), 1) + 1);
-  const ageHours = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60);
-  const decay = Math.pow(0.8, ageHours / 2); // 50% decay per 2 hours
-  return sign * magnitude * decay;
 }
 
 function enforceSafeLinks(html: string): string {
@@ -179,14 +171,10 @@ export const GET = withApiHandler(async (request: NextRequest) => {
 
   const posts = await prisma.post.findMany(query) as any[];
 
-  // Apply hot algorithm if needed
+  // Apply hot algorithm if needed (using configurable ranking service)
   let sortedPosts = posts;
   if (sort === "hot") {
-    sortedPosts = posts.sort((a, b) => {
-      const scoreA = calculateHotScore(a.voteScore, a.createdAt);
-      const scoreB = calculateHotScore(b.voteScore, b.createdAt);
-      return scoreB - scoreA;
-    });
+    sortedPosts = sortByHot(posts);
   }
 
   // Determine if there are more results

@@ -120,10 +120,28 @@ export default function DataTrustCenter() {
 
     async function runPhiScan() {
         setScanning(true);
-        // Simulate PHI scan
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setScanning(false);
-        alert('PHI Scan Complete: No unauthorized PHI exposure detected.');
+        try {
+            const res = await fetch('/api/governance/phi-scan', { method: 'POST' });
+            const data = await res.json();
+
+            if (data.success) {
+                const { findings, recordsScanned, message, status } = data.data;
+                if (status === 'CLEAN') {
+                    alert(`PHI Scan Complete ✓\n\nRecords Scanned: ${recordsScanned}\nResult: ${message}`);
+                } else if (status === 'CRITICAL') {
+                    alert(`⚠️ PHI SCAN ALERT\n\nRecords Scanned: ${recordsScanned}\n\nCritical: ${findings.critical}\nHigh: ${findings.high}\nMedium: ${findings.medium}\n\n${message}\n\nPlease review the audit logs for details.`);
+                } else {
+                    alert(`PHI Scan Complete\n\nRecords Scanned: ${recordsScanned}\nFindings: ${findings.total}\n\n${message}`);
+                }
+            } else {
+                alert('PHI Scan failed. Please check the logs.');
+            }
+        } catch (error) {
+            console.error('PHI Scan error:', error);
+            alert('PHI Scan failed. Please try again.');
+        } finally {
+            setScanning(false);
+        }
     }
 
     const trustScore = metrics?.overallScore || 94;

@@ -1,7 +1,7 @@
-
 import { prisma } from '@/lib/prisma';
-import { ShieldAlert, FileText, Lock, Users } from 'lucide-react';
+import { ShieldAlert, FileText, Lock } from 'lucide-react';
 import { format } from 'date-fns';
+import AuditDataForm from '@/components/owner/AuditDataForm';
 
 async function getStats() {
     const [accessLogs, consentCounts] = await Promise.all([
@@ -46,25 +46,7 @@ export default async function GovernancePage() {
                     </div>
                 </div>
 
-                <div className="bg-slate-800/50 border border-white/5 rounded-2xl p-6">
-                    <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
-                        <Users size={20} className="text-purple-400" />
-                        Privacy Requests (GDPR/CCPA)
-                    </h3>
-                    <div className="flex gap-4">
-                        <input
-                            type="text"
-                            placeholder="Search User ID or Email..."
-                            className="flex-1 bg-slate-900 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500"
-                        />
-                        <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-500 font-medium">
-                            Audit Data
-                        </button>
-                    </div>
-                    <p className="mt-3 text-xs text-slate-500">
-                        Generate a full data export JSON or anonymize user records. Requires 'Admin' role.
-                    </p>
-                </div>
+                <AuditDataForm />
             </div>
 
             {/* Sensitive Access Logs */}
