@@ -1,0 +1,37 @@
+# robots.txt for NeuroKid
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+
+# Allow search engines to crawl public pages
+Allow: /about
+Allow: /privacy
+Allow: /terms
+Allow: /crisis
+Allow: /providers
+Allow: /screening
+
+# Block private/authenticated areas
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /owner
+Disallow: /owner/*
+Disallow: /dashboard
+Disallow: /dashboard/*
+Disallow: /api/*
+Disallow: /messages
+Disallow: /messages/*
+Disallow: /settings
+Disallow: /settings/*
+Disallow: /bookmarks
+Disallow: /bookmarks/*
+
+# Block authentication pages
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+
+# Sitemap location
+Sitemap: https://neurokid.help/sitemap.xml
