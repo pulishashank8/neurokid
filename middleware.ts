@@ -1,70 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
 
 /**
- * Security & Auth middleware
- * - Implements OWASP-recommended security headers
- * - Enforces authentication on protected routes
+ * Security headers middleware
+ * Implements OWASP-recommended security headers
+ *
+ * Note: Auth enforcement is handled at API/page level via getServerSession
+ * to avoid redirect loops and Edge runtime limitations.
  */
 
-// Routes that require authentication
-const PROTECTED_ROUTES = [
-  '/owner/dashboard',
-  '/api/owner',
-  '/api/governance',
-  '/dashboard',
-  '/settings',
-  '/messages',
-  '/bookmarks',
-];
-
-// Routes that require admin role
-const ADMIN_ROUTES = [
-  '/owner/dashboard',
-  '/api/owner',
-  '/api/governance',
-];
-
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Check if route requires authentication
-  const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route));
-  const isAdminRoute = ADMIN_ROUTES.some(route => pathname.startsWith(route));
-
-  if (isProtectedRoute) {
-    // Get the session token
-    const token = await getToken({
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
-
-    // No token = not authenticated
-    if (!token) {
-      // For API routes, return 401
-      if (pathname.startsWith('/api/')) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
-
-      // For page routes, redirect to login
-      const loginUrl = isAdminRoute
-        ? new URL('/owner/login', request.url)
-        : new URL('/login', request.url);
-      loginUrl.searchParams.set('callbackUrl', pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    // Check for admin role on admin routes
-    if (isAdminRoute && pathname.startsWith('/owner')) {
-      const roles = (token.roles as string[]) || [];
-      if (!roles.includes('ADMIN') && !roles.includes('OWNER')) {
-        // Not an admin, redirect to home
-        return NextResponse.redirect(new URL('/', request.url));
-      }
-    }
-  }
-
+export async function middleware(_request: NextRequest) {
   const response = NextResponse.next();
 
   // Prevent clickjacking attacks
