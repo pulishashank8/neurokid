@@ -78,20 +78,6 @@ export async function POST(request: NextRequest) {
             completedAt: true,
           },
         },
-        therapySessions: {
-          select: {
-            id: true,
-            sessionDate: true,
-            notes: true,
-          },
-        },
-        emergencyCards: {
-          select: {
-            id: true,
-            childName: true,
-            createdAt: true,
-          },
-        },
         aiConversations: {
           select: {
             id: true,
@@ -107,7 +93,7 @@ export async function POST(request: NextRequest) {
             },
           },
         },
-        userConsents: {
+        consents: {
           select: {
             id: true,
             consentType: true,
@@ -124,6 +110,25 @@ export async function POST(request: NextRequest) {
         { status: 404 }
       );
     }
+
+    // Fetch related data that isn't directly related in User model
+    const therapySessions = await prisma.therapySession.findMany({
+      where: { userId: user.id },
+      select: {
+        id: true,
+        sessionDate: true,
+        notes: true,
+      },
+    });
+
+    const emergencyCards = await prisma.emergencyCard.findMany({
+      where: { userId: user.id },
+      select: {
+        id: true,
+        childName: true,
+        createdAt: true,
+      },
+    });
 
     // Log the audit action
     await prisma.sensitiveAccessLog.create({
@@ -147,11 +152,11 @@ export async function POST(request: NextRequest) {
 
       profile: user.profile
         ? {
-            username: user.profile.username,
-            displayName: user.profile.displayName,
-            bio: user.profile.bio,
-            avatarUrl: user.profile.avatarUrl,
-          }
+          username: user.profile.username,
+          displayName: user.profile.displayName,
+          bio: user.profile.bio,
+          avatarUrl: user.profile.avatarUrl,
+        }
         : null,
 
       roles: user.userRoles.map((r) => r.role),
@@ -162,14 +167,14 @@ export async function POST(request: NextRequest) {
         votes: user.votes.length,
         bookmarks: user.bookmarks.length,
         notifications: user.notifications.length,
-        screenings: user.screeningResults.length,
-        therapySessions: user.therapySessions.length,
-        emergencyCards: user.emergencyCards.length,
+        screeningResults: user.screeningResults.length,
+        therapySessions: therapySessions.length,
+        emergencyCards: emergencyCards.length,
         aiConversations: user.aiConversations.length,
-        consents: user.userConsents.length,
+        consents: user.consents.length,
       },
 
-      consents: user.userConsents,
+      consents: user.consents,
 
       sensitiveData: {
         screeningResults: user.screeningResults.map((s) => ({
@@ -177,11 +182,11 @@ export async function POST(request: NextRequest) {
           riskLevel: s.riskLevel,
           date: s.completedAt,
         })),
-        therapySessions: user.therapySessions.map((t) => ({
+        therapySessions: therapySessions.map((t) => ({
           date: t.sessionDate,
           hasNotes: !!t.notes,
         })),
-        emergencyCards: user.emergencyCards.map((e) => ({
+        emergencyCards: emergencyCards.map((e) => ({
           childName: e.childName,
           created: e.createdAt,
         })),

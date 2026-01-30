@@ -6,10 +6,10 @@ async function verifyOwnerAuth() {
   const cookieStore = await cookies();
   const token = cookieStore.get('owner_session')?.value;
   if (!token) return false;
-  
+
   const adminPassword = process.env.ADMIN_PASSWORD;
   if (!adminPassword) return false;
-  
+
   const crypto = await import('crypto');
   const expectedToken = crypto.createHash('sha256').update(adminPassword).digest('hex');
   return token === expectedToken;
@@ -46,7 +46,7 @@ export async function POST(
 
     const comment = await prisma.comment.update({
       where: { id },
-      data: { status },
+      data: { status: status as import('@prisma/client').CommentStatus },
     });
 
     return NextResponse.json({ success: true, comment });

@@ -18,10 +18,9 @@ export async function GET(
 
     const user = await prisma.user.findFirst({
       where: {
-        OR: [
-          { username: { equals: username, mode: "insensitive" } },
-          { username: decodeURIComponent(username) },
-        ],
+        profile: {
+          username: { equals: username, mode: "insensitive" },
+        }
       },
       select: { id: true },
     });
@@ -61,7 +60,7 @@ export async function GET(
         title: true,
         content: true,
         createdAt: true,
-        upvotes: true,
+        voteScore: true,
         _count: {
           select: { comments: true },
         },

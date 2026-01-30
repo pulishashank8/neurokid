@@ -129,6 +129,7 @@ async function main() {
             prisma.resource.create({
                 data: {
                     ...resource,
+                    category: resource.category as import('@prisma/client').ResourceCategory,
                     createdBy: adminUser.id,
                     status: 'ACTIVE',
                 },
