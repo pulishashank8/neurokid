@@ -2772,3 +2772,18 @@ html.dark .mascot-premium-glow:hover {
 .mascot-enter-right {
   animation: slide-in-right 1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
+
+@keyframes luxury-glint {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+
+  80%,
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+.animate-luxury-glint {
+  animation: luxury-glint 15s ease-in-out infinite;
+}

@@ -70,7 +70,7 @@ export default function ProvidersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] pt-16">
+    <div className="min-h-screen bg-[var(--background)] pt-32">
       <div className="relative overflow-hidden bg-gradient-to-b from-[var(--surface)] to-[var(--background)] border-b border-[var(--border)] pt-8 pb-12">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-tr from-[var(--primary)]/10 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 pointer-events-none" />
@@ -101,15 +101,13 @@ export default function ProvidersPage() {
                     onBlur={() => setSearchFocused(false)}
                     placeholder="Enter ZIP code"
                     maxLength={5}
-                    className={`w-full px-4 py-3.5 pl-12 bg-[var(--surface2)] border-2 rounded-xl text-[var(--text)] placeholder-[var(--muted)] transition-all duration-300 text-sm ${
-                      searchFocused 
-                        ? "border-[var(--primary)] shadow-lg shadow-[var(--primary)]/10" 
+                    className={`w-full px-4 py-3.5 pl-12 bg-[var(--surface2)] border-2 rounded-xl text-[var(--text)] placeholder-[var(--muted)] transition-all duration-300 text-sm ${searchFocused
+                        ? "border-[var(--primary)] shadow-lg shadow-[var(--primary)]/10"
                         : "border-[var(--border)] hover:border-[var(--primary)]/30"
-                    }`}
+                      }`}
                   />
-                  <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${
-                    searchFocused ? "text-[var(--primary)]" : "text-[var(--muted)]"
-                  }`} />
+                  <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${searchFocused ? "text-[var(--primary)]" : "text-[var(--muted)]"
+                    }`} />
                 </div>
               </div>
 
@@ -185,7 +183,7 @@ export default function ProvidersPage() {
               style={{ animationDelay: `${index * 0.05}s` }}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-              
+
               <div className="relative p-5 sm:p-6">
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex-1 min-w-0">
@@ -273,8 +271,8 @@ export default function ProvidersPage() {
             <div>
               <p className="font-semibold text-amber-900 dark:text-amber-200 mb-1">Disclaimer</p>
               <p className="text-sm text-amber-800/80 dark:text-amber-200/70 leading-relaxed">
-                This directory uses data from the official US National Provider Identifier (NPI) database maintained by CMS. 
-                NeuroKid does not endorse specific providers and does not provide medical advice. 
+                This directory uses data from the official US National Provider Identifier (NPI) database maintained by CMS.
+                NeuroKid does not endorse specific providers and does not provide medical advice.
                 Always verify credentials, services, availability, and insurance coverage directly with providers before scheduling appointments.
               </p>
             </div>

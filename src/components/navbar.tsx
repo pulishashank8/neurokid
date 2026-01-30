@@ -66,11 +66,8 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Support",
     items: [
       { href: "/aac", label: "AAC Communicator", icon: MessageSquare, description: "Voice communication board" },
-      { href: "/calm", label: "Calm Tool", icon: Wind, description: "Breathing exercises & relaxation" },
-      { href: "/crisis", label: "Crisis Help", icon: Phone, description: "Emergency resources & hotlines" },
       { href: "/therapy-log", label: "Therapy Log", icon: ClipboardList, description: "Track therapy sessions" },
       { href: "/daily-wins", label: "Daily Wins", icon: Star, description: "Celebrate what worked today" },
-      { href: "/emergency-card", label: "Emergency Cards", icon: CreditCard, description: "Printable info cards" },
     ]
   },
   {
@@ -97,14 +94,19 @@ const NAV_GROUPS: NavGroup[] = [
     ]
   },
   {
-    label: "Platform",
+    label: "Essentials",
     items: [
-      { href: "/about", label: "About Us", icon: Info, description: "Our mission & journey" },
       { href: "/marketplace", label: "Marketplace", icon: ShoppingBag, description: "Curated products & resources" },
-      { href: "/trust", label: "Trust & Safety", icon: Shield, description: "Security & moderation" },
-      { href: "/settings", label: "Settings", icon: Settings, description: "Account preferences" },
+      { href: "/emergency-card", label: "Emergency Cards", icon: CreditCard, description: "Printable info cards" },
+      { href: "/calm", label: "Calm Tool", icon: Wind, description: "Breathing exercises & relaxation" },
     ]
   }
+];
+
+const USER_ITEMS: SubItem[] = [
+  { href: "/about", label: "About Us", icon: Info, description: "Our mission & journey" },
+  { href: "/trust", label: "Trust & Safety", icon: Shield, description: "Security & moderation" },
+  { href: "/settings", label: "Settings", icon: Settings, description: "Account preferences" },
 ];
 
 export default function NavBar() {
@@ -274,27 +276,7 @@ export default function NavBar() {
                             );
                           })}
                           {/* Sign Out button in Platform dropdown */}
-                          {group.label === "Platform" && session && (
-                            <>
-                              <div className="my-2 border-t border-[var(--border)]"></div>
-                              <button
-                                onClick={() => signOut({ callbackUrl: "/login" })}
-                                className="flex items-start gap-3 p-3 rounded-xl transition-all duration-300 hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:shadow-md w-full text-left group/signout"
-                              >
-                                <div className="mt-0.5 p-2 rounded-lg bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 transition-all duration-300 group-hover/signout:scale-110 group-hover/signout:bg-rose-500 group-hover/signout:text-white">
-                                  <LogOut className="w-4 h-4" />
-                                </div>
-                                <div>
-                                  <div className="text-sm font-bold text-rose-600 dark:text-rose-400">
-                                    Sign Out
-                                  </div>
-                                  <div className="text-[11px] text-[var(--muted)] leading-snug mt-0.5">
-                                    Log out of your account
-                                  </div>
-                                </div>
-                              </button>
-                            </>
-                          )}
+                          {/* Sign Out logic handled in User Menu now */}
                         </div>
                       </div>
                     </div>
@@ -308,36 +290,107 @@ export default function NavBar() {
               {/* Get Help Button - Premium with Glow */}
               <Link
                 href="/crisis"
-                className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 via-rose-500 to-pink-500 text-white text-sm font-bold shadow-lg btn-glow-luxury transition-all duration-300 hover:scale-105"
-                style={{ boxShadow: '0 4px 20px rgba(244, 63, 94, 0.4)' }}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-rose-500 via-rose-500 to-pink-500 text-white text-[11px] font-black uppercase tracking-wider shadow-md transition-all duration-300 hover:scale-105 active:scale-95"
+                style={{ boxShadow: '0 2px 10px rgba(244, 63, 94, 0.3)' }}
               >
-                <Phone className="w-4 h-4" />
+                <Phone className="w-3.5 h-3.5" />
                 <span>Get Help</span>
               </Link>
 
               {/* Theme Toggle - Premium */}
               {session && (
-                <button
-                  onClick={toggleTheme}
-                  className="relative inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300 glass-premium hover:shadow-lg group overflow-hidden"
-                  aria-label="Toggle theme"
-                  title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
-                >
-                  {/* Animated background */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-slate-500/10 to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                  {theme === "light" ? (
-                    <>
+                <>
+                  <button
+                    onClick={toggleTheme}
+                    className="relative inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300 glass-premium hover:shadow-lg group overflow-hidden"
+                    aria-label="Toggle theme"
+                    title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+                  >
+                    {/* Animated background */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-slate-500/10 to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    {theme === "light" ? (
                       <Moon className="w-4 h-4 text-slate-600 transition-transform duration-300 group-hover:rotate-12" />
-                      <span className="hidden xl:inline text-xs font-semibold text-[var(--text)]">Dark</span>
-                    </>
-                  ) : (
-                    <>
+                    ) : (
                       <Sun className="w-4 h-4 text-amber-400 transition-transform duration-300 group-hover:rotate-45" />
-                      <span className="hidden xl:inline text-xs font-semibold text-[var(--text)]">Light</span>
-                    </>
-                  )}
-                </button>
+                    )}
+                  </button>
+
+                  {/* PREMIUM USER MENU */}
+                  <div className="relative group/user">
+                    <button className="relative flex items-center justify-center w-10 h-10 rounded-xl glass-premium hover:shadow-lg transition-all duration-300 group-hover/user:scale-105">
+                      <div className="absolute inset-0 rounded-xl bg-gradient-to-tr from-emerald-500/20 to-cyan-500/20 opacity-0 group-hover/user:opacity-100 transition-opacity duration-300" />
+                      <Users className="w-5 h-5 text-[var(--text)] transition-colors duration-300 group-hover/user:text-emerald-500" />
+                      {/* Neon Glow Effect */}
+                      <div className="absolute inset-0 rounded-xl opacity-0 group-hover/user:opacity-100 transition-opacity duration-300 shadow-[0_0_15px_rgba(16,185,129,0.3)]" />
+                    </button>
+
+                    {/* Dropdown - User Menu */}
+                    <div className="absolute right-0 top-full pt-3 opacity-0 translate-y-4 scale-95 pointer-events-none group-hover/user:opacity-100 group-hover/user:translate-y-0 group-hover/user:scale-100 group-hover/user:pointer-events-auto transition-all duration-300 ease-out z-50">
+                      <div className="w-64 rounded-2xl dropdown-premium p-3">
+                        <div className="px-3 py-2 text-xs font-bold text-[var(--muted)] uppercase tracking-wider mb-1">
+                          My Account
+                        </div>
+                        <div className="grid gap-1">
+                          {USER_ITEMS.map((item) => {
+                            const Icon = item.icon;
+                            const isActive = pathname === item.href;
+                            return (
+                              <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`
+                                   flex items-start gap-3 p-3 rounded-xl transition-all duration-300
+                                   ${isActive
+                                    ? "bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20"
+                                    : "hover:bg-[var(--surface2)] hover:shadow-md"
+                                  }
+                                   group/item
+                                 `}
+                              >
+                                <div className={`
+                                   relative mt-0.5 p-2 rounded-lg transition-all duration-300
+                                   ${isActive
+                                    ? "bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg"
+                                    : "bg-[var(--surface2)] text-[var(--muted)] group-hover/item:bg-gradient-to-br group-hover/item:from-emerald-500/20 group-hover/item:to-teal-500/20 group-hover/item:text-emerald-500"
+                                  }
+                                   group-hover/item:scale-110
+                                 `}>
+                                  <Icon className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1">
+                                  <div className={`text-sm font-bold ${isActive ? "text-emerald-500" : "text-[var(--text)]"} flex items-center gap-2 group-hover/item:text-emerald-500 transition-colors`}>
+                                    {item.label}
+                                  </div>
+                                  <div className="text-[11px] text-[var(--muted)] leading-snug mt-0.5">
+                                    {item.description}
+                                  </div>
+                                </div>
+                              </Link>
+                            );
+                          })}
+
+                          <div className="my-2 border-t border-[var(--border)]"></div>
+                          <button
+                            onClick={() => signOut({ callbackUrl: "/login" })}
+                            className="flex items-start gap-3 p-3 rounded-xl transition-all duration-300 hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:shadow-md w-full text-left group/signout"
+                          >
+                            <div className="mt-0.5 p-2 rounded-lg bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 transition-all duration-300 group-hover/signout:scale-110 group-hover/signout:bg-rose-500 group-hover/signout:text-white">
+                              <LogOut className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-bold text-rose-600 dark:text-rose-400">
+                                Sign Out
+                              </div>
+                              <div className="text-[11px] text-[var(--muted)] leading-snug mt-0.5">
+                                Log out of your account
+                              </div>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
 
               {/* Mobile Menu Button - Premium */}

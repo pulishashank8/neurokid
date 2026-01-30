@@ -149,7 +149,7 @@ function ResourcesContent() {
   }, [search, selectedCategory, resources, savedIds, showSavedOnly]);
 
   return (
-    <div className="min-h-screen bg-[var(--background)] pt-20 pb-20">
+    <div className="min-h-screen bg-[var(--background)] pt-32 pb-20">
       <div className="relative overflow-hidden border-b border-[var(--border)] bg-[var(--surface)] py-8 sm:py-12 mb-6 sm:mb-8">
         <div className="absolute top-0 right-0 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] bg-gradient-to-br from-[var(--primary)]/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
         <div className="mx-auto max-w-7xl px-4 md:px-6 relative z-10">
@@ -181,7 +181,7 @@ function ResourcesContent() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <div className="sticky top-[4.5rem] z-30 mb-8 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/90 p-4 backdrop-blur-md shadow-lg">
+        <div className="sticky top-24 z-30 mb-8 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/90 p-4 backdrop-blur-md shadow-lg">
           <div className="grid gap-3 sm:gap-4 md:grid-cols-12 items-center">
             <div className="relative md:col-span-12 lg:col-span-7">
               <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">

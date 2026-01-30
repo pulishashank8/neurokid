@@ -170,7 +170,7 @@ function CommunityPageContent() {
 
 
   return (
-    <div className="min-h-screen bg-[var(--background)] pt-16">
+    <div className="min-h-screen bg-[var(--background)] pt-32">
       {/* Premium Header */}
       <div className="relative overflow-hidden bg-gradient-to-b from-[var(--surface)] to-[var(--background)] border-b border-[var(--border)] pt-8 pb-12">
         {/* Abstract Shapes */}

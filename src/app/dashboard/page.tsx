@@ -95,43 +95,7 @@ function Premium3DCard({ children, className = "", delay = 0, enableTilt = true 
   );
 }
 
-// Floating Particles Component
-function FloatingParticles() {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(12)].map((_, i) => (
-        <div
-          key={i}
-          className="particle"
-          style={{
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 5}s`,
-            animationDuration: `${8 + Math.random() * 6}s`,
-            width: `${4 + Math.random() * 4}px`,
-            height: `${4 + Math.random() * 4}px`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
 
-// Ambient Orbs Component
-function AmbientOrbs() {
-  return (
-    <>
-      <div className="absolute top-0 right-0 w-[800px] h-[800px] orb-1">
-        <div className="w-full h-full bg-gradient-to-br from-emerald-500/20 via-teal-500/10 to-transparent rounded-full blur-[100px] morph-bg" />
-      </div>
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] orb-2">
-        <div className="w-full h-full bg-gradient-to-tr from-purple-500/15 via-indigo-500/10 to-transparent rounded-full blur-[80px] morph-bg" style={{ animationDelay: '-5s' }} />
-      </div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] orb-3">
-        <div className="w-full h-full bg-gradient-to-r from-cyan-500/10 via-emerald-500/5 to-purple-500/10 rounded-full blur-[120px] morph-bg" style={{ animationDelay: '-10s' }} />
-      </div>
-    </>
-  );
-}
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -256,18 +220,9 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--background)] relative overflow-hidden">
-      {/* Ambient Background Effects */}
-      <div className="fixed inset-0 pointer-events-none">
-        <AmbientOrbs />
-        <FloatingParticles />
-      </div>
-
-      {/* Noise Texture Overlay */}
-      <div className="fixed inset-0 opacity-[0.015] pointer-events-none bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMC4xIi8+PC9zdmc+')]" />
-
+    <div className="min-h-screen bg-white dark:bg-black relative overflow-hidden">
       {/* Hero Header */}
-      <div className="relative pt-8 pb-20">
+      <div className="relative pt-32 pb-20">
         {/* Mascot - Desktop positioned absolutely */}
 
 
