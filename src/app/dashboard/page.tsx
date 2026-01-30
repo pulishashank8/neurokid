@@ -3,11 +3,23 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { 
-  Users, Stethoscope, Brain, ClipboardCheck, ArrowRight, 
-  Heart, Wind, ClipboardList, Sparkles, Quote, ShoppingBag, Mail, Star, Gamepad2
+import { useEffect, useState, useRef } from "react";
+import {
+  Users, Stethoscope, Brain, ClipboardCheck, ArrowRight,
+  Heart, Wind, ClipboardList, Sparkles, Quote, ShoppingBag, Mail, Star, Gamepad2,
+  MessageSquare
 } from "lucide-react";
+import dynamic from "next/dynamic";
+
+// Dynamically import mascot to prevent SSR issues
+const DashboardMascots = dynamic(
+  () => import("@/components/ui/DashboardMascots").then(mod => mod.DashboardMascots),
+  { ssr: false }
+);
+const MobileMascot = dynamic(
+  () => import("@/components/ui/DashboardMascots").then(mod => mod.MobileMascot),
+  { ssr: false }
+);
 
 const QUOTES = [
   { text: "Every child is gifted. They just unwrap their packages at different times.", author: "Unknown" },
@@ -27,11 +39,118 @@ const QUOTES = [
   { text: "Your love is their greatest therapy.", author: "Unknown" },
 ];
 
+// 3D Tilt Effect Hook
+function use3DTilt() {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = element.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const rotateX = (y - centerY) / 20;
+      const rotateY = (centerX - x) / 20;
+
+      element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(10px)`;
+    };
+
+    const handleMouseLeave = () => {
+      element.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+    };
+
+    element.addEventListener('mousemove', handleMouseMove);
+    element.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      element.removeEventListener('mousemove', handleMouseMove);
+      element.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
+
+  return ref;
+}
+
+// Premium 3D Card Component
+function Premium3DCard({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const tiltRef = use3DTilt();
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), delay);
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  return (
+    <div
+      ref={tiltRef}
+      className={`
+        ${className}
+        transition-all duration-700 ease-out
+        ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}
+      `}
+      style={{
+        transformStyle: 'preserve-3d',
+        transitionDelay: `${delay}ms`
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// Floating Particles Component
+function FloatingParticles() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {[...Array(12)].map((_, i) => (
+        <div
+          key={i}
+          className="particle"
+          style={{
+            left: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 5}s`,
+            animationDuration: `${8 + Math.random() * 6}s`,
+            width: `${4 + Math.random() * 4}px`,
+            height: `${4 + Math.random() * 4}px`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Ambient Orbs Component
+function AmbientOrbs() {
+  return (
+    <>
+      <div className="absolute top-0 right-0 w-[800px] h-[800px] orb-1">
+        <div className="w-full h-full bg-gradient-to-br from-emerald-500/20 via-teal-500/10 to-transparent rounded-full blur-[100px] morph-bg" />
+      </div>
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] orb-2">
+        <div className="w-full h-full bg-gradient-to-tr from-purple-500/15 via-indigo-500/10 to-transparent rounded-full blur-[80px] morph-bg" style={{ animationDelay: '-5s' }} />
+      </div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] orb-3">
+        <div className="w-full h-full bg-gradient-to-r from-cyan-500/10 via-emerald-500/5 to-purple-500/10 rounded-full blur-[120px] morph-bg" style={{ animationDelay: '-10s' }} />
+      </div>
+    </>
+  );
+}
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [quote] = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
   const [notifications, setNotifications] = useState({ unreadConnectionRequests: 0, unreadMessages: 0, totalUnread: 0 });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -58,12 +177,16 @@ export default function DashboardPage() {
     }
   }, [status]);
 
-  if (status === "loading") {
+  if (status === "loading" || !mounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--background)]">
         <div className="text-center">
-          <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"></div>
-          <p className="mt-4 text-[var(--muted)]">Loading your dashboard...</p>
+          <div className="relative w-16 h-16 mx-auto">
+            <div className="absolute inset-0 rounded-full border-4 border-emerald-500/20"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-emerald-500 animate-spin"></div>
+            <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-teal-500 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+          </div>
+          <p className="mt-6 text-[var(--muted)] animate-pulse">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -73,306 +196,421 @@ export default function DashboardPage() {
     return null;
   }
 
-  const modules = [
+  // 5-Pillar System: Community | Providers | AI Support | Screening | AAC Communicator
+  const pillars = [
     {
       id: "community",
       title: "Community",
+      shortTitle: "Community",
       description: "Connect with parents who understand your journey.",
       href: "/community",
-      icon: <Users className="w-7 h-7" />,
-      gradient: "from-emerald-500 to-teal-500",
-      shadowColor: "shadow-emerald-500/20",
+      icon: <Users className="w-6 h-6 sm:w-7 sm:h-7" />,
+      gradient: "from-emerald-500 via-emerald-400 to-teal-500",
+      glowColor: "rgba(16, 185, 129, 0.4)",
+      bgGlow: "bg-emerald-500/10",
     },
     {
       id: "providers",
-      title: "Find Care",
+      title: "Providers",
+      shortTitle: "Providers",
       description: "Locate verified specialists in neurodiverse care.",
       href: "/providers",
-      icon: <Stethoscope className="w-7 h-7" />,
-      gradient: "from-rose-500 to-pink-500",
-      shadowColor: "shadow-rose-500/20",
+      icon: <Stethoscope className="w-6 h-6 sm:w-7 sm:h-7" />,
+      gradient: "from-rose-500 via-pink-500 to-rose-400",
+      glowColor: "rgba(244, 63, 94, 0.4)",
+      bgGlow: "bg-rose-500/10",
     },
     {
       id: "ai-support",
-      title: "AI Companion",
+      title: "AI Support",
+      shortTitle: "AI",
       description: "24/7 guidance, resources, and quick answers.",
       href: "/ai-support",
-      icon: <Brain className="w-7 h-7" />,
-      gradient: "from-purple-500 to-violet-500",
-      shadowColor: "shadow-purple-500/20",
+      icon: <Brain className="w-6 h-6 sm:w-7 sm:h-7" />,
+      gradient: "from-purple-500 via-violet-500 to-purple-400",
+      glowColor: "rgba(139, 92, 246, 0.4)",
+      bgGlow: "bg-purple-500/10",
     },
     {
       id: "screening",
-      title: "M-CHAT Screening",
+      title: "Screening",
+      shortTitle: "Screen",
       description: "Validated developmental milestone assessment.",
       href: "/screening",
-      icon: <ClipboardCheck className="w-7 h-7" />,
-      gradient: "from-blue-500 to-cyan-500",
-      shadowColor: "shadow-blue-500/20",
+      icon: <ClipboardCheck className="w-6 h-6 sm:w-7 sm:h-7" />,
+      gradient: "from-blue-500 via-cyan-500 to-blue-400",
+      glowColor: "rgba(59, 130, 246, 0.4)",
+      bgGlow: "bg-blue-500/10",
+    },
+    {
+      id: "aac",
+      title: "AAC Communicator",
+      shortTitle: "AAC",
+      description: "Voice communication board for non-verbal expression.",
+      href: "/aac",
+      icon: <MessageSquare className="w-6 h-6 sm:w-7 sm:h-7" />,
+      gradient: "from-amber-500 via-orange-500 to-amber-400",
+      glowColor: "rgba(251, 146, 60, 0.5)",
+      bgGlow: "bg-amber-500/10",
+      isPremium: true, // This pillar gets the pulse-glow effect
     },
   ];
 
   const supportTools = [
-    { href: "/calm", icon: Wind, label: "Breathe & Calm", color: "text-emerald-500 bg-emerald-500/10" },
-    { href: "/screening", icon: ClipboardCheck, label: "Screening", color: "text-blue-500 bg-blue-500/10" },
-    { href: "/therapy-log", icon: ClipboardList, label: "Therapy Log", color: "text-purple-500 bg-purple-500/10" },
-    { href: "/daily-wins", icon: Star, label: "Daily Wins", color: "text-amber-500 bg-amber-500/10" },
+    { href: "/calm", icon: Wind, label: "Breathe & Calm", gradient: "from-emerald-500 to-teal-500", glow: "emerald" },
+    { href: "/screening", icon: ClipboardCheck, label: "Screening", gradient: "from-blue-500 to-cyan-500", glow: "blue" },
+    { href: "/therapy-log", icon: ClipboardList, label: "Therapy Log", gradient: "from-purple-500 to-violet-500", glow: "purple" },
+    { href: "/daily-wins", icon: Star, label: "Daily Wins", gradient: "from-amber-500 to-orange-500", glow: "amber" },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[var(--background)] via-[var(--surface)] to-[var(--background)]">
+    <div className="min-h-screen bg-[var(--background)] relative overflow-hidden">
+      {/* Ambient Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <AmbientOrbs />
+        <FloatingParticles />
+      </div>
+
+      {/* Noise Texture Overlay */}
+      <div className="fixed inset-0 opacity-[0.015] pointer-events-none bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIzMDAiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMC4xIi8+PC9zdmc+')]" />
+
       {/* Hero Header */}
-      <div className="relative overflow-hidden pt-8 pb-20">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-teal-500/10 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/3"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-500/5 rounded-full blur-3xl"></div>
-        </div>
+      <div className="relative pt-8 pb-20">
+        {/* Mascot - Desktop positioned absolutely */}
+        {mounted && (
+          <div className="hidden lg:block">
+            <DashboardMascots />
+          </div>
+        )}
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-          {/* Welcome Section */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold mb-4">
-              <Sparkles className="w-3.5 h-3.5" />
-              Your Safe Space
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text)] tracking-tight mb-2">
-              Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">{session?.user?.name || "Friend"}</span>
-            </h1>
-            <p className="text-sm text-[var(--muted)] max-w-xl mx-auto">
-              Your journey matters. Explore resources, connect with community, or find support today.
-            </p>
+          {/* Welcome Section - with responsive padding for mascot */}
+          <div className="text-center mb-10 lg:pr-48 xl:pr-56 2xl:pr-64">
+            <Premium3DCard delay={0}>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-premium shadow-luxury mb-6 border-glow">
+                <div className="relative">
+                  <Sparkles className="w-4 h-4 text-emerald-500" />
+                  <div className="absolute inset-0 animate-ping">
+                    <Sparkles className="w-4 h-4 text-emerald-500 opacity-50" />
+                  </div>
+                </div>
+                <span className="text-sm font-semibold text-[var(--text)]">Your Safe Space</span>
+              </div>
+            </Premium3DCard>
+
+            <Premium3DCard delay={100}>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[var(--text)] tracking-tight mb-3">
+                Welcome back,{" "}
+                <span className="text-gradient-animated">
+                  {session?.user?.name || "Friend"}
+                </span>
+              </h1>
+            </Premium3DCard>
+
+            <Premium3DCard delay={200}>
+              <p className="text-base sm:text-lg text-[var(--muted)] max-w-2xl mx-auto leading-relaxed">
+                Your journey matters. Explore resources, connect with community, or find support today.
+              </p>
+            </Premium3DCard>
+
+            {/* Mobile/Tablet Mascot - shows below welcome text */}
+            {mounted && (
+              <div className="lg:hidden mt-8 mb-4 flex justify-center">
+                <MobileMascot className="w-48 sm:w-56 md:w-64" />
+              </div>
+            )}
           </div>
 
-          {/* Inspirational Quote Card - Compact */}
-          <div className="max-w-xl mx-auto mb-10">
-            <div className="relative bg-[var(--surface)] rounded-2xl border border-[var(--border)] px-6 py-5 shadow-md">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/20">
-                  <Quote className="w-3.5 h-3.5 text-white" />
+          {/* Inspirational Quote Card - Premium Glass Effect - with responsive margin for mascot */}
+          <Premium3DCard delay={300} className="max-w-2xl mx-auto lg:mr-auto lg:ml-0 xl:mx-auto mb-12 lg:max-w-xl xl:max-w-2xl">
+            <div className="relative glass-premium rounded-3xl px-8 py-7 shadow-luxury quote-card-premium border-glow overflow-hidden">
+              {/* Shimmer overlay */}
+              <div className="absolute inset-0 shimmer-luxury opacity-50 rounded-3xl" />
+
+              <div className="relative z-10 flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-lg icon-container-luxury btn-3d">
+                  <Quote className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm sm:text-base font-medium text-[var(--text)] leading-relaxed italic">
+                  <p className="text-base sm:text-lg font-medium text-[var(--text)] leading-relaxed italic">
                     "{quote.text}"
                   </p>
-                  <p className="mt-2 text-xs text-[var(--muted)] font-semibold">
-                    — {quote.author}
+                  <p className="mt-3 text-sm text-[var(--muted)] font-semibold flex items-center gap-2">
+                    <span className="w-8 h-px bg-gradient-to-r from-emerald-500 to-transparent" />
+                    {quote.author}
                   </p>
                 </div>
               </div>
             </div>
-          </div>
+          </Premium3DCard>
 
-          {/* Main Modules Grid - 3D Cards */}
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-12">
-            {modules.map((module) => (
-              <Link key={module.id} href={module.href} className="group">
-                <div className={`relative h-full rounded-2xl bg-[var(--surface)] border border-[var(--border)] p-6 shadow-lg ${module.shadowColor} transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:border-transparent overflow-hidden`}>
-                  <div className={`absolute inset-0 bg-gradient-to-br ${module.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
-                  
-                  <div className={`relative z-10 w-14 h-14 rounded-2xl bg-gradient-to-br ${module.gradient} text-white flex items-center justify-center shadow-lg ${module.shadowColor} mb-5 group-hover:scale-110 transition-transform duration-300`}>
-                    {module.icon}
-                  </div>
-                  
-                  <h3 className="relative z-10 text-xl font-bold text-[var(--text)] mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-emerald-500 group-hover:to-teal-500 transition-all">
-                    {module.title}
-                  </h3>
-                  <p className="relative z-10 text-sm text-[var(--muted)] leading-relaxed mb-4">
-                    {module.description}
-                  </p>
-                  
-                  <div className="relative z-10 flex items-center text-sm font-semibold text-[var(--primary)] group-hover:gap-2 transition-all">
-                    <span>Explore</span>
-                    <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+          {/* 5-Pillar Navigation - NEVER WRAPS - Single Horizontal Line */}
+          <Premium3DCard delay={350} className="mb-12">
+            <nav className="flex flex-nowrap justify-center items-stretch gap-2 sm:gap-3 lg:gap-4 overflow-x-auto px-2 py-3 scrollbar-hide">
+              {pillars.map((pillar, index) => (
+                <Link
+                  key={pillar.id}
+                  href={pillar.href}
+                  className={`
+                    group flex-shrink-0
+                    w-[60px] sm:w-[100px] md:w-[130px] lg:w-[160px] xl:w-[180px] 2xl:w-[200px]
+                    ${pillar.isPremium ? 'aac-pulse-glow' : ''}
+                  `}
+                >
+                  <div className={`
+                    relative h-full rounded-2xl sm:rounded-3xl glass-premium
+                    p-3 sm:p-4 lg:p-5
+                    shadow-luxury hover:shadow-luxury-hover
+                    transition-all duration-500 ease-out
+                    border-glow card-shine overflow-hidden
+                    hover:scale-[1.03] hover:-translate-y-1
+                    flex flex-col items-center justify-center text-center
+                    ${pillar.isPremium ? 'ring-2 ring-amber-500/30' : ''}
+                  `}>
+                    {/* Background Glow on Hover */}
+                    <div className={`absolute inset-0 ${pillar.bgGlow} opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl sm:rounded-3xl`} />
 
-          {/* Messages Card - Compact */}
-          <Link href="/messages" className="group block mb-5">
-            <div className="relative rounded-2xl border border-[var(--border)] p-5 sm:p-6 shadow-lg bg-gradient-to-br from-[var(--surface)] via-indigo-50/30 to-violet-50/30 dark:via-indigo-950/10 dark:to-violet-950/10 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-0.5 hover:border-indigo-300/50 dark:hover:border-indigo-500/30">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-indigo-500/10 to-violet-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-              
-              <div className="relative z-10 flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
-                {/* Icon Section */}
-                <div className="relative flex-shrink-0">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-all duration-300">
-                    <Mail className="w-7 h-7 text-white" />
-                  </div>
-                  {notifications.totalUnread > 0 && (
-                    <div className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[10px] font-bold flex items-center justify-center shadow-md">
-                      {notifications.totalUnread > 99 ? "99+" : notifications.totalUnread}
+                    {/* Icon */}
+                    <div
+                      className={`
+                        relative z-10
+                        w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14
+                        rounded-xl sm:rounded-2xl bg-gradient-to-br ${pillar.gradient}
+                        text-white flex items-center justify-center
+                        shadow-lg transition-all duration-500
+                        group-hover:scale-110 group-hover:rotate-3
+                        btn-3d icon-container-luxury
+                        mb-2 sm:mb-3
+                      `}
+                      style={{ boxShadow: `0 8px 30px ${pillar.glowColor}` }}
+                    >
+                      {pillar.icon}
                     </div>
-                  )}
-                </div>
-                
-                {/* Content Section */}
-                <div className="flex-1 text-center sm:text-left">
-                  <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
-                    <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 dark:from-indigo-400 dark:via-violet-400 dark:to-purple-400">
-                      Messages
-                    </h2>
-                    {notifications.totalUnread > 0 && (
-                      <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold">
-                        {notifications.unreadConnectionRequests > 0 && `${notifications.unreadConnectionRequests} request${notifications.unreadConnectionRequests > 1 ? 's' : ''}`}
-                        {notifications.unreadConnectionRequests > 0 && notifications.unreadMessages > 0 && ' • '}
-                        {notifications.unreadMessages > 0 && `${notifications.unreadMessages} new`}
-                      </span>
+
+                    {/* Title - responsive: hidden on xs, short on sm, full on lg+ */}
+                    <h3 className="relative z-10 text-[10px] sm:text-xs lg:text-sm xl:text-base font-bold text-[var(--text)] group-hover:text-gradient-animated transition-all duration-300 leading-tight">
+                      <span className="hidden sm:inline lg:hidden">{pillar.shortTitle}</span>
+                      <span className="hidden lg:inline">{pillar.title}</span>
+                      <span className="sm:hidden">{pillar.shortTitle}</span>
+                    </h3>
+
+                    {/* Description - only on large screens */}
+                    <p className="hidden xl:block relative z-10 text-[10px] text-[var(--muted)] leading-tight mt-1 line-clamp-2">
+                      {pillar.description}
+                    </p>
+
+                    {/* Premium badge for AAC */}
+                    {pillar.isPremium && (
+                      <div className="absolute top-1 right-1 sm:top-2 sm:right-2">
+                        <span className="flex h-2 w-2 sm:h-2.5 sm:w-2.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-amber-500"></span>
+                        </span>
+                      </div>
                     )}
                   </div>
-                  <p className="text-[var(--muted)] text-sm leading-relaxed max-w-lg">
-                    Connect with other parents through private, secure conversations.
-                  </p>
-                </div>
-                
-                {/* CTA Section */}
-                <div className="flex-shrink-0">
-                  <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 text-white text-sm font-semibold shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/40 group-hover:scale-105 transition-all duration-300">
-                    <span>Open Messages</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Link>
+                </Link>
+              ))}
+            </nav>
+          </Premium3DCard>
 
-          {/* Support Tools & Marketplace - Side by Side */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Left: Support Tools */}
-            <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-4 sm:p-5 shadow-md">
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/20">
-                  <Heart className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-[var(--text)]">Support Tools</h2>
-                  <p className="text-xs text-[var(--muted)]">Free wellness resources</p>
-                </div>
-              </div>
-              
-              <div className="flex flex-col gap-2">
-                {supportTools.map((tool) => {
-                  const Icon = tool.icon;
-                  return (
-                    <Link key={tool.href} href={tool.href} className="group">
-                      <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--surface2)] border border-transparent hover:border-[var(--primary)]/30 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
-                        <div className={`w-9 h-9 rounded-lg ${tool.color} flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0`}>
-                          <Icon className="w-4.5 h-4.5" />
-                        </div>
-                        <span className="text-sm font-medium text-[var(--text)]">{tool.label}</span>
-                        <ArrowRight className="w-3.5 h-3.5 ml-auto text-[var(--muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
+          {/* Messages Card - Premium Design */}
+          <Premium3DCard delay={800}>
+            <Link href="/messages" className="group block mb-6">
+              <div className="relative rounded-3xl glass-premium p-6 sm:p-8 shadow-luxury hover:shadow-luxury-hover transition-all duration-500 border-glow overflow-hidden hover:scale-[1.01]">
+                {/* Animated gradient border */}
+                <div className="absolute inset-0 rounded-3xl rotating-border opacity-0 group-hover:opacity-100" />
 
-            {/* Right Column: Marketplace + Games stacked */}
-            <div className="flex flex-col gap-4">
-              {/* Marketplace Card - Compact */}
-              <Link href="/marketplace" className="group block">
-              <div className="relative rounded-xl p-3 sm:p-4 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg bg-violet-50 dark:bg-slate-800 border border-violet-100 dark:border-violet-600/50">
-                
-                {/* Soft ambient glow */}
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-violet-200/30 to-transparent dark:from-violet-600/20 rounded-full blur-xl" />
-                
-                {/* Floating product icons */}
-                <div className="absolute top-2 right-2 flex gap-1">
-                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-slate-700/80 flex items-center justify-center text-xs shadow-sm border border-violet-100/50 dark:border-violet-600/30">🧸</div>
-                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-slate-700/80 flex items-center justify-center text-xs shadow-sm border border-violet-100/50 dark:border-violet-600/30">🎧</div>
-                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-slate-700/80 flex items-center justify-center text-xs shadow-sm border border-violet-100/50 dark:border-violet-600/30">📚</div>
-                </div>
-                
-                {/* Content */}
-                <div className="relative z-10">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-sm">
-                      <ShoppingBag className="w-3.5 h-3.5 text-white" />
+                {/* Background gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-violet-500/5 to-purple-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                <div className="relative z-10 flex flex-col sm:flex-row items-center gap-5 sm:gap-6">
+                  {/* Icon Section */}
+                  <div className="relative flex-shrink-0">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 flex items-center justify-center shadow-lg btn-3d icon-container-luxury"
+                         style={{ boxShadow: '0 10px 40px rgba(99, 102, 241, 0.4)' }}>
+                      <Mail className="w-8 h-8 text-white" />
                     </div>
-                    <h2 className="text-sm font-bold text-gray-900 dark:text-white">Marketplace</h2>
+                    {notifications.totalUnread > 0 && (
+                      <div className="absolute -top-2 -right-2 min-w-[24px] h-6 px-2 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white text-xs font-bold flex items-center justify-center shadow-lg animate-pulse">
+                        {notifications.totalUnread > 99 ? "99+" : notifications.totalUnread}
+                      </div>
+                    )}
                   </div>
-                  
-                  <p className="text-gray-600 dark:text-gray-300 text-xs leading-relaxed mb-2">
-                    Sensory toys, weighted blankets & more.
-                  </p>
-                  
-                  {/* Category pills */}
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    {['Sensory', 'Safety', 'Learning'].map((cat) => (
-                      <span key={cat} className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-800/50 text-violet-700 dark:text-violet-200 text-[9px] font-medium">
-                        {cat}
-                      </span>
-                    ))}
+
+                  {/* Content Section */}
+                  <div className="flex-1 text-center sm:text-left">
+                    <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">
+                      <h2 className="text-xl sm:text-2xl font-bold text-gradient-animated">
+                        Messages
+                      </h2>
+                      {notifications.totalUnread > 0 && (
+                        <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-bold">
+                          {notifications.unreadConnectionRequests > 0 && `${notifications.unreadConnectionRequests} request${notifications.unreadConnectionRequests > 1 ? 's' : ''}`}
+                          {notifications.unreadConnectionRequests > 0 && notifications.unreadMessages > 0 && ' • '}
+                          {notifications.unreadMessages > 0 && `${notifications.unreadMessages} new`}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[var(--muted)] text-sm sm:text-base leading-relaxed max-w-lg">
+                      Connect with other parents through private, secure conversations.
+                    </p>
                   </div>
-                  
+
                   {/* CTA Button */}
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-purple-500 text-white font-semibold text-xs shadow-sm">
-                    Browse
-                    <ArrowRight className="w-3 h-3" />
+                  <div className="flex-shrink-0">
+                    <div className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 text-white text-sm font-bold shadow-lg btn-glow-luxury transition-all duration-300 group-hover:scale-105">
+                      <span>Open Messages</span>
+                      <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </div>
                   </div>
                 </div>
               </div>
             </Link>
-            
-              {/* Games Section - Compact */}
-              <Link href="/games" className="group block">
-              <div className="relative rounded-xl p-3 sm:p-4 overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg bg-sky-50 dark:bg-slate-800 border border-sky-100 dark:border-sky-600/50">
-                
-                {/* Soft ambient glow */}
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-sky-200/30 to-transparent dark:from-sky-600/20 rounded-full blur-xl" />
-                
-                {/* Floating game icons */}
-                <div className="absolute top-2 right-2 flex gap-1">
-                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-slate-700/80 flex items-center justify-center text-xs shadow-sm border border-sky-100/50 dark:border-sky-600/30">🧩</div>
-                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-slate-700/80 flex items-center justify-center text-xs shadow-sm border border-sky-100/50 dark:border-sky-600/30">🎮</div>
-                  <div className="w-6 h-6 rounded-lg bg-white/70 dark:bg-slate-700/80 flex items-center justify-center text-xs shadow-sm border border-sky-100/50 dark:border-sky-600/30">🌈</div>
+          </Premium3DCard>
+
+          {/* Support Tools & Marketplace - Premium Side by Side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Left: Support Tools */}
+            <Premium3DCard delay={900}>
+              <div className="glass-premium rounded-3xl p-6 shadow-luxury border-glow h-full">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-lg icon-container-luxury btn-3d"
+                       style={{ boxShadow: '0 8px 30px rgba(16, 185, 129, 0.4)' }}>
+                    <Heart className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-[var(--text)]">Support Tools</h2>
+                    <p className="text-xs text-[var(--muted)]">Free wellness resources</p>
+                  </div>
                 </div>
-                
-                {/* Content */}
-                <div className="relative z-10">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center shadow-sm">
-                      <Gamepad2 className="w-3.5 h-3.5 text-white" />
-                    </div>
-                    <h2 className="text-sm font-bold text-gray-900 dark:text-white">Fun & Learn Games</h2>
-                  </div>
-                  
-                  <p className="text-gray-600 dark:text-gray-300 text-xs leading-relaxed mb-2">
-                    10 calming games for kids.
-                  </p>
-                  
-                  {/* Game type pills */}
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    {['Memory', 'Patterns', 'Emotions'].map((cat) => (
-                      <span key={cat} className="px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-800/50 text-sky-700 dark:text-sky-200 text-[9px] font-medium">
-                        {cat}
-                      </span>
-                    ))}
-                  </div>
-                  
-                  {/* CTA Button */}
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-500 text-white font-semibold text-xs shadow-sm">
-                    Play Games
-                    <ArrowRight className="w-3 h-3" />
-                  </div>
+
+                <div className="flex flex-col gap-2">
+                  {supportTools.map((tool, index) => {
+                    const Icon = tool.icon;
+                    return (
+                      <Link key={tool.href} href={tool.href} className="group">
+                        <div className="flex items-center gap-4 p-4 rounded-2xl bg-[var(--surface2)]/50 hover:bg-[var(--surface2)] border border-transparent hover:border-[var(--primary)]/20 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 card-shine overflow-hidden">
+                          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${tool.gradient} flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300 flex-shrink-0`}>
+                            <Icon className="w-5 h-5 text-white" />
+                          </div>
+                          <span className="text-sm font-semibold text-[var(--text)] flex-1">{tool.label}</span>
+                          <ArrowRight className="w-4 h-4 text-[var(--muted)] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
-              </Link>
+            </Premium3DCard>
+
+            {/* Right Column: Marketplace + Games stacked */}
+            <div className="flex flex-col gap-5">
+              {/* Marketplace Card */}
+              <Premium3DCard delay={1000}>
+                <Link href="/marketplace" className="group block">
+                  <div className="relative glass-premium rounded-3xl p-5 shadow-luxury border-glow overflow-hidden transition-all duration-500 hover:shadow-luxury-hover hover:scale-[1.02]">
+                    {/* Background gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-purple-500/5 to-pink-500/5 rounded-3xl" />
+
+                    {/* Floating product icons */}
+                    <div className="absolute top-3 right-3 flex gap-1.5">
+                      {['🧸', '🎧', '📚'].map((emoji, i) => (
+                        <div key={i} className={`w-8 h-8 rounded-xl glass-premium flex items-center justify-center text-sm shadow-md transition-transform duration-300 group-hover:scale-110`}
+                             style={{ transitionDelay: `${i * 50}ms` }}>
+                          {emoji}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg icon-container-luxury"
+                             style={{ boxShadow: '0 8px 30px rgba(139, 92, 246, 0.4)' }}>
+                          <ShoppingBag className="w-5 h-5 text-white" />
+                        </div>
+                        <h2 className="text-lg font-bold text-[var(--text)]">Marketplace</h2>
+                      </div>
+
+                      <p className="text-[var(--muted)] text-sm leading-relaxed mb-3">
+                        Sensory toys, weighted blankets & more.
+                      </p>
+
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {['Sensory', 'Safety', 'Learning'].map((cat) => (
+                          <span key={cat} className="px-3 py-1 rounded-full glass-premium text-violet-600 dark:text-violet-300 text-xs font-semibold">
+                            {cat}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 text-white font-bold text-sm shadow-md btn-glow-luxury transition-all duration-300 group-hover:scale-105">
+                        Browse
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </Premium3DCard>
+
+              {/* Games Section */}
+              <Premium3DCard delay={1100}>
+                <Link href="/games" className="group block">
+                  <div className="relative glass-premium rounded-3xl p-5 shadow-luxury border-glow overflow-hidden transition-all duration-500 hover:shadow-luxury-hover hover:scale-[1.02]">
+                    {/* Background gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 via-cyan-500/5 to-indigo-500/5 rounded-3xl" />
+
+                    {/* Floating game icons */}
+                    <div className="absolute top-3 right-3 flex gap-1.5">
+                      {['🧩', '🎮', '🌈'].map((emoji, i) => (
+                        <div key={i} className={`w-8 h-8 rounded-xl glass-premium flex items-center justify-center text-sm shadow-md transition-transform duration-300 group-hover:scale-110`}
+                             style={{ transitionDelay: `${i * 50}ms` }}>
+                          {emoji}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 via-cyan-500 to-indigo-500 flex items-center justify-center shadow-lg icon-container-luxury"
+                             style={{ boxShadow: '0 8px 30px rgba(14, 165, 233, 0.4)' }}>
+                          <Gamepad2 className="w-5 h-5 text-white" />
+                        </div>
+                        <h2 className="text-lg font-bold text-[var(--text)]">Fun & Learn Games</h2>
+                      </div>
+
+                      <p className="text-[var(--muted)] text-sm leading-relaxed mb-3">
+                        10 calming games for kids.
+                      </p>
+
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {['Memory', 'Patterns', 'Emotions'].map((cat) => (
+                          <span key={cat} className="px-3 py-1 rounded-full glass-premium text-sky-600 dark:text-sky-300 text-xs font-semibold">
+                            {cat}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 via-cyan-500 to-indigo-500 text-white font-bold text-sm shadow-md btn-glow-luxury transition-all duration-300 group-hover:scale-105">
+                        Play Games
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </Premium3DCard>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Footer Disclaimer */}
-      <footer className="border-t border-[var(--border)] bg-[var(--surface)] py-8">
+      {/* Footer Disclaimer - Premium */}
+      <footer className="relative z-10 border-t border-[var(--border)] glass-premium py-10 mt-8">
         <div className="mx-auto max-w-7xl px-4 text-center">
-          <p className="text-[9px] text-[var(--muted)] opacity-50 leading-relaxed max-w-3xl mx-auto">
+          <p className="text-xs text-[var(--muted)] opacity-60 leading-relaxed max-w-3xl mx-auto">
             NeuroKid provides general information and resources for educational purposes only. Content is not a substitute for professional medical advice, diagnosis, or treatment. Always consult qualified healthcare providers with questions about medical conditions.
           </p>
-          <p className="mt-2 text-[9px] text-[var(--muted)] opacity-30">
+          <p className="mt-3 text-xs text-[var(--muted)] opacity-40">
             © 2026 NeuroKid
           </p>
         </div>
