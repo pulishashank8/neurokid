@@ -10,6 +10,9 @@
  */
 
 import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 
@@ -32,10 +35,16 @@ interface ScanResult {
   masked: string;
 }
 
-export async function POST() {
-  if (!(await isAdminAuthenticated())) {
+export async function POST(req: NextRequest) {
+  // Allow either admin session OR authenticated user session
+  const isAdmin = await isAdminAuthenticated();
+  const session = await getServerSession(authOptions);
+
+  if (!isAdmin && !session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const userId = session?.user?.id;
 
   const startTime = Date.now();
   const findings: ScanResult[] = [];
@@ -158,18 +167,21 @@ export async function POST() {
 
     const duration = Date.now() - startTime;
 
-    // Log the scan
-    await prisma.auditLog.create({
-      data: {
-        action: 'PHI_SCAN',
-        resource: 'GOVERNANCE',
-        details: {
-          recordsScanned,
-          findingsCount: findings.length,
-          duration: `${duration}ms`,
+    // Log the scan - only if we have a valid userId
+    if (userId) {
+      await prisma.auditLog.create({
+        data: {
+          userId: userId,
+          action: 'PHI_SCAN',
+          targetType: 'GOVERNANCE',
+          changes: {
+            recordsScanned,
+            findingsCount: findings.length,
+            duration: `${duration}ms`,
+          },
         },
-      },
-    });
+      });
+    }
 
     const criticalCount = findings.filter(f => f.severity === 'critical').length;
     const highCount = findings.filter(f => f.severity === 'high').length;

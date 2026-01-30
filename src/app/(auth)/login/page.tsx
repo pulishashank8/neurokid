@@ -4,20 +4,25 @@ import { useState, FormEvent, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { LoginSchema } from "@/lib/validators";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
+import { AnimatedMascot, MascotState } from "@/components/ui/AnimatedMascot";
+import { Eye, EyeOff } from "lucide-react";
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showResend, setShowResend] = useState(false);
   const [resendStatus, setResendStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [isLoading, setIsLoading] = useState(false);
+  const [mascotState, setMascotState] = useState<MascotState>("idle");
 
   const verified = searchParams.get("verified") === "1";
   const resetSuccess = searchParams.get("reset") === "1";
@@ -66,19 +71,37 @@ function LoginContent() {
   };
 
   return (
-    <Card className="max-w-md mx-auto" hover={false}>
-      <div className="text-center mb-6 sm:mb-8">
-        <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-5 rounded-2xl overflow-hidden shadow-xl shadow-emerald-500/20 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 p-2">
-          <img src="/logo-icon.png" alt="NeuroKid" className="w-full h-full object-contain" />
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)] mb-2">
+    <>
+      {/* NeuroKid Logo - outside card, just above it */}
+      <Link href="/" className="flex items-center justify-center gap-4 mb-3">
+        <Image
+          src="/logo-icon.png"
+          alt="NeuroKid Logo"
+          width={72}
+          height={72}
+          className="w-16 h-16 sm:w-[72px] sm:h-[72px]"
+        />
+        <span className="text-3xl sm:text-4xl font-bold text-[var(--primary)]">NeuroKid</span>
+      </Link>
+
+      <Card className="max-w-md mx-auto card-lift animate-scale-in" hover={false}>
+        <div className="text-center mb-6 sm:mb-8 relative">
+          {/* Animated Mascot */}
+          <div className="mx-auto mb-4 animate-mascot-idle mascot-glow" style={{ width: '140px', height: '130px' }}>
+            <AnimatedMascot
+              state={mascotState}
+              emailLength={email.length}
+            />
+          </div>
+
+        <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text)] mb-2 animate-slide-up" style={{ animationDelay: '100ms' }}>
           Welcome Back!
         </h1>
-        <p className="text-[var(--muted)] text-sm sm:text-base">Sign in to NeuroKid</p>
+        <p className="text-[var(--muted)] text-sm sm:text-base animate-slide-up" style={{ animationDelay: '200ms' }}>Sign in to NeuroKid</p>
       </div>
 
       {verified && (
-        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/20 rounded-[var(--radius-md)] flex items-center gap-3">
+        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/20 rounded-[var(--radius-md)] flex items-center gap-3 animate-slide-in-left">
           <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
             <span className="text-green-600 text-xs font-bold">✓</span>
           </div>
@@ -87,7 +110,7 @@ function LoginContent() {
       )}
 
       {resetSuccess && (
-        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/20 rounded-[var(--radius-md)] flex items-center gap-3">
+        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/20 rounded-[var(--radius-md)] flex items-center gap-3 animate-slide-in-left">
           <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center shrink-0">
             <span className="text-green-600 text-xs font-bold">✓</span>
           </div>
@@ -96,19 +119,19 @@ function LoginContent() {
       )}
 
       {errorParam === "InvalidToken" && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/20 rounded-[var(--radius-md)]">
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/20 rounded-[var(--radius-md)] animate-shake">
           <p className="text-red-600 dark:text-red-400 text-sm">Invalid verification link.</p>
         </div>
       )}
 
       {errorParam === "TokenExpired" && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/20 rounded-[var(--radius-md)]">
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/20 rounded-[var(--radius-md)] animate-shake">
           <p className="text-red-600 dark:text-red-400 text-sm">Verification link expired. Please log in to resend.</p>
         </div>
       )}
 
       {error && (
-        <div className="mb-6 p-4 bg-[var(--error-light)] border border-[var(--error)] rounded-[var(--radius-md)]">
+        <div className="mb-6 p-4 bg-[var(--error-light)] border border-[var(--error)] rounded-[var(--radius-md)] animate-shake">
           <p className="text-[var(--error)] text-sm">{error}</p>
           {showResend && (
             <div className="mt-3 pt-3 border-t border-red-200 dark:border-red-800">
@@ -136,7 +159,7 @@ function LoginContent() {
                     }
                   }}
                   disabled={resendStatus === "loading"}
-                  className="text-sm font-medium underline text-red-700 hover:text-red-800 dark:text-red-300 dark:hover:text-red-200"
+                  className="text-sm font-medium underline text-red-700 hover:text-red-800 dark:text-red-300 dark:hover:text-red-200 transition-colors"
                 >
                   {resendStatus === "loading" ? "Sending..." : "Resend Verification Email"}
                 </button>
@@ -147,44 +170,93 @@ function LoginContent() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        <Input
-          id="email"
-          type="email"
-          label="Email Address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          required
-        />
+        <div className="animate-slide-up" style={{ animationDelay: '250ms' }}>
+          <Input
+            id="email"
+            type="email"
+            label="Email Address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onFocus={() => setMascotState("watching")}
+            onBlur={() => setMascotState("idle")}
+            placeholder="you@example.com"
+            required
+            className="transition-all duration-300 focus:scale-[1.01]"
+          />
+        </div>
 
-        <Input
-          id="password"
-          type="password"
-          label="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          required
-        />
+        <div className="animate-slide-up" style={{ animationDelay: '300ms' }}>
+          <label className="block text-sm font-semibold text-[var(--text)] mb-2">
+            Password
+          </label>
+          <div className="relative group">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onFocus={() => setMascotState("hiding")}
+              onBlur={() => setMascotState("idle")}
+              placeholder="••••••••"
+              required
+              className="
+                bg-[var(--surface)]
+                border-2 border-[var(--border)]
+                text-[var(--text)]
+                placeholder:text-[var(--muted)]
+                rounded-[var(--radius-md)]
+                px-4 py-3
+                pr-12
+                w-full
+                min-h-[48px]
+                text-base
+                transition-all duration-300
+                hover:border-[var(--primary)]
+                focus:border-[var(--primary)]
+                focus:outline-none
+                focus:shadow-[0_0_0_3px_var(--focus-ring)]
+                focus:scale-[1.01]
+              "
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--primary)] transition-colors p-1"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+        </div>
 
-        <div className="flex justify-end mt-1">
-          <Link href="/forgot-password" className="text-sm font-medium text-[var(--primary)] hover:underline">
+        <div className="flex justify-end mt-1 animate-slide-up" style={{ animationDelay: '350ms' }}>
+          <Link href="/forgot-password" className="text-sm font-medium text-[var(--primary)] hover:underline hover:text-[var(--primary-hover)] transition-colors">
             Forgot password?
           </Link>
         </div>
 
-        <Button
-          type="submit"
-          disabled={isLoading}
-          variant="primary"
-          className="w-full mt-6"
-        >
-          {isLoading ? "Signing in..." : "Sign In"}
-        </Button>
+        <div className="animate-slide-up" style={{ animationDelay: '400ms' }}>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            variant="primary"
+            className="w-full mt-6 btn-ripple btn-premium"
+          >
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-rotate w-5 h-5" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                Signing in...
+              </span>
+            ) : "Sign In"}
+          </Button>
+        </div>
       </form>
 
       {/* Google Sign In */}
-      <div className="mt-6">
+      <div className="mt-6 animate-slide-up" style={{ animationDelay: '450ms' }}>
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-[var(--border-light)]"></div>
@@ -197,7 +269,7 @@ function LoginContent() {
         <button
           type="button"
           onClick={() => signIn("google", { callbackUrl })}
-          className="mt-4 w-full flex items-center justify-center gap-3 px-4 py-3 border border-[var(--border-light)] rounded-[var(--radius-md)] bg-white hover:bg-gray-50 transition-colors text-[var(--text-primary)] font-medium min-h-[48px]"
+          className="mt-4 w-full flex items-center justify-center gap-3 px-4 py-3 border border-[var(--border-light)] rounded-[var(--radius-md)] bg-white hover:bg-gray-50 dark:bg-[var(--surface)] dark:hover:bg-[var(--surface2)] transition-all duration-300 text-[var(--text-primary)] font-medium min-h-[48px] hover:scale-[1.02] hover:shadow-md btn-ripple"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
@@ -221,27 +293,29 @@ function LoginContent() {
         </button>
       </div>
 
-      <div className="mt-6 text-center">
+      <div className="mt-6 text-center animate-slide-up" style={{ animationDelay: '500ms' }}>
         <p className="text-[var(--muted)] text-sm">
           Don't have an account?{" "}
           <Link
             href="/register"
-            className="text-[var(--primary)] hover:text-[var(--primary-hover)] font-semibold"
+            className="text-[var(--primary)] hover:text-[var(--primary-hover)] font-semibold transition-colors hover:underline"
           >
             Create one
           </Link>
         </p>
       </div>
     </Card>
+    </>
   );
 }
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen pt-20 pb-12 px-4">
+    <div className="min-h-screen pt-20 pb-12 px-4 relative overflow-hidden">
       <Suspense fallback={
         <Card className="max-w-md mx-auto" hover={false}>
           <div className="text-center">
+            <div className="skeleton h-20 w-20 mx-auto mb-4 rounded-2xl"></div>
             <div className="skeleton h-8 w-48 mx-auto mb-4"></div>
             <div className="skeleton h-4 w-32 mx-auto"></div>
           </div>

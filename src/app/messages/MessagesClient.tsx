@@ -4,9 +4,9 @@ import { Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
-import { 
-  Search, UserPlus, MessageCircle, Send, ArrowLeft, 
-  Check, X, Clock, User, Sparkles, Users, Inbox
+import {
+  Search, UserPlus, MessageCircle, Send, ArrowLeft,
+  Check, X, Clock, User, Sparkles, Users, Inbox, Heart, Star
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatDistanceToNow } from "date-fns";
@@ -63,31 +63,198 @@ interface Message {
   createdAt: string;
 }
 
-function AvatarPlaceholder({ name, size = "md" }: { name?: string; size?: "sm" | "md" | "lg" }) {
+// Premium 3D Avatar Component
+function AvatarPlaceholder({ name, size = "md", online = false }: { name?: string; size?: "sm" | "md" | "lg"; online?: boolean }) {
   const sizeClasses = {
-    sm: "w-10 h-10",
-    md: "w-12 h-12",
-    lg: "w-14 h-14"
+    sm: "w-12 h-12",
+    md: "w-14 h-14",
+    lg: "w-16 h-16"
   };
-  
+
+  const ringSize = {
+    sm: "w-14 h-14",
+    md: "w-16 h-16",
+    lg: "w-20 h-20"
+  };
+
   const initial = name?.charAt(0)?.toUpperCase() || "";
   const colors = [
-    "from-emerald-400 to-teal-500",
-    "from-blue-400 to-indigo-500",
-    "from-purple-400 to-pink-500",
-    "from-amber-400 to-orange-500",
-    "from-cyan-400 to-blue-500",
+    "from-emerald-400 via-teal-400 to-cyan-500",
+    "from-blue-400 via-indigo-400 to-purple-500",
+    "from-purple-400 via-pink-400 to-rose-500",
+    "from-amber-400 via-orange-400 to-red-500",
+    "from-cyan-400 via-blue-400 to-indigo-500",
   ];
   const colorIndex = name ? name.charCodeAt(0) % colors.length : 0;
-  
+
   return (
-    <div className={`${sizeClasses[size]} rounded-2xl bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center shadow-lg ring-2 ring-white/20`}>
-      {initial ? (
-        <span className="text-white font-bold text-lg drop-shadow-sm">{initial}</span>
-      ) : (
-        <User className="w-6 h-6 text-white/90" />
+    <div className="relative group">
+      {/* Animated glow ring */}
+      <div className={`absolute inset-0 ${ringSize[size]} -m-1 rounded-full bg-gradient-to-r ${colors[colorIndex]} opacity-0 group-hover:opacity-60 blur-md transition-all duration-500 animate-pulse`}></div>
+
+      {/* 3D ring effect */}
+      <div className={`relative ${sizeClasses[size]} rounded-full p-[2px] bg-gradient-to-br ${colors[colorIndex]} shadow-lg transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl`}
+        style={{
+          boxShadow: `0 4px 15px -3px rgba(16, 185, 129, 0.3),
+                      0 10px 20px -5px rgba(0, 0, 0, 0.1),
+                      inset 0 -2px 5px rgba(0,0,0,0.1)`
+        }}>
+        <div className={`w-full h-full rounded-full bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm flex items-center justify-center`}
+          style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)' }}>
+          {initial ? (
+            <span className="text-white font-bold text-lg drop-shadow-lg">{initial}</span>
+          ) : (
+            <User className="w-6 h-6 text-white/90 drop-shadow-lg" />
+          )}
+        </div>
+      </div>
+
+      {/* Online indicator */}
+      {online && (
+        <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4">
+          <div className="absolute inset-0 bg-green-400 rounded-full animate-ping opacity-75"></div>
+          <div className="relative w-full h-full bg-green-500 rounded-full border-2 border-white shadow-lg"></div>
+        </div>
       )}
     </div>
+  );
+}
+
+// Floating animated orbs background
+function FloatingOrbs() {
+  return (
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+      {/* Main gradient orbs */}
+      <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-emerald-400/20 via-teal-400/15 to-cyan-400/10 rounded-full blur-3xl animate-float"></div>
+      <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-blue-400/15 via-indigo-400/10 to-purple-400/15 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+      <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-gradient-to-br from-pink-400/10 via-rose-400/10 to-orange-400/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
+
+      {/* Subtle sparkle particles */}
+      <div className="absolute top-20 left-1/4 w-2 h-2 bg-emerald-400/50 rounded-full animate-sparkle"></div>
+      <div className="absolute top-40 right-1/3 w-1.5 h-1.5 bg-cyan-400/50 rounded-full animate-sparkle" style={{ animationDelay: '1s' }}></div>
+      <div className="absolute bottom-32 left-1/3 w-2 h-2 bg-teal-400/50 rounded-full animate-sparkle" style={{ animationDelay: '2s' }}></div>
+      <div className="absolute top-1/2 right-20 w-1 h-1 bg-blue-400/50 rounded-full animate-sparkle" style={{ animationDelay: '3s' }}></div>
+    </div>
+  );
+}
+
+// Premium Glass Card Component
+function GlassCard({ children, className = "", hover = true }: { children: React.ReactNode; className?: string; hover?: boolean }) {
+  return (
+    <div className={`
+      relative overflow-hidden
+      bg-white/70 dark:bg-gray-900/70
+      backdrop-blur-xl
+      border border-white/20 dark:border-gray-700/30
+      rounded-3xl
+      shadow-[0_8px_32px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)]
+      ${hover ? 'hover:shadow-[0_20px_60px_rgba(16,185,129,0.15),0_8px_24px_rgba(0,0,0,0.1)] hover:-translate-y-1 hover:border-emerald-200/50 dark:hover:border-emerald-500/30' : ''}
+      transition-all duration-500 ease-out
+      ${className}
+    `}
+      style={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
+      }}>
+      {/* Subtle inner glow */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent pointer-events-none rounded-3xl"></div>
+      {/* Content */}
+      <div className="relative z-10">{children}</div>
+    </div>
+  );
+}
+
+// Animated Empty State Component
+function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  action
+}: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 px-6">
+      {/* Animated icon container */}
+      <div className="relative mb-8">
+        {/* Pulsing rings */}
+        <div className="absolute inset-0 w-32 h-32 -m-4 rounded-full bg-gradient-to-r from-emerald-400/20 to-teal-400/20 animate-ping opacity-75"></div>
+        <div className="absolute inset-0 w-28 h-28 -m-2 rounded-full bg-gradient-to-r from-emerald-400/30 to-cyan-400/30 animate-pulse"></div>
+
+        {/* Main icon circle */}
+        <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-emerald-400/20 via-teal-400/20 to-cyan-400/20 flex items-center justify-center backdrop-blur-sm border border-emerald-200/50"
+          style={{
+            boxShadow: '0 8px 32px rgba(16, 185, 129, 0.2), inset 0 2px 8px rgba(255,255,255,0.5)'
+          }}>
+          <Icon className="w-10 h-10 text-emerald-600 dark:text-emerald-400 animate-bounce" style={{ animationDuration: '2s' }} />
+        </div>
+
+        {/* Floating sparkles */}
+        <div className="absolute -top-2 -right-2 w-4 h-4">
+          <Sparkles className="w-4 h-4 text-amber-400 animate-sparkle" />
+        </div>
+        <div className="absolute -bottom-1 -left-3 w-3 h-3">
+          <Star className="w-3 h-3 text-emerald-400 animate-sparkle" style={{ animationDelay: '0.5s' }} />
+        </div>
+      </div>
+
+      {/* Text content */}
+      <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent mb-3">
+        {title}
+      </h3>
+      <p className="text-gray-500 dark:text-gray-400 text-center max-w-xs leading-relaxed">
+        {description}
+      </p>
+
+      {action && <div className="mt-6">{action}</div>}
+    </div>
+  );
+}
+
+// Premium Tab Button
+function TabButton({
+  active,
+  onClick,
+  icon: Icon,
+  label,
+  badge
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ElementType;
+  label: string;
+  badge?: number;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        relative flex-1 py-4 px-4 text-sm font-semibold transition-all duration-300
+        ${active
+          ? 'text-emerald-600 dark:text-emerald-400'
+          : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+        }
+      `}
+    >
+      <span className="flex items-center justify-center gap-2">
+        <Icon className={`w-4 h-4 transition-transform duration-300 ${active ? 'scale-110' : ''}`} />
+        <span>{label}</span>
+      </span>
+
+      {/* Badge */}
+      {badge && badge > 0 && (
+        <span className="absolute top-2 right-2 w-5 h-5 bg-gradient-to-r from-red-500 to-rose-500 text-white text-xs rounded-full flex items-center justify-center shadow-lg animate-pulse">
+          {badge}
+        </span>
+      )}
+
+      {/* Active indicator */}
+      {active && (
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full shadow-lg shadow-emerald-400/50"></div>
+      )}
+    </button>
   );
 }
 
@@ -95,7 +262,7 @@ function MessagesContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [activeTab, setActiveTab] = useState<TabType>("conversations");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
@@ -111,7 +278,7 @@ function MessagesContent() {
   const [connectionMessage, setConnectionMessage] = useState("");
   const [showConnectionModal, setShowConnectionModal] = useState<string | null>(null);
   const [otherUser, setOtherUser] = useState<{id: string; username: string; displayName: string; avatarUrl?: string} | null>(null);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -193,12 +360,12 @@ function MessagesContent() {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-    
+
     if (query.length < 2) {
       setSearchResults([]);
       return;
     }
-    
+
     searchTimeoutRef.current = setTimeout(async () => {
       setSearching(true);
       try {
@@ -222,7 +389,7 @@ function MessagesContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ receiverId: userId, message: connectionMessage }),
       });
-      
+
       if (res.ok) {
         toast.success("Connection request sent!");
         setShowConnectionModal(null);
@@ -233,7 +400,7 @@ function MessagesContent() {
         const data = await res.json();
         toast.error(data.error || "Failed to send request");
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to send request");
     }
   };
@@ -245,20 +412,20 @@ function MessagesContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
-      
+
       if (res.ok) {
         toast.success(action === "accept" ? "Connection accepted!" : "Request declined");
         fetchPendingRequests();
         fetchConversations();
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to process request");
     }
   };
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation || sendingMessage) return;
-    
+
     setSendingMessage(true);
     try {
       const res = await fetch(`/api/messages/conversations/${selectedConversation}`, {
@@ -266,7 +433,7 @@ function MessagesContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: newMessage.trim() }),
       });
-      
+
       if (res.ok) {
         setNewMessage("");
         fetchMessages(selectedConversation);
@@ -274,7 +441,7 @@ function MessagesContent() {
       } else {
         toast.error("Failed to send message");
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to send message");
     } finally {
       setSendingMessage(false);
@@ -283,10 +450,18 @@ function MessagesContent() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[var(--bg-primary)] via-[var(--bg-secondary)] to-[var(--bg-primary)] flex items-center justify-center">
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-[var(--primary)]/20 rounded-full"></div>
-          <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-[var(--primary)] rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-emerald-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-emerald-950/20 flex items-center justify-center">
+        <FloatingOrbs />
+        <div className="relative z-10">
+          {/* Premium loading spinner */}
+          <div className="relative w-20 h-20">
+            <div className="absolute inset-0 rounded-full border-4 border-emerald-100 dark:border-emerald-900/30"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-emerald-500 animate-spin"></div>
+            <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-teal-400 animate-spin" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }}></div>
+            <div className="absolute inset-4 rounded-full bg-gradient-to-br from-emerald-400 to-teal-400 animate-pulse flex items-center justify-center">
+              <MessageCircle className="w-5 h-5 text-white" />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -295,73 +470,81 @@ function MessagesContent() {
   const pendingCount = pendingReceived.length + pendingSent.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[var(--bg-primary)] via-[var(--bg-secondary)]/30 to-[var(--bg-primary)]">
-      <div className="container max-w-7xl mx-auto px-4 py-8 pt-24">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-emerald-600 shadow-lg shadow-[var(--primary)]/20">
-            <MessageCircle className="w-7 h-7 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-emerald-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-emerald-950/20 relative">
+      <FloatingOrbs />
+
+      <div className="container max-w-7xl mx-auto px-4 py-8 pt-24 relative z-10">
+        {/* Premium Header */}
+        <div className="flex items-center gap-5 mb-10">
+          <div className="relative group">
+            {/* Glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
+            {/* Icon container */}
+            <div className="relative p-4 rounded-2xl bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400 shadow-xl shadow-emerald-500/25 transform transition-transform duration-300 group-hover:scale-105"
+              style={{
+                boxShadow: '0 10px 40px -10px rgba(16, 185, 129, 0.5), inset 0 1px 1px rgba(255,255,255,0.3)'
+              }}>
+              <MessageCircle className="w-8 h-8 text-white drop-shadow-lg" />
+            </div>
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-[var(--text-primary)]">Messages</h1>
-            <p className="text-[var(--text-muted)] text-sm">Connect and chat with your community</p>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent">
+              Messages
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-emerald-500" />
+              Connect and chat with your community
+            </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Sidebar */}
-          <div className="bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-light)] overflow-hidden">
+          <GlassCard className="overflow-hidden" hover={false}>
             {/* Tabs */}
-            <div className="flex border-b border-[var(--border-light)]">
-              <button
+            <div className="flex border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-gray-50/50 to-white/50 dark:from-gray-800/50 dark:to-gray-900/50">
+              <TabButton
+                active={activeTab === "conversations"}
                 onClick={() => setActiveTab("conversations")}
-                className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
-                  activeTab === "conversations" 
-                    ? "text-[var(--primary)] border-b-2 border-[var(--primary)]" 
-                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                }`}
-              >
-                <Inbox className="w-4 h-4 inline mr-1" /> Chats
-              </button>
-              <button
+                icon={Inbox}
+                label="Chats"
+              />
+              <TabButton
+                active={activeTab === "pending"}
                 onClick={() => setActiveTab("pending")}
-                className={`flex-1 py-3 px-4 text-sm font-medium transition-colors relative ${
-                  activeTab === "pending" 
-                    ? "text-[var(--primary)] border-b-2 border-[var(--primary)]" 
-                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                }`}
-              >
-                <Clock className="w-4 h-4 inline mr-1" /> Pending
-                {pendingCount > 0 && (
-                  <span className="absolute top-2 right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {pendingCount}
-                  </span>
-                )}
-              </button>
-              <button
+                icon={Clock}
+                label="Pending"
+                badge={pendingCount}
+              />
+              <TabButton
+                active={activeTab === "search"}
                 onClick={() => setActiveTab("search")}
-                className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
-                  activeTab === "search" 
-                    ? "text-[var(--primary)] border-b-2 border-[var(--primary)]" 
-                    : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                }`}
-              >
-                <UserPlus className="w-4 h-4 inline mr-1" /> Find
-              </button>
+                icon={UserPlus}
+                label="Find"
+              />
             </div>
 
-            <div className="p-4 max-h-[60vh] overflow-y-auto">
+            <div className="p-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
               {activeTab === "conversations" && (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {loading ? (
-                    <div className="text-center py-8 text-[var(--text-muted)]">Loading...</div>
-                  ) : conversations.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Users className="w-12 h-12 mx-auto text-[var(--text-muted)] mb-3" />
-                      <p className="text-[var(--text-muted)]">No conversations yet</p>
-                      <p className="text-sm text-[var(--text-muted)] mt-1">
-                        Find users to connect with!
-                      </p>
+                    <div className="flex items-center justify-center py-12">
+                      <div className="w-8 h-8 border-3 border-emerald-200 border-t-emerald-500 rounded-full animate-spin"></div>
                     </div>
+                  ) : conversations.length === 0 ? (
+                    <EmptyState
+                      icon={Users}
+                      title="No conversations yet"
+                      description="Start connecting with others to begin your messaging journey!"
+                      action={
+                        <button
+                          onClick={() => setActiveTab("search")}
+                          className="px-6 py-3 bg-gradient-to-r from-emerald-400 to-teal-400 text-white font-semibold rounded-xl shadow-lg shadow-emerald-400/30 hover:shadow-xl hover:shadow-emerald-400/40 transform hover:-translate-y-0.5 transition-all duration-300"
+                        >
+                          Find Friends
+                        </button>
+                      }
+                    />
                   ) : (
                     conversations.map((conv) => (
                       <button
@@ -370,19 +553,21 @@ function MessagesContent() {
                           setSelectedConversation(conv.id);
                           fetchMessages(conv.id);
                         }}
-                        className={`w-full p-3 rounded-xl flex items-center gap-3 transition-colors ${
-                          selectedConversation === conv.id
-                            ? "bg-[var(--primary)]/10"
-                            : "hover:bg-[var(--bg-elevated)]"
-                        }`}
+                        className={`
+                          w-full p-4 rounded-2xl flex items-center gap-4 transition-all duration-300
+                          ${selectedConversation === conv.id
+                            ? "bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-200/50 dark:border-emerald-700/30 shadow-lg shadow-emerald-100/50 dark:shadow-emerald-900/20"
+                            : "hover:bg-gray-50 dark:hover:bg-gray-800/50 border border-transparent"
+                          }
+                        `}
                       >
                         <AvatarPlaceholder name={conv.otherUser.displayName} size="sm" />
                         <div className="flex-1 text-left min-w-0">
-                          <p className="font-medium text-[var(--text-primary)] truncate">
+                          <p className="font-semibold text-gray-800 dark:text-gray-100 truncate">
                             {conv.otherUser.displayName}
                           </p>
                           {conv.lastMessage && (
-                            <p className="text-sm text-[var(--text-muted)] truncate">
+                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
                               {conv.lastMessage.isFromMe ? "You: " : ""}{conv.lastMessage.content}
                             </p>
                           )}
@@ -394,162 +579,191 @@ function MessagesContent() {
               )}
 
               {activeTab === "pending" && (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {pendingReceived.length > 0 && (
                     <div>
-                      <h3 className="text-sm font-medium text-[var(--text-muted)] mb-2">Received</h3>
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3 flex items-center gap-2">
+                        <Heart className="w-3 h-3" /> Received
+                      </h3>
                       {pendingReceived.map((req) => (
-                        <div key={req.id} className="p-3 bg-[var(--bg-elevated)] rounded-xl mb-2">
-                          <div className="flex items-center gap-3">
+                        <div key={req.id} className="p-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl mb-3 border border-gray-100 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-shadow duration-300">
+                          <div className="flex items-center gap-4">
                             <AvatarPlaceholder name={req.sender?.displayName} size="sm" />
                             <div className="flex-1">
-                              <p className="font-medium text-[var(--text-primary)]">
+                              <p className="font-semibold text-gray-800 dark:text-gray-100">
                                 {req.sender?.displayName}
                               </p>
-                              <p className="text-xs text-[var(--text-muted)]">
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
                                 @{req.sender?.username}
                               </p>
                             </div>
                           </div>
                           {req.message && (
-                            <p className="text-sm text-[var(--text-secondary)] mt-2 italic">
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-3 p-3 bg-gray-100/50 dark:bg-gray-700/30 rounded-xl italic">
                               "{req.message}"
                             </p>
                           )}
-                          <div className="flex gap-2 mt-3">
+                          <div className="flex gap-3 mt-4">
                             <button
                               onClick={() => handleConnectionAction(req.id, "accept")}
-                              className="flex-1 py-2 bg-[var(--primary)] text-white rounded-lg text-sm font-medium hover:opacity-90"
+                              className="flex-1 py-2.5 bg-gradient-to-r from-emerald-400 to-teal-400 text-white rounded-xl text-sm font-semibold hover:shadow-lg hover:shadow-emerald-400/30 transform hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
                             >
-                              <Check className="w-4 h-4 inline mr-1" /> Accept
+                              <Check className="w-4 h-4" /> Accept
                             </button>
                             <button
                               onClick={() => handleConnectionAction(req.id, "reject")}
-                              className="flex-1 py-2 bg-[var(--bg-surface)] border border-[var(--border-light)] rounded-lg text-sm font-medium hover:bg-red-50 hover:text-red-600"
+                              className="flex-1 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-red-50 hover:border-red-200 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all duration-300 flex items-center justify-center gap-2"
                             >
-                              <X className="w-4 h-4 inline mr-1" /> Decline
+                              <X className="w-4 h-4" /> Decline
                             </button>
                           </div>
                         </div>
                       ))}
                     </div>
                   )}
-                  
+
                   {pendingSent.length > 0 && (
                     <div>
-                      <h3 className="text-sm font-medium text-[var(--text-muted)] mb-2">Sent</h3>
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">Sent Requests</h3>
                       {pendingSent.map((req) => (
-                        <div key={req.id} className="p-3 bg-[var(--bg-elevated)] rounded-xl mb-2 flex items-center gap-3">
+                        <div key={req.id} className="p-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl mb-3 border border-gray-100 dark:border-gray-700/50 flex items-center gap-4">
                           <AvatarPlaceholder name={req.receiver?.displayName} size="sm" />
                           <div className="flex-1">
-                            <p className="font-medium text-[var(--text-primary)]">
+                            <p className="font-semibold text-gray-800 dark:text-gray-100">
                               {req.receiver?.displayName}
                             </p>
-                            <p className="text-xs text-[var(--text-muted)]">Pending...</p>
+                            <p className="text-xs text-amber-500 dark:text-amber-400 flex items-center gap-1 mt-0.5">
+                              <Clock className="w-3 h-3" /> Awaiting response...
+                            </p>
                           </div>
                         </div>
                       ))}
                     </div>
                   )}
-                  
+
                   {pendingReceived.length === 0 && pendingSent.length === 0 && (
-                    <div className="text-center py-8">
-                      <Clock className="w-12 h-12 mx-auto text-[var(--text-muted)] mb-3" />
-                      <p className="text-[var(--text-muted)]">No pending requests</p>
-                    </div>
+                    <EmptyState
+                      icon={Clock}
+                      title="All caught up!"
+                      description="No pending connection requests at the moment."
+                    />
                   )}
                 </div>
               )}
 
               {activeTab === "search" && (
                 <div>
-                  <div className="relative mb-4">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => handleSearch(e.target.value)}
-                      placeholder="Search users..."
-                      className="w-full pl-10 pr-4 py-3 bg-[var(--bg-elevated)] border border-[var(--border-light)] rounded-xl text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                    />
+                  {/* Premium Search Input */}
+                  <div className="relative mb-6 group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-teal-400/20 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors duration-300" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        placeholder="Search users..."
+                        className="w-full pl-12 pr-4 py-4 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-400/10 transition-all duration-300"
+                      />
+                    </div>
                   </div>
-                  
+
                   {searching ? (
-                    <div className="text-center py-4 text-[var(--text-muted)]">Searching...</div>
+                    <div className="flex items-center justify-center py-12">
+                      <div className="w-8 h-8 border-3 border-emerald-200 border-t-emerald-500 rounded-full animate-spin"></div>
+                    </div>
                   ) : searchResults.length > 0 ? (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {searchResults.map((user) => (
-                        <div key={user.id} className="p-3 bg-[var(--bg-elevated)] rounded-xl flex items-center gap-3">
+                        <div key={user.id} className="p-4 bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl border border-gray-100 dark:border-gray-700/50 flex items-center gap-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
                           <AvatarPlaceholder name={user.displayName} size="sm" />
                           <div className="flex-1">
-                            <p className="font-medium text-[var(--text-primary)]">{user.displayName}</p>
-                            <p className="text-xs text-[var(--text-muted)]">@{user.username}</p>
+                            <p className="font-semibold text-gray-800 dark:text-gray-100">{user.displayName}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">@{user.username}</p>
                           </div>
                           {user.connectionStatus === "none" && (
                             <button
                               onClick={() => setShowConnectionModal(user.id)}
-                              className="p-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90"
+                              className="p-3 bg-gradient-to-r from-emerald-400 to-teal-400 text-white rounded-xl hover:shadow-lg hover:shadow-emerald-400/30 transform hover:scale-105 transition-all duration-300"
                             >
-                              <UserPlus className="w-4 h-4" />
+                              <UserPlus className="w-5 h-5" />
                             </button>
                           )}
                           {user.connectionStatus === "pending_sent" && (
-                            <span className="text-xs text-[var(--text-muted)]">Pending</span>
+                            <span className="text-xs text-amber-500 font-medium px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 rounded-full">Pending</span>
                           )}
                           {user.connectionStatus === "connected" && (
-                            <span className="text-xs text-green-600">Connected</span>
+                            <span className="text-xs text-emerald-500 font-medium px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center gap-1">
+                              <Check className="w-3 h-3" /> Connected
+                            </span>
                           )}
                         </div>
                       ))}
                     </div>
                   ) : searchQuery.length >= 2 ? (
-                    <div className="text-center py-8 text-[var(--text-muted)]">No users found</div>
+                    <EmptyState
+                      icon={Search}
+                      title="No users found"
+                      description="Try searching with a different name or username."
+                    />
                   ) : (
-                    <div className="text-center py-8">
-                      <Search className="w-12 h-12 mx-auto text-[var(--text-muted)] mb-3" />
-                      <p className="text-[var(--text-muted)]">Search for users to connect</p>
-                    </div>
+                    <EmptyState
+                      icon={Search}
+                      title="Find new friends"
+                      description="Search for users by name or username to connect with them."
+                    />
                   )}
                 </div>
               )}
             </div>
-          </div>
+          </GlassCard>
 
           {/* Chat Area */}
-          <div className="lg:col-span-2 bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-light)] overflow-hidden flex flex-col min-h-[60vh]">
+          <GlassCard className="lg:col-span-2 overflow-hidden flex flex-col min-h-[60vh]" hover={false}>
             {selectedConversation && otherUser ? (
               <>
                 {/* Chat Header */}
-                <div className="p-4 border-b border-[var(--border-light)] flex items-center gap-3">
+                <div className="p-5 border-b border-gray-200/50 dark:border-gray-700/50 flex items-center gap-4 bg-gradient-to-r from-white/80 to-gray-50/80 dark:from-gray-800/80 dark:to-gray-900/80 backdrop-blur-sm">
                   <button
                     onClick={() => setSelectedConversation(null)}
-                    className="lg:hidden p-2 hover:bg-[var(--bg-elevated)] rounded-lg"
+                    className="lg:hidden p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors duration-200"
                   >
-                    <ArrowLeft className="w-5 h-5" />
+                    <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   </button>
-                  <AvatarPlaceholder name={otherUser.displayName} size="sm" />
+                  <AvatarPlaceholder name={otherUser.displayName} size="md" online />
                   <div>
-                    <p className="font-medium text-[var(--text-primary)]">{otherUser.displayName}</p>
-                    <p className="text-xs text-[var(--text-muted)]">@{otherUser.username}</p>
+                    <p className="font-bold text-gray-800 dark:text-gray-100 text-lg">{otherUser.displayName}</p>
+                    <p className="text-sm text-emerald-500 dark:text-emerald-400 flex items-center gap-1">
+                      <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                      Online
+                    </p>
                   </div>
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                  {messages.map((msg) => (
+                <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar bg-gradient-to-b from-gray-50/50 to-white/50 dark:from-gray-900/50 dark:to-gray-800/50">
+                  {messages.map((msg, index) => (
                     <div
                       key={msg.id}
-                      className={`flex ${msg.isFromMe ? "justify-end" : "justify-start"}`}
+                      className={`flex ${msg.isFromMe ? "justify-end" : "justify-start"} animate-slide-up`}
+                      style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <div
-                        className={`max-w-[75%] px-4 py-2 rounded-2xl ${
-                          msg.isFromMe
-                            ? "bg-[var(--primary)] text-white"
-                            : "bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                        }`}
+                        className={`
+                          max-w-[75%] px-5 py-3 rounded-3xl shadow-sm
+                          ${msg.isFromMe
+                            ? "bg-gradient-to-br from-emerald-400 to-teal-500 text-white rounded-br-lg"
+                            : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-700 rounded-bl-lg"
+                          }
+                        `}
+                        style={{
+                          boxShadow: msg.isFromMe
+                            ? '0 4px 15px -3px rgba(16, 185, 129, 0.3)'
+                            : '0 4px 15px -3px rgba(0, 0, 0, 0.05)'
+                        }}
                       >
-                        <p>{msg.content}</p>
-                        <p className={`text-xs mt-1 ${msg.isFromMe ? "text-white/70" : "text-[var(--text-muted)]"}`}>
+                        <p className="leading-relaxed">{msg.content}</p>
+                        <p className={`text-xs mt-2 ${msg.isFromMe ? "text-white/70" : "text-gray-400 dark:text-gray-500"}`}>
                           {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
                         </p>
                       </div>
@@ -559,20 +773,20 @@ function MessagesContent() {
                 </div>
 
                 {/* Message Input */}
-                <div className="p-4 border-t border-[var(--border-light)]">
-                  <div className="flex gap-2">
+                <div className="p-5 border-t border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-white/80 to-gray-50/80 dark:from-gray-800/80 dark:to-gray-900/80 backdrop-blur-sm">
+                  <div className="flex gap-3">
                     <input
                       type="text"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
-                      placeholder="Type a message..."
-                      className="flex-1 px-4 py-3 bg-[var(--bg-elevated)] border border-[var(--border-light)] rounded-xl text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                      placeholder="Type your message..."
+                      className="flex-1 px-5 py-4 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-400/10 transition-all duration-300"
                     />
                     <button
                       onClick={sendMessage}
                       disabled={!newMessage.trim() || sendingMessage}
-                      className="px-4 py-3 bg-[var(--primary)] text-white rounded-xl hover:opacity-90 disabled:opacity-50"
+                      className="px-5 py-4 bg-gradient-to-r from-emerald-400 to-teal-400 text-white rounded-2xl hover:shadow-lg hover:shadow-emerald-400/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none transform hover:-translate-y-0.5 disabled:hover:translate-y-0 transition-all duration-300"
                     >
                       <Send className="w-5 h-5" />
                     </button>
@@ -580,43 +794,46 @@ function MessagesContent() {
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center">
-                  <MessageCircle className="w-16 h-16 mx-auto text-[var(--text-muted)] mb-4" />
-                  <h3 className="text-xl font-medium text-[var(--text-primary)] mb-2">Select a conversation</h3>
-                  <p className="text-[var(--text-muted)]">Choose a chat from the sidebar to start messaging</p>
-                </div>
-              </div>
+              <EmptyState
+                icon={MessageCircle}
+                title="Select a conversation"
+                description="Choose a chat from the sidebar to start messaging with your friends."
+              />
             )}
-          </div>
+          </GlassCard>
         </div>
       </div>
 
       {/* Connection Request Modal */}
       {showConnectionModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--bg-surface)] rounded-2xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">Send Connection Request</h3>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 w-full max-w-md shadow-2xl border border-gray-100 dark:border-gray-700 animate-scale-in">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-2xl">
+                <UserPlus className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">Send Connection Request</h3>
+            </div>
             <textarea
               value={connectionMessage}
               onChange={(e) => setConnectionMessage(e.target.value)}
-              placeholder="Add a message (optional)"
-              className="w-full p-3 bg-[var(--bg-elevated)] border border-[var(--border-light)] rounded-xl text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none"
-              rows={3}
+              placeholder="Add a friendly message (optional)"
+              className="w-full p-4 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-400/10 transition-all duration-300 resize-none"
+              rows={4}
             />
-            <div className="flex gap-3 mt-4">
+            <div className="flex gap-4 mt-6">
               <button
                 onClick={() => {
                   setShowConnectionModal(null);
                   setConnectionMessage("");
                 }}
-                className="flex-1 py-2 border border-[var(--border-light)] rounded-xl text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
+                className="flex-1 py-3.5 border-2 border-gray-200 dark:border-gray-600 rounded-2xl text-gray-600 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300"
               >
                 Cancel
               </button>
               <button
                 onClick={() => sendConnectionRequest(showConnectionModal)}
-                className="flex-1 py-2 bg-[var(--primary)] text-white rounded-xl hover:opacity-90"
+                className="flex-1 py-3.5 bg-gradient-to-r from-emerald-400 to-teal-400 text-white rounded-2xl font-semibold hover:shadow-lg hover:shadow-emerald-400/30 transform hover:-translate-y-0.5 transition-all duration-300"
               >
                 Send Request
               </button>
@@ -624,6 +841,68 @@ function MessagesContent() {
           </div>
         </div>
       )}
+
+      {/* Custom scrollbar styles */}
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(to bottom, #10b981, #14b8a6);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to bottom, #059669, #0d9488);
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        @keyframes sparkle {
+          0%, 100% { opacity: 0; transform: scale(0); }
+          50% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slide-up {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes scale-in {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+
+        .animate-float {
+          animation: float 8s ease-in-out infinite;
+        }
+
+        .animate-sparkle {
+          animation: sparkle 2s ease-in-out infinite;
+        }
+
+        .animate-slide-up {
+          animation: slide-up 0.3s ease-out forwards;
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out forwards;
+        }
+
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 }
@@ -631,8 +910,11 @@ function MessagesContent() {
 export default function MessagesClient() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-teal-500 border-t-transparent rounded-full"></div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-emerald-50/30 flex items-center justify-center">
+        <div className="relative w-16 h-16">
+          <div className="absolute inset-0 rounded-full border-4 border-emerald-100"></div>
+          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-emerald-500 animate-spin"></div>
+        </div>
       </div>
     }>
       <MessagesContent />

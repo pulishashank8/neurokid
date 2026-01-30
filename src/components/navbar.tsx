@@ -156,26 +156,32 @@ export default function NavBar() {
 
   return (
     <>
-      {/* Desktop Navbar - Premium Glass Effect */}
-      <nav className={`
-        sticky top-0 z-40 transition-all duration-500
-        ${scrolled
-          ? 'navbar-glass shadow-luxury'
-          : 'bg-transparent'
-        }
-      `}>
+      {/* Floating Island Navbar - Premium Glass Design */}
+      <nav
+        className={`
+          fixed top-4 sm:top-5 left-1/2 -translate-x-1/2 z-50 
+          w-[92%] sm:w-[90%] md:w-[85%] lg:w-[90%] max-w-7xl
+          rounded-2xl border border-white/20 dark:border-white/10
+          shadow-2xl backdrop-blur-xl 
+          transition-all duration-500 ease-out
+          ${scrolled
+            ? 'bg-white/80 dark:bg-black/80 shadow-luxury-lg scale-[1.00]'
+            : 'bg-white/60 dark:bg-black/60 scale-[1.01]'
+          }
+        `}
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo - Premium Animation */}
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative">
                 <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-105"
-                     style={{ boxShadow: '0 4px 20px rgba(16, 185, 129, 0.3)' }}>
+                  style={{ boxShadow: '0 4px 20px rgba(16, 185, 129, 0.3)' }}>
                   <img src="/logo-icon.png" alt="NeuroKid" className="w-full h-full object-contain" />
                 </div>
                 {/* Glow ring on hover */}
                 <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                     style={{ boxShadow: '0 0 20px rgba(16, 185, 129, 0.5)' }} />
+                  style={{ boxShadow: '0 0 20px rgba(16, 185, 129, 0.5)' }} />
               </div>
               <span className="hidden text-xl font-black sm:inline bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 bg-clip-text text-transparent transition-all duration-300 group-hover:tracking-wide">
                 NeuroKid

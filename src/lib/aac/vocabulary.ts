@@ -110,6 +110,49 @@ export const CORE_VOCABULARY: AACWord[] = [
     isCore: true,
     audioText: "all done",
   },
+  {
+    id: "like",
+    label: "Like",
+    symbol: "👍",
+    category: "core",
+    isCore: true,
+    predictions: ["it", "this", "that"],
+  },
+  {
+    id: "toy",
+    label: "Toy",
+    symbol: "🧸",
+    category: "core",
+    isCore: true,
+  },
+  {
+    id: "tablet",
+    label: "Tablet",
+    symbol: "📱",
+    category: "core",
+    isCore: true,
+  },
+  {
+    id: "home",
+    label: "Home",
+    symbol: "🏠",
+    category: "core",
+    isCore: true,
+  },
+  {
+    id: "school",
+    label: "School",
+    symbol: "🏫",
+    category: "core",
+    isCore: true,
+  },
+  {
+    id: "park",
+    label: "Park",
+    symbol: "🛝",
+    category: "core",
+    isCore: true,
+  },
 ];
 
 // Food vocabulary
@@ -191,6 +234,31 @@ export const FOOD_VOCABULARY: AACWord[] = [
     symbol: "😋",
     category: "food",
     predictions: ["want", "water", "juice"],
+  },
+  {
+    id: "bread",
+    label: "Bread",
+    symbol: "🍞",
+    category: "food",
+  },
+  {
+    id: "apple",
+    label: "Apple",
+    symbol: "🍎",
+    category: "food",
+  },
+  {
+    id: "banana",
+    label: "Banana",
+    symbol: "🍌",
+    category: "food",
+  },
+  {
+    id: "cookie",
+    label: "Cookie",
+    symbol: "🍪",
+    category: "food",
+    audioText: "cookie",
   },
 ];
 
@@ -275,6 +343,20 @@ export const SENSORY_VOCABULARY: AACWord[] = [
     label: "Uncomfortable",
     symbol: "😣",
     category: "sensory",
+  },
+  {
+    id: "tired",
+    label: "Tired",
+    symbol: "🥱",
+    category: "sensory",
+    audioText: "I am tired",
+  },
+  {
+    id: "mad",
+    label: "Mad",
+    symbol: "😡",
+    category: "sensory",
+    audioText: "I am mad",
   },
 ];
 

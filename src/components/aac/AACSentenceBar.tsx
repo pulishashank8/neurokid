@@ -1,26 +1,20 @@
 "use client";
 
-import { X, Volume2, Trash2 } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AACSentenceWord } from "@/lib/types/aac";
 
 interface AACSentenceBarProps {
   sentence: AACSentenceWord[];
-  highlightedWordIndex: number;
-  isSpeaking: boolean;
   onRemoveWord: (index: number) => void;
   onClear: () => void;
-  onSpeak: () => void;
   sensoryMode: "vibrant" | "muted";
 }
 
 export function AACSentenceBar({
   sentence,
-  highlightedWordIndex,
-  isSpeaking,
   onRemoveWord,
   onClear,
-  onSpeak,
   sensoryMode,
 }: AACSentenceBarProps) {
   const isEmpty = sentence.length === 0;
@@ -59,11 +53,9 @@ export function AACSentenceBar({
                     rounded-lg sm:rounded-xl
                     text-sm sm:text-base font-medium
                     transition-all duration-200
-                    ${index === highlightedWordIndex && isSpeaking
-                      ? "bg-emerald-500 text-white scale-105 karaoke-word active"
-                      : sensoryMode === "muted"
-                        ? "bg-gray-200 dark:bg-gray-700 text-[var(--text)]"
-                        : "bg-white/20 dark:bg-white/10 text-[var(--text)]"
+                    ${sensoryMode === "muted"
+                      ? "bg-gray-200 dark:bg-gray-700 text-[var(--text)]"
+                      : "bg-white/20 dark:bg-white/10 text-[var(--text)]"
                     }
                   `}
                 >
@@ -90,36 +82,12 @@ export function AACSentenceBar({
 
       {/* Action buttons */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Speak button */}
-        <button
-          onClick={onSpeak}
-          disabled={isEmpty || isSpeaking}
-          className={`
-            flex-1 flex items-center justify-center gap-2
-            px-4 sm:px-6 py-2.5 sm:py-3
-            rounded-xl sm:rounded-2xl
-            text-sm sm:text-base font-bold
-            transition-all duration-300
-            disabled:opacity-50 disabled:cursor-not-allowed
-            focus:outline-none focus:ring-2 focus:ring-emerald-500
-            ${sensoryMode === "muted"
-              ? "bg-emerald-600 text-white"
-              : "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]"
-            }
-            ${isSpeaking ? "animate-pulse" : ""}
-          `}
-          aria-label={isSpeaking ? "Speaking..." : "Speak sentence"}
-        >
-          <Volume2 className={`w-5 h-5 ${isSpeaking ? "animate-bounce" : ""}`} />
-          <span>{isSpeaking ? "Speaking..." : "Speak"}</span>
-        </button>
-
         {/* Clear button */}
         <button
           onClick={onClear}
           disabled={isEmpty}
           className={`
-            flex items-center justify-center gap-2
+            flex-1 flex items-center justify-center gap-2
             px-3 sm:px-4 py-2.5 sm:py-3
             rounded-xl sm:rounded-2xl
             text-sm sm:text-base font-bold
@@ -134,7 +102,7 @@ export function AACSentenceBar({
           aria-label="Clear sentence"
         >
           <Trash2 className="w-5 h-5" />
-          <span className="hidden sm:inline">Clear</span>
+          <span className="inline">Clear</span>
         </button>
       </div>
     </div>

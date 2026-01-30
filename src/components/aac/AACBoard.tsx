@@ -33,7 +33,7 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
   const [sentence, setSentence] = useState<AACSentenceWord[]>([]);
   const [activeCategory, setActiveCategory] = useState<AACCategory | "all">("all");
   const [sensoryMode, setSensoryMode] = useState<"vibrant" | "muted">("vibrant");
-  const [highlightedWordIndex, setHighlightedWordIndex] = useState(-1);
+
   const [isWordEditorOpen, setIsWordEditorOpen] = useState(false);
   const [volume, setVolume] = useState(DEFAULT_SPEECH_CONFIG.volume);
 
@@ -103,10 +103,13 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
     (word: AACWord) => {
       playClickSound();
 
+      // Speak immediately
+      speak(word.audioText || word.label);
+
       // Add word to sentence
       setSentence((prev) => [...prev, { word, spokenAt: new Date() }]);
     },
-    [playClickSound]
+    [playClickSound, speak]
   );
 
   // Handle word removal
@@ -120,27 +123,7 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
     cancel();
   }, [cancel]);
 
-  // Handle speak
-  const handleSpeak = useCallback(() => {
-    if (sentence.length === 0 || !isSpeechSupported) return;
 
-    playSuccessSound();
-
-    // Get the text to speak (use audioText override if available)
-    const words = sentence.map((sw) => sw.word.audioText || sw.word.label);
-
-    // Speak with word-by-word highlighting
-    speakWords(words, (index) => {
-      setHighlightedWordIndex(index);
-    });
-  }, [sentence, isSpeechSupported, playSuccessSound, speakWords]);
-
-  // Reset highlighted word when speech ends
-  useEffect(() => {
-    if (!isSpeaking) {
-      setHighlightedWordIndex(-1);
-    }
-  }, [isSpeaking]);
 
   // Handle sensory mode toggle
   const handleToggleSensoryMode = useCallback(() => {
@@ -174,11 +157,8 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
       <div className="px-2 sm:px-4 py-2 sm:py-3">
         <AACSentenceBar
           sentence={sentence}
-          highlightedWordIndex={highlightedWordIndex}
-          isSpeaking={isSpeaking}
           onRemoveWord={handleRemoveWord}
           onClear={handleClearSentence}
-          onSpeak={handleSpeak}
           sensoryMode={sensoryMode}
         />
       </div>
@@ -197,9 +177,8 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
       {/* Category Tabs */}
       <div className="px-2 sm:px-4 pb-2 sm:pb-3">
         <AACCategoryTabs
-          categories={AAC_CATEGORIES}
           activeCategory={activeCategory}
-          onSelectCategory={setActiveCategory}
+          onCategoryChange={setActiveCategory}
           sensoryMode={sensoryMode}
         />
       </div>

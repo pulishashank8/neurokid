@@ -118,6 +118,12 @@ export function useSpeechSynthesis(
       };
 
       utterance.onerror = (event) => {
+        // Ignore interrupted/canceled errors as they happen when rapid clicking
+        if (event.error === "interrupted" || event.error === "canceled") {
+          setIsSpeaking(false);
+          setCurrentWordIndex(-1);
+          return;
+        }
         console.error("Speech synthesis error:", event.error);
         setIsSpeaking(false);
         setCurrentWordIndex(-1);

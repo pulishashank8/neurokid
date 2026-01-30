@@ -7,19 +7,11 @@ import { useEffect, useState, useRef } from "react";
 import {
   Users, Stethoscope, Brain, ClipboardCheck, ArrowRight,
   Heart, Wind, ClipboardList, Sparkles, Quote, ShoppingBag, Mail, Star, Gamepad2,
-  MessageSquare
+  MessageSquare, Volume2
 } from "lucide-react";
 import dynamic from "next/dynamic";
 
-// Dynamically import mascot to prevent SSR issues
-const DashboardMascots = dynamic(
-  () => import("@/components/ui/DashboardMascots").then(mod => mod.DashboardMascots),
-  { ssr: false }
-);
-const MobileMascot = dynamic(
-  () => import("@/components/ui/DashboardMascots").then(mod => mod.MobileMascot),
-  { ssr: false }
-);
+
 
 const QUOTES = [
   { text: "Every child is gifted. They just unwrap their packages at different times.", author: "Unknown" },
@@ -76,7 +68,7 @@ function use3DTilt() {
 }
 
 // Premium 3D Card Component
-function Premium3DCard({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+function Premium3DCard({ children, className = "", delay = 0, enableTilt = true }: { children: React.ReactNode; className?: string; delay?: number; enableTilt?: boolean }) {
   const tiltRef = use3DTilt();
   const [isVisible, setIsVisible] = useState(false);
 
@@ -87,7 +79,7 @@ function Premium3DCard({ children, className = "", delay = 0 }: { children: Reac
 
   return (
     <div
-      ref={tiltRef}
+      ref={enableTilt ? tiltRef : null}
       className={`
         ${className}
         transition-all duration-700 ease-out
@@ -248,7 +240,7 @@ export default function DashboardPage() {
       shortTitle: "AAC",
       description: "Voice communication board for non-verbal expression.",
       href: "/aac",
-      icon: <MessageSquare className="w-6 h-6 sm:w-7 sm:h-7" />,
+      icon: <Volume2 className="w-6 h-6 sm:w-7 sm:h-7" />,
       gradient: "from-amber-500 via-orange-500 to-amber-400",
       glowColor: "rgba(251, 146, 60, 0.5)",
       bgGlow: "bg-amber-500/10",
@@ -277,20 +269,18 @@ export default function DashboardPage() {
       {/* Hero Header */}
       <div className="relative pt-8 pb-20">
         {/* Mascot - Desktop positioned absolutely */}
-        {mounted && (
-          <div className="hidden lg:block">
-            <DashboardMascots />
-          </div>
-        )}
+
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           {/* Welcome Section - with responsive padding for mascot */}
-          <div className="text-center mb-10 lg:pr-48 xl:pr-56 2xl:pr-64">
+          <div className="text-center mb-10">
+
+
             <Premium3DCard delay={0}>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-premium shadow-luxury mb-6 border-glow">
+              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full glass-premium shadow-luxury mb-8 border-glow">
                 <div className="relative">
                   <Sparkles className="w-4 h-4 text-emerald-500" />
-                  <div className="absolute inset-0 animate-ping">
+                  <div className="absolute inset-0 animate-pulse">
                     <Sparkles className="w-4 h-4 text-emerald-500 opacity-50" />
                   </div>
                 </div>
@@ -313,30 +303,25 @@ export default function DashboardPage() {
               </p>
             </Premium3DCard>
 
-            {/* Mobile/Tablet Mascot - shows below welcome text */}
-            {mounted && (
-              <div className="lg:hidden mt-8 mb-4 flex justify-center">
-                <MobileMascot className="w-48 sm:w-56 md:w-64" />
-              </div>
-            )}
+
           </div>
 
-          {/* Inspirational Quote Card - Premium Glass Effect - with responsive margin for mascot */}
-          <Premium3DCard delay={300} className="max-w-2xl mx-auto lg:mr-auto lg:ml-0 xl:mx-auto mb-12 lg:max-w-xl xl:max-w-2xl">
-            <div className="relative glass-premium rounded-3xl px-8 py-7 shadow-luxury quote-card-premium border-glow overflow-hidden">
+          {/* Inspirational Quote Card - Compact 3D & Centered */}
+          <Premium3DCard delay={300} className="max-w-2xl mx-auto mb-12" enableTilt={false}>
+            <div className="relative glass-premium rounded-3xl px-8 py-5 shadow-luxury quote-card-premium border-glow overflow-hidden">
               {/* Shimmer overlay */}
-              <div className="absolute inset-0 shimmer-luxury opacity-50 rounded-3xl" />
+              <div className="absolute inset-0 shimmer-luxury opacity-30 rounded-3xl" />
 
-              <div className="relative z-10 flex items-start gap-4">
+              <div className="relative z-10 flex items-center gap-5">
                 <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-lg icon-container-luxury btn-3d">
                   <Quote className="w-5 h-5 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 text-left">
                   <p className="text-base sm:text-lg font-medium text-[var(--text)] leading-relaxed italic">
                     "{quote.text}"
                   </p>
-                  <p className="mt-3 text-sm text-[var(--muted)] font-semibold flex items-center gap-2">
-                    <span className="w-8 h-px bg-gradient-to-r from-emerald-500 to-transparent" />
+                  <p className="mt-2 text-xs sm:text-sm text-[var(--muted)] font-bold uppercase tracking-wide flex items-center gap-2">
+                    <span className="w-6 h-0.5 bg-emerald-500/50 rounded-full" />
                     {quote.author}
                   </p>
                 </div>
@@ -344,80 +329,79 @@ export default function DashboardPage() {
             </div>
           </Premium3DCard>
 
-          {/* 5-Pillar Navigation - NEVER WRAPS - Single Horizontal Line */}
-          <Premium3DCard delay={350} className="mb-12">
-            <nav className="flex flex-nowrap justify-center items-stretch gap-2 sm:gap-3 lg:gap-4 overflow-x-auto px-2 py-3 scrollbar-hide">
+          {/* 5-Pillar Navigation - Responsive Grid - Full Width - Individual Cards */}
+          <div className="mb-8 sm:mb-12 w-full">
+            <nav className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-6 w-full">
               {pillars.map((pillar, index) => (
-                <Link
+                <Premium3DCard
                   key={pillar.id}
-                  href={pillar.href}
-                  className={`
-                    group flex-shrink-0
-                    w-[60px] sm:w-[100px] md:w-[130px] lg:w-[160px] xl:w-[180px] 2xl:w-[200px]
-                    ${pillar.isPremium ? 'aac-pulse-glow' : ''}
-                  `}
+                  delay={350 + (index * 100)}
+                  enableTilt={false} // Disable bending
+                  className="h-full"
                 >
-                  <div className={`
-                    relative h-full rounded-2xl sm:rounded-3xl glass-premium
-                    p-3 sm:p-4 lg:p-5
-                    shadow-luxury hover:shadow-luxury-hover
-                    transition-all duration-500 ease-out
-                    border-glow card-shine overflow-hidden
-                    hover:scale-[1.03] hover:-translate-y-1
-                    flex flex-col items-center justify-center text-center
-                    ${pillar.isPremium ? 'ring-2 ring-amber-500/30' : ''}
-                  `}>
-                    {/* Background Glow on Hover */}
-                    <div className={`absolute inset-0 ${pillar.bgGlow} opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl sm:rounded-3xl`} />
+                  <Link
+                    href={pillar.href}
+                    className="group block h-full"
+                  >
+                    <div className={`
+                      relative h-full w-full rounded-2xl sm:rounded-3xl glass-premium
+                      p-4 sm:p-5 lg:p-6
+                      shadow-luxury hover:shadow-luxury-hover
+                      transition-all duration-300 ease-out
+                      border-glow card-shine overflow-hidden
+                      hover:-translate-y-2 hover:scale-[1.02]
+                      flex flex-col items-center justify-start text-center
+                      ${pillar.isPremium ? 'ring-2 ring-amber-500/30' : ''}
+                    `}>
+                      {/* Background Glow on Hover */}
+                      <div className={`absolute inset-0 ${pillar.bgGlow} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
 
-                    {/* Icon */}
-                    <div
-                      className={`
-                        relative z-10
-                        w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14
-                        rounded-xl sm:rounded-2xl bg-gradient-to-br ${pillar.gradient}
-                        text-white flex items-center justify-center
-                        shadow-lg transition-all duration-500
-                        group-hover:scale-110 group-hover:rotate-3
-                        btn-3d icon-container-luxury
-                        mb-2 sm:mb-3
-                      `}
-                      style={{ boxShadow: `0 8px 30px ${pillar.glowColor}` }}
-                    >
-                      {pillar.icon}
-                    </div>
-
-                    {/* Title - responsive: hidden on xs, short on sm, full on lg+ */}
-                    <h3 className="relative z-10 text-[10px] sm:text-xs lg:text-sm xl:text-base font-bold text-[var(--text)] group-hover:text-gradient-animated transition-all duration-300 leading-tight">
-                      <span className="hidden sm:inline lg:hidden">{pillar.shortTitle}</span>
-                      <span className="hidden lg:inline">{pillar.title}</span>
-                      <span className="sm:hidden">{pillar.shortTitle}</span>
-                    </h3>
-
-                    {/* Description - only on large screens */}
-                    <p className="hidden xl:block relative z-10 text-[10px] text-[var(--muted)] leading-tight mt-1 line-clamp-2">
-                      {pillar.description}
-                    </p>
-
-                    {/* Premium badge for AAC */}
-                    {pillar.isPremium && (
-                      <div className="absolute top-1 right-1 sm:top-2 sm:right-2">
-                        <span className="flex h-2 w-2 sm:h-2.5 sm:w-2.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-amber-500"></span>
-                        </span>
+                      {/* Icon */}
+                      <div
+                        className={`
+                          relative z-10
+                          w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20
+                          rounded-xl sm:rounded-2xl bg-gradient-to-br ${pillar.gradient}
+                          text-white flex items-center justify-center
+                          shadow-lg transition-transform duration-300
+                          group-hover:scale-110
+                          btn-3d icon-container-luxury
+                          mb-4 lg:mb-6
+                        `}
+                        style={{ boxShadow: `0 8px 30px ${pillar.glowColor}` }}
+                      >
+                        {pillar.icon}
                       </div>
-                    )}
-                  </div>
-                </Link>
+
+                      {/* Title */}
+                      <h3 className="relative z-10 text-sm sm:text-base lg:text-xl font-bold text-[var(--text)] group-hover:text-gradient-animated transition-all duration-300 leading-tight mb-2">
+                        {pillar.title}
+                      </h3>
+
+                      {/* Description */}
+                      <p className="hidden sm:block relative z-10 text-xs sm:text-sm text-[var(--muted)] leading-tight px-1 lg:px-2">
+                        {pillar.description}
+                      </p>
+
+                      {/* Premium badge for AAC */}
+                      {pillar.isPremium && (
+                        <div className="absolute top-3 right-3">
+                          <span className="flex h-3 w-3">
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                </Premium3DCard>
               ))}
             </nav>
-          </Premium3DCard>
+          </div>
 
           {/* Messages Card - Premium Design */}
-          <Premium3DCard delay={800}>
+          <Premium3DCard delay={800} enableTilt={false}>
             <Link href="/messages" className="group block mb-6">
-              <div className="relative rounded-3xl glass-premium p-6 sm:p-8 shadow-luxury hover:shadow-luxury-hover transition-all duration-500 border-glow overflow-hidden hover:scale-[1.01]">
+              <div className="relative rounded-3xl glass-premium p-5 shadow-luxury hover:shadow-luxury-hover transition-all duration-500 border-glow overflow-hidden">
                 {/* Animated gradient border */}
                 <div className="absolute inset-0 rounded-3xl rotating-border opacity-0 group-hover:opacity-100" />
 
@@ -428,7 +412,7 @@ export default function DashboardPage() {
                   {/* Icon Section */}
                   <div className="relative flex-shrink-0">
                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 flex items-center justify-center shadow-lg btn-3d icon-container-luxury"
-                         style={{ boxShadow: '0 10px 40px rgba(99, 102, 241, 0.4)' }}>
+                      style={{ boxShadow: '0 10px 40px rgba(99, 102, 241, 0.4)' }}>
                       <Mail className="w-8 h-8 text-white" />
                     </div>
                     {notifications.totalUnread > 0 && (
@@ -476,7 +460,7 @@ export default function DashboardPage() {
               <div className="glass-premium rounded-3xl p-6 shadow-luxury border-glow h-full">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-lg icon-container-luxury btn-3d"
-                       style={{ boxShadow: '0 8px 30px rgba(16, 185, 129, 0.4)' }}>
+                    style={{ boxShadow: '0 8px 30px rgba(16, 185, 129, 0.4)' }}>
                     <Heart className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -517,7 +501,7 @@ export default function DashboardPage() {
                     <div className="absolute top-3 right-3 flex gap-1.5">
                       {['🧸', '🎧', '📚'].map((emoji, i) => (
                         <div key={i} className={`w-8 h-8 rounded-xl glass-premium flex items-center justify-center text-sm shadow-md transition-transform duration-300 group-hover:scale-110`}
-                             style={{ transitionDelay: `${i * 50}ms` }}>
+                          style={{ transitionDelay: `${i * 50}ms` }}>
                           {emoji}
                         </div>
                       ))}
@@ -526,7 +510,7 @@ export default function DashboardPage() {
                     <div className="relative z-10">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg icon-container-luxury"
-                             style={{ boxShadow: '0 8px 30px rgba(139, 92, 246, 0.4)' }}>
+                          style={{ boxShadow: '0 8px 30px rgba(139, 92, 246, 0.4)' }}>
                           <ShoppingBag className="w-5 h-5 text-white" />
                         </div>
                         <h2 className="text-lg font-bold text-[var(--text)]">Marketplace</h2>
@@ -564,7 +548,7 @@ export default function DashboardPage() {
                     <div className="absolute top-3 right-3 flex gap-1.5">
                       {['🧩', '🎮', '🌈'].map((emoji, i) => (
                         <div key={i} className={`w-8 h-8 rounded-xl glass-premium flex items-center justify-center text-sm shadow-md transition-transform duration-300 group-hover:scale-110`}
-                             style={{ transitionDelay: `${i * 50}ms` }}>
+                          style={{ transitionDelay: `${i * 50}ms` }}>
                           {emoji}
                         </div>
                       ))}
@@ -573,7 +557,7 @@ export default function DashboardPage() {
                     <div className="relative z-10">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 via-cyan-500 to-indigo-500 flex items-center justify-center shadow-lg icon-container-luxury"
-                             style={{ boxShadow: '0 8px 30px rgba(14, 165, 233, 0.4)' }}>
+                          style={{ boxShadow: '0 8px 30px rgba(14, 165, 233, 0.4)' }}>
                           <Gamepad2 className="w-5 h-5 text-white" />
                         </div>
                         <h2 className="text-lg font-bold text-[var(--text)]">Fun & Learn Games</h2>
