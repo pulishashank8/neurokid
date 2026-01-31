@@ -884,14 +884,25 @@ function MessagesContent() {
                   >
                     <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   </button>
-                  <AvatarPlaceholder name={otherUser.displayName} size="md" online />
-                  <div>
-                    <h2 className="font-bold text-gray-900 dark:text-white text-lg">{otherUser.displayName}</h2>
-                    <p className="text-xs text-emerald-500 dark:text-emerald-400 font-medium flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                      {otherUser.lastActiveAt ? `Active ${formatDistanceToNow(new Date(otherUser.lastActiveAt))} ago` : 'Online'}
-                    </p>
-                  </div>
+                  {(() => {
+                    const lastActive = otherUser.lastActiveAt ? new Date(otherUser.lastActiveAt) : null;
+                    const isOnline = lastActive && (Date.now() - lastActive.getTime() < 5 * 60 * 1000);
+                    return (
+                      <>
+                        <AvatarPlaceholder name={otherUser.displayName} size="md" online={!!isOnline} />
+                        <div>
+                          <h2 className="font-bold text-gray-900 dark:text-white text-lg">{otherUser.displayName}</h2>
+                          <p className={`text-xs font-medium flex items-center gap-1 ${isOnline ? "text-emerald-500 dark:text-emerald-400" : "text-gray-500 dark:text-gray-400"}`}>
+                            {isOnline && <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>}
+                            {isOnline
+                              ? "Online"
+                              : (lastActive ? `Active ${formatDistanceToNow(lastActive)} ago` : "Offline")
+                            }
+                          </p>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
 
                 {/* Messages Container */}
