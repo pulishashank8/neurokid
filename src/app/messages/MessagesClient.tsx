@@ -588,7 +588,7 @@ function MessagesContent() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Sidebar */}
-          <GlassCard className="overflow-hidden" hover={false}>
+          <GlassCard className={`overflow-hidden h-[calc(100vh-140px)] lg:h-[calc(100vh-140px)] ${selectedConversation ? 'hidden lg:block' : 'block'}`} hover={false}>
             {/* Tabs */}
             {/* Tabs */}
             <div className="flex border-b border-gray-200/50 dark:border-white/10 bg-gradient-to-r from-gray-50/50 to-white/50 dark:from-white/5 dark:to-white/5">
@@ -809,7 +809,7 @@ function MessagesContent() {
 
           {/* Chat Area */}
           {/* WhatsApp-Style Chat Area */}
-          <div className="lg:col-span-2 overflow-hidden flex flex-col min-h-[60vh] bg-[#efeae2] dark:bg-[#0b141a] border border-gray-200 dark:border-gray-800 rounded-3xl shadow-xl relative z-20">
+          <div className={`lg:col-span-2 overflow-hidden flex flex-col h-[calc(100vh-140px)] bg-[#efeae2] dark:bg-[#0b141a] border border-gray-200 dark:border-gray-800 rounded-3xl shadow-xl relative z-20 ${!selectedConversation ? 'hidden lg:flex' : 'flex'}`}>
             {selectedConversation && otherUser ? (
               <>
                 {/* Chat Header */}
