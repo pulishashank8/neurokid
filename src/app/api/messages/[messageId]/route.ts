@@ -16,16 +16,16 @@ export async function DELETE(
     const userId = session.user.id;
     const { messageId } = await params;
 
-    const message = await prisma.directMessage.findUnique({
+    const message = await prisma.message.findUnique({
       where: { id: messageId },
       select: {
         id: true,
         senderId: true,
-        deletedAt: true,
         conversation: {
           select: {
-            userAId: true,
-            userBId: true
+            participants: {
+              select: { userId: true }
+            }
           }
         }
       }
@@ -35,29 +35,29 @@ export async function DELETE(
       return NextResponse.json({ error: "Message not found" }, { status: 404 });
     }
 
-    if (message.conversation.userAId !== userId && message.conversation.userBId !== userId) {
+    // Check if user is a participant
+    const isParticipant = message.conversation.participants.some(p => p.userId === userId);
+    if (!isParticipant) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     const searchParams = request.nextUrl.searchParams;
     const deleteType = searchParams.get("type") || "everyone";
 
-    if (deleteType === "everyone") {
-      if (message.senderId !== userId) {
-        return NextResponse.json({ error: "You can only delete your own messages for everyone" }, { status: 403 });
-      }
-      await prisma.directMessage.update({
-        where: { id: messageId },
-        data: { deletedAt: new Date() }
-      });
-    } else {
-      // Delete for me
-      const isSender = message.senderId === userId;
-      await prisma.directMessage.update({
-        where: { id: messageId },
-        data: isSender ? { deletedBySender: true } : { deletedByReceiver: true }
-      });
+    // For now, consistent message schema supports "hard delete" (Unsend)
+    // We strictly allow sender to delete their own message.
+    if (message.senderId !== userId) {
+      return NextResponse.json({ error: "You can only delete your own messages" }, { status: 403 });
     }
+
+    // Future: Implement 'deletedBy' array for 'delete for me'
+    if (deleteType === "me") {
+      return NextResponse.json({ error: "Delete for me is not yet supported in this version. Use Delete for Everyone." }, { status: 501 });
+    }
+
+    await prisma.message.delete({
+      where: { id: messageId }
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -82,15 +82,18 @@ export async function PATCH(
     const { content } = body;
 
     if (!content || typeof content !== "string" || !content.trim()) {
+      // Allow empty content if there is an image? 
+      // The current update logic is usually just for text. 
+      // If we want to allow removing text but keeping image, we might need to relax this.
+      // But typically "Edit" means editing the text.
       return NextResponse.json({ error: "Content is required" }, { status: 400 });
     }
 
-    const message = await prisma.directMessage.findUnique({
+    const message = await prisma.message.findUnique({
       where: { id: messageId },
       select: {
         id: true,
         senderId: true,
-        deletedAt: true,
       }
     });
 
@@ -102,16 +105,10 @@ export async function PATCH(
       return NextResponse.json({ error: "You can only edit your own messages" }, { status: 403 });
     }
 
-    if (message.deletedAt) {
-      return NextResponse.json({ error: "Cannot edit a deleted message" }, { status: 400 });
-    }
-
-    const updatedMessage = await prisma.directMessage.update({
+    const updatedMessage = await prisma.message.update({
       where: { id: messageId },
       data: {
         content: content.trim(),
-        // We could add an 'editedAt' field if the schema supports it, but for now just updating content is fine.
-        // If the schema has an 'isEdited' boolean, we can set that too.
       }
     });
 

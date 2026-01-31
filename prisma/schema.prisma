@@ -1,20 +1,972 @@
-// NeuroKind Prisma Schema - Production-grade forum for autistic parents
-// Includes auth, community, providers, AI chat, notifications, and analytics
-
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
-// ============================================================================
-// ENUMS
-// ============================================================================
+model User {
+  id                         String                    @id @default(cuid())
+  email                      String                    @unique
+  hashedPassword             String?
+  createdAt                  DateTime                  @default(now())
+  updatedAt                  DateTime                  @updatedAt
+  lastLoginAt                DateTime?
+  emailVerified              Boolean                   @default(false)
+  emailVerifiedAt            DateTime?
+  isBanned                   Boolean                   @default(false)
+  bannedAt                   DateTime?
+  bannedReason               String?
+  lastActiveAt               DateTime?
+  aacVocabulary              AACVocabulary[]
+  aiConversations            AIConversation[]
+  aiMessages                 AIMessage[]
+  auditLogs                  AuditLog[]
+  blockedByUsers             BlockedUser[]             @relation("BlockedUser")
+  blockedUsers               BlockedUser[]             @relation("BlockedByUser")
+  bookmarks                  Bookmark[]
+  comments                   Comment[]
+  receivedConnectionRequests ConnectionRequest[]       @relation("ConnectionRequestReceiver")
+  sentConnectionRequests     ConnectionRequest[]       @relation("ConnectionRequestSender")
+  connectionsA               Connection[]              @relation("ConnectionUserA")
+  connectionsB               Connection[]              @relation("ConnectionUserB")
+  conversationParticipants   ConversationParticipant[]
+  dailyWins                  DailyWin[]
+  emailVerifications         EmailVerification[]
+  emailVerificationTokens    EmailVerificationToken[]
+  messageRateLimits          MessageRateLimit[]
+  messageReportsReceived     MessageReport[]           @relation("MessageReported")
+  messageReportsFiled        MessageReport[]           @relation("MessageReporter")
+  sentMessages               Message[]
+  modActionLogs              ModActionLog[]            @relation("ModActionLogModerator")
+  moderationActions          ModerationAction[]        @relation("ModeratorUser")
+  moderationTargets          ModerationAction[]        @relation("TargetUser")
+  notifications              Notification[]
+  ownerNotes                 OwnerNote[]
+  passwordResetTokens        PasswordResetToken[]
+  posts                      Post[]
+  profile                    Profile?
+  claimedProviders           Provider[]
+  providerReviews            ProviderReview[]
+  rateLimitLogs              RateLimitLog[]
+  reports                    Report[]                  @relation("ReporterUser")
+  createdResources           Resource[]
+  savedResources             SavedResource[]
+  screeningResults           ScreeningResult[]
+  searchQueries              SearchQuery[]
+  sensitiveAccessLogs        SensitiveAccessLog[]
+  consents                   UserConsent[]
+  userFinder                 UserFinder?
+  userRoles                  UserRole[]
+  sessions                   UserSession[]
+  votes                      Vote[]
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+model UserFinder {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  username    String   @unique
+  displayName String
+  keywords    String
+  avatarUrl   String?
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([keywords])
+}
+
+model EmailVerification {
+  id         String    @id @default(cuid())
+  email      String
+  otp        String    @db.VarChar(6)
+  userId     String?
+  expiresAt  DateTime
+  verified   Boolean   @default(false)
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+  user       User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([otp])
+  @@index([expiresAt])
+  @@index([verified])
+  @@index([userId], map: "idx_email_verification_user_id")
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Profile {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  username          String    @unique @db.VarChar(50)
+  displayName       String    @db.VarChar(255)
+  bio               String?
+  avatarUrl         String?
+  location          String?
+  website           String?
+  verifiedTherapist Boolean   @default(false)
+  verifiedAt        DateTime?
+  shadowbanned      Boolean   @default(false)
+  shadowbannedAt    DateTime?
+  notificationPrefs Json      @default("{}")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([username])
+  @@index([verifiedTherapist])
+  @@index([shadowbanned])
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  role      Role
+  grantedAt DateTime @default(now())
+  grantedBy String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+  @@index([userId])
+  @@index([role])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String
+  targetType String?
+  targetId   String?
+  changes    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([targetType])
+  @@index([targetId])
+  @@index([createdAt])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique @db.VarChar(100)
+  slug        String   @unique @db.VarChar(100)
+  description String?
+  icon        String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  posts       Post[]
+
+  @@index([slug])
+  @@index([order])
+}
+
+model Tag {
+  id          String   @id @default(cuid())
+  name        String   @unique @db.VarChar(50)
+  slug        String   @unique @db.VarChar(50)
+  description String?
+  color       String?  @db.VarChar(7)
+  createdAt   DateTime @default(now())
+  posts       Post[]   @relation("PostToTag")
+
+  @@index([slug])
+  @@index([name])
+}
+
+model Post {
+  id                String             @id @default(cuid())
+  title             String             @db.VarChar(255)
+  content           String
+  authorId          String?
+  isAnonymous       Boolean            @default(false)
+  categoryId        String
+  status            PostStatus         @default(ACTIVE)
+  viewCount         Int                @default(0)
+  commentCount      Int                @default(0)
+  voteScore         Int                @default(0)
+  isPinned          Boolean            @default(false)
+  isLocked          Boolean            @default(false)
+  pinnedAt          DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  images            String[]
+  bookmarks         Bookmark[]
+  comments          Comment[]
+  moderationActions ModerationAction[]
+  author            User?              @relation(fields: [authorId], references: [id])
+  category          Category           @relation(fields: [categoryId], references: [id])
+  tags              Tag[]              @relation("PostToTag")
+
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([viewCount])
+}
+
+model Comment {
+  id                String             @id @default(cuid())
+  content           String
+  authorId          String
+  postId            String
+  parentCommentId   String?
+  status            CommentStatus      @default(ACTIVE)
+  isAnonymous       Boolean            @default(false)
+  voteScore         Int                @default(0)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  author            User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parentComment     Comment?           @relation("ChildComments", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  childComments     Comment[]          @relation("ChildComments")
+  post              Post               @relation(fields: [postId], references: [id], onDelete: Cascade)
+  moderationActions ModerationAction[]
+
+  @@index([authorId])
+  @@index([postId])
+  @@index([parentCommentId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Vote {
+  id         String   @id @default(cuid())
+  userId     String
+  targetType VoteType
+  targetId   String
+  value      Int      @db.SmallInt
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetId, targetType])
+  @@index([userId])
+  @@index([targetId])
+  @@index([targetType])
+  @@index([createdAt])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@index([createdAt])
+}
+
+model Report {
+  id          String           @id @default(cuid())
+  reporterId  String
+  targetType  ReportTargetType
+  targetId    String
+  reason      ReportReason
+  description String?
+  status      ReportStatus     @default(OPEN)
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  notes       String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  reporter    User             @relation("ReporterUser", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([reporterId])
+  @@index([targetType])
+  @@index([targetId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ModerationAction {
+  id           String               @id @default(cuid())
+  action       ModerationActionType
+  actorId      String
+  targetUserId String?
+  postId       String?
+  commentId    String?
+  notes        String?
+  createdAt    DateTime             @default(now())
+  actor        User                 @relation("ModeratorUser", fields: [actorId], references: [id], onDelete: Cascade)
+  comment      Comment?             @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  post         Post?                @relation(fields: [postId], references: [id], onDelete: Cascade)
+  targetUser   User?                @relation("TargetUser", fields: [targetUserId], references: [id])
+
+  @@index([actorId])
+  @@index([targetUserId])
+  @@index([postId])
+  @@index([commentId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model ModActionLog {
+  id          String               @id @default(cuid())
+  actionType  ModerationActionType
+  targetType  ReportTargetType
+  targetId    String
+  targetTitle String?              @db.VarChar(255)
+  moderatorId String
+  reason      String?              @db.VarChar(255)
+  notes       String?
+  createdAt   DateTime             @default(now())
+  moderator   User                 @relation("ModActionLogModerator", fields: [moderatorId], references: [id], onDelete: Cascade)
+
+  @@index([moderatorId])
+  @@index([actionType])
+  @@index([targetType])
+  @@index([targetId])
+  @@index([createdAt])
+}
+
+model Provider {
+  id              String                 @id @default(cuid())
+  externalSource  ProviderSource
+  externalId      String?                @db.VarChar(255)
+  name            String                 @db.VarChar(255)
+  phone           String?                @db.VarChar(20)
+  address         String?
+  city            String?                @db.VarChar(100)
+  state           String?                @db.VarChar(50)
+  zipCode         String?                @db.VarChar(10)
+  latitude        Float?
+  longitude       Float?
+  website         String?
+  email           String?
+  specialties     ProviderSpecialty[]
+  rating          Decimal?               @db.Decimal(3, 2)
+  totalReviews    Int                    @default(0)
+  isVerified      Boolean                @default(false)
+  verifiedAt      DateTime?
+  claimedByUserId String?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  claimedByUser   User?                  @relation(fields: [claimedByUserId], references: [id])
+  claimRequests   ProviderClaimRequest[]
+  reviews         ProviderReview[]
+
+  @@unique([externalSource, externalId])
+  @@index([externalSource])
+  @@index([name])
+  @@index([city])
+  @@index([isVerified])
+  @@index([createdAt])
+  @@index([latitude, longitude])
+  @@index([claimedByUserId], map: "idx_provider_claimed_by_user_id")
+}
+
+model ProviderReview {
+  id         String   @id @default(cuid())
+  providerId String
+  authorId   String
+  rating     Int      @db.SmallInt
+  content    String?
+  status     String   @default("ACTIVE")
+  helpful    Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  provider   Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, authorId])
+  @@index([providerId])
+  @@index([authorId])
+  @@index([rating])
+  @@index([createdAt])
+}
+
+model ProviderClaimRequest {
+  id              String              @id @default(cuid())
+  providerId      String
+  requesterUserId String
+  status          ProviderClaimStatus @default(PENDING)
+  message         String?
+  reviewedAt      DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  provider        Provider            @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, requesterUserId])
+  @@index([providerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AIConversation {
+  id        String      @id @default(cuid())
+  userId    String
+  title     String      @db.VarChar(255)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  AIMessage[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model AIMessage {
+  id             String         @id @default(cuid())
+  conversationId String
+  userId         String
+  role           String
+  content        String
+  tokens         Int?
+  createdAt      DateTime       @default(now())
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model RateLimitLog {
+  id         String   @id @default(cuid())
+  userId     String
+  actionType String   @db.VarChar(50)
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([actionType])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  payload   Json
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([readAt])
+  @@index([createdAt])
+}
+
+model Resource {
+  id        String           @id @default(cuid())
+  title     String           @db.VarChar(255)
+  content   String?
+  link      String?
+  category  ResourceCategory
+  createdBy String
+  status    String           @default("ACTIVE")
+  views     Int              @default(0)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  creator   User             @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  savedBy   SavedResource[]
+
+  @@index([createdBy])
+  @@index([category])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model SavedResource {
+  id         String   @id @default(cuid())
+  userId     String
+  resourceId String
+  createdAt  DateTime @default(now())
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, resourceId])
+  @@index([userId])
+  @@index([resourceId])
+}
+
+model DataOwner {
+  id           String    @id @default(cuid())
+  teamName     String    @unique @db.VarChar(100)
+  contactEmail String    @db.VarChar(255)
+  slackChannel String?   @db.VarChar(100)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  datasets     Dataset[]
+
+  @@index([teamName])
+}
+
+model Dataset {
+  id              String                @id @default(cuid())
+  name            String                @unique @db.VarChar(255)
+  description     String
+  domain          String                @db.VarChar(100)
+  ownerTeam       String
+  sensitivity     DataSensitivity       @default(INTERNAL)
+  tags            String[]
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  retentionPolicy String?               @db.VarChar(100)
+  updateFrequency String?               @db.VarChar(100)
+  lineageNodes    DataLineageNode[]
+  qualityRules    DataQualityRule[]
+  owner           DataOwner             @relation(fields: [ownerTeam], references: [teamName])
+  fields          DatasetField[]
+  glossaryTerms   DatasetGlossaryTerm[]
+
+  @@index([domain])
+  @@index([sensitivity])
+  @@index([name])
+  @@index([ownerTeam])
+  @@index([createdAt])
+}
+
+model DatasetField {
+  id          String          @id @default(cuid())
+  datasetId   String
+  name        String          @db.VarChar(255)
+  type        String          @db.VarChar(100)
+  description String
+  isNullable  Boolean         @default(true)
+  sensitivity DataSensitivity @default(INTERNAL)
+  examples    String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  dataset     Dataset         @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+
+  @@unique([datasetId, name])
+  @@index([datasetId])
+  @@index([sensitivity])
+  @@index([name])
+}
+
+model BusinessGlossaryTerm {
+  id         String                @id @default(cuid())
+  name       String                @unique @db.VarChar(100)
+  definition String
+  examples   String?
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+  datasets   DatasetGlossaryTerm[]
+
+  @@index([name])
+}
+
+model DatasetGlossaryTerm {
+  id        String               @id @default(cuid())
+  datasetId String
+  termId    String
+  createdAt DateTime             @default(now())
+  dataset   Dataset              @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  term      BusinessGlossaryTerm @relation(fields: [termId], references: [id], onDelete: Cascade)
+
+  @@unique([datasetId, termId])
+  @@index([datasetId])
+  @@index([termId])
+}
+
+model TherapySession {
+  id            String      @id @default(cuid())
+  userId        String
+  childName     String      @db.VarChar(100)
+  therapistName String      @db.VarChar(100)
+  therapyType   TherapyType
+  sessionDate   DateTime
+  duration      Int         @default(60)
+  notes         String?
+  wentWell      String?
+  toWorkOn      String?
+  mood          Int?        @db.SmallInt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([sessionDate])
+  @@index([therapyType])
+  @@index([createdAt])
+}
+
+model EmergencyCard {
+  id                     String   @id @default(cuid())
+  userId                 String
+  childName              String   @db.VarChar(100)
+  childAge               Int?
+  diagnosis              String?  @db.VarChar(255)
+  triggers               String?
+  calmingStrategies      String?
+  communication          String?
+  medications            String?
+  allergies              String?
+  emergencyContact1Name  String?  @db.VarChar(100)
+  emergencyContact1Phone String?  @db.VarChar(20)
+  emergencyContact2Name  String?  @db.VarChar(100)
+  emergencyContact2Phone String?  @db.VarChar(20)
+  doctorName             String?  @db.VarChar(100)
+  doctorPhone            String?  @db.VarChar(20)
+  additionalNotes        String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Conversation {
+  id           String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt    DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("Conversations")
+}
+
+model ConversationParticipant {
+  conversationId String       @map("conversation_id") @db.Uuid
+  userId         String       @map("user_id")
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([conversationId, userId])
+  @@index([userId], map: "idx_conversation_participants_user_id")
+  @@map("ConversationParticipants")
+}
+
+model Message {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversationId String?       @map("conversation_id") @db.Uuid
+  senderId       String?       @map("sender_id")
+  content        String?
+  imageUrl       String?       @map("image_url")
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sender         User?         @relation(fields: [senderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([conversationId], map: "idx_messages_conversation_id")
+  @@index([createdAt], map: "idx_messages_created_at")
+  @@index([senderId], map: "idx_messages_sender_id")
+  @@map("Messages")
+}
+
+model BlockedUser {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  blocked   User     @relation("BlockedUser", fields: [blockedId], references: [id], onDelete: Cascade)
+  blocker   User     @relation("BlockedByUser", fields: [blockerId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+}
+
+model MessageReport {
+  id             String       @id @default(cuid())
+  reporterId     String
+  reportedUserId String
+  conversationId String?
+  reason         String       @db.VarChar(255)
+  description    String?
+  status         ReportStatus @default(OPEN)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  reportedUser   User         @relation("MessageReported", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  reporter       User         @relation("MessageReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([reporterId])
+  @@index([reportedUserId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model MessageRateLimit {
+  id         String   @id @default(cuid())
+  userId     String
+  actionType String   @db.VarChar(50)
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([actionType])
+  @@index([createdAt])
+}
+
+model ConnectionRequest {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  senderId   String?  @map("sender_id")
+  receiverId String?  @map("receiver_id")
+  message    String?
+  status     String?  @default("PENDING")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  receiver   User?    @relation("ConnectionRequestReceiver", fields: [receiverId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sender     User?    @relation("ConnectionRequestSender", fields: [senderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([senderId, receiverId])
+  @@index([receiverId], map: "idx_connection_requests_receiver_id")
+  @@index([status], map: "idx_connection_requests_status")
+  @@map("ConnectionRequests")
+}
+
+model Connection {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userA     String?  @map("user_a")
+  userB     String?  @map("user_b")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  user1     User?    @relation("ConnectionUserA", fields: [userA], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user2     User?    @relation("ConnectionUserB", fields: [userB], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([userA, userB])
+  @@index([userA], map: "idx_connections_user_a")
+  @@index([userB], map: "idx_connections_user_b")
+  @@map("Connections")
+}
+
+model DailyWin {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime @db.Date
+  content   String
+  mood      Int?     @db.SmallInt
+  category  String?  @db.VarChar(50)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([date])
+  @@index([createdAt])
+}
+
+model OwnerNote {
+  id        String   @id @default(cuid())
+  userId    String
+  note      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model UserSession {
+  id           String   @id @default(cuid())
+  userId       String
+  sessionToken String   @unique
+  lastActiveAt DateTime @default(now())
+  userAgent    String?
+  ipAddress    String?  @db.VarChar(50)
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([lastActiveAt])
+  @@index([createdAt])
+}
+
+model ScreeningResult {
+  id            String   @id @default(cuid())
+  userId        String?
+  screeningType String   @db.VarChar(50)
+  score         Int?
+  riskLevel     String?  @db.VarChar(20)
+  completedAt   DateTime @default(now())
+  answers       Json?
+  createdAt     DateTime @default(now())
+  user          User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([screeningType])
+  @@index([riskLevel])
+  @@index([completedAt])
+}
+
+model SearchQuery {
+  id           String   @id @default(cuid())
+  userId       String?
+  query        String   @db.VarChar(500)
+  searchType   String   @db.VarChar(50)
+  resultsCount Int?
+  createdAt    DateTime @default(now())
+  user         User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([searchType])
+  @@index([query])
+  @@index([createdAt])
+}
+
+model DataLineageNode {
+  id            String            @id @default(cuid())
+  datasetId     String?
+  name          String            @db.VarChar(255)
+  type          LineageNodeType
+  metadata      Json?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  upcomingEdges DataLineageEdge[] @relation("SourceNode")
+  outgoingEdges DataLineageEdge[] @relation("TargetNode")
+  dataset       Dataset?          @relation(fields: [datasetId], references: [id])
+
+  @@index([datasetId])
+  @@index([type])
+}
+
+model DataLineageEdge {
+  id                  String          @id @default(cuid())
+  sourceNodeId        String
+  targetNodeId        String
+  transformationLogic String?
+  createdAt           DateTime        @default(now())
+  sourceNode          DataLineageNode @relation("SourceNode", fields: [sourceNodeId], references: [id], onDelete: Cascade)
+  targetNode          DataLineageNode @relation("TargetNode", fields: [targetNodeId], references: [id], onDelete: Cascade)
+
+  @@index([sourceNodeId])
+  @@index([targetNodeId])
+}
+
+model DataQualityRule {
+  id          String              @id @default(cuid())
+  datasetId   String
+  fieldName   String?             @db.VarChar(255)
+  ruleType    DataQualityRuleType
+  name        String              @db.VarChar(255)
+  description String?
+  criteria    Json
+  severity    String              @default("WARNING")
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  executions  DataQualityResult[]
+  dataset     Dataset             @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+
+  @@index([datasetId])
+  @@index([ruleType])
+}
+
+model DataQualityResult {
+  id                  String          @id @default(cuid())
+  ruleId              String
+  status              String
+  recordsChecked      Int             @default(0)
+  failuresFound       Int             @default(0)
+  anomalyScore        Float?
+  failureSample       Json?
+  runDate             DateTime        @default(now())
+  executionDurationMs Int?
+  rule                DataQualityRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([ruleId])
+  @@index([status])
+  @@index([runDate])
+}
+
+model JobExecution {
+  id               String    @id @default(cuid())
+  jobName          String    @db.VarChar(255)
+  status           String
+  source           String?
+  recordsProcessed Int       @default(0)
+  startedAt        DateTime  @default(now())
+  completedAt      DateTime?
+  errorLog         String?
+  metadata         Json?
+
+  @@index([jobName])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model UserConsent {
+  id          String    @id @default(cuid())
+  userId      String
+  consentType String    @db.VarChar(100)
+  version     String    @db.VarChar(20)
+  hasGranted  Boolean   @default(false)
+  grantedAt   DateTime?
+  revokedAt   DateTime?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([consentType])
+  @@index([hasGranted])
+}
+
+model SensitiveAccessLog {
+  id             String   @id @default(cuid())
+  adminUserId    String
+  datasetName    String   @db.VarChar(255)
+  actionType     String
+  recordCount    Int?
+  filterCriteria Json?
+  reason         String?
+  accessedAt     DateTime @default(now())
+  adminUser      User     @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@index([adminUserId])
+  @@index([datasetName])
+  @@index([accessedAt])
+}
+
+model AACVocabulary {
+  id        String      @id @default(cuid())
+  userId    String
+  label     String      @db.VarChar(100)
+  symbol    String      @db.VarChar(255)
+  category  AACCategory @default(CUSTOM)
+  audioText String?     @db.VarChar(255)
+  order     Int         @default(0)
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([category])
+  @@index([order])
+  @@index([isActive])
+}
 
 enum Role {
   PARENT
@@ -113,11 +1065,11 @@ enum NotificationType {
   MENTION
   FOLLOW
   MESSAGE
-  CONNECTION_REQUEST
-  CONNECTION_ACCEPTED
   MODERATION_ACTION
   VERIFICATION_REQUEST
   SYSTEM
+  CONNECTION_REQUEST
+  CONNECTION_ACCEPTED
 }
 
 enum ConnectionRequestStatus {
@@ -139,587 +1091,6 @@ enum ResourceCategory {
   OTHER
 }
 
-// ============================================================================
-// AUTH & USERS
-// ============================================================================
-
-model User {
-  id                    String     @id @default(cuid())
-  email                 String     @unique
-  hashedPassword        String?
-  emailVerified         Boolean    @default(false)
-  emailVerifiedAt       DateTime?
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-  lastLoginAt           DateTime?
-  lastActiveAt          DateTime?  // For real-time online status
-  
-  // Ban status
-  isBanned              Boolean    @default(false)
-  bannedAt              DateTime?
-  bannedReason          String?    @db.Text
-
-  // Relations
-  profile               Profile?
-  ownerNotes            OwnerNote[]
-  sessions              UserSession[]
-  screeningResults      ScreeningResult[]
-  searchQueries         SearchQuery[]
-  userRoles             UserRole[]
-  posts                 Post[]
-  comments              Comment[]
-  votes                 Vote[]
-  bookmarks             Bookmark[]
-  reports               Report[]         @relation("ReporterUser")
-  moderationActions     ModerationAction[] @relation("ModeratorUser")
-  moderationTargets     ModerationAction[] @relation("TargetUser")
-  modActionLogs         ModActionLog[]   @relation("ModActionLogModerator")
-  providerReviews       ProviderReview[]
-  claimedProviders      Provider[]
-  aiConversations       AIConversation[]
-  aiMessages            AIMessage[]
-  notifications         Notification[]
-  auditLogs             AuditLog[]
-  rateLimitLogs         RateLimitLog[]
-  createdResources      Resource[]
-  emailVerifications    EmailVerification[]
-  savedResources        SavedResource[]
-  emailVerificationTokens EmailVerificationToken[]
-  passwordResetTokens   PasswordResetToken[]
-  
-  // Private messaging relations
-  conversationsAsUserA  Conversation[]   @relation("ConversationUserA")
-  conversationsAsUserB  Conversation[]   @relation("ConversationUserB")
-  sentDirectMessages    DirectMessage[]  @relation("DirectMessageSender")
-  blockedUsers          BlockedUser[]    @relation("BlockedByUser")
-  blockedByUsers        BlockedUser[]    @relation("BlockedUser")
-  messageReportsFiled   MessageReport[]  @relation("MessageReporter")
-  messageReportsReceived MessageReport[] @relation("MessageReported")
-  messageRateLimits     MessageRateLimit[]
-  
-  // Connection requests (LinkedIn-style)
-  sentConnectionRequests     ConnectionRequest[] @relation("ConnectionRequestSender")
-  receivedConnectionRequests ConnectionRequest[] @relation("ConnectionRequestReceiver")
-  
-
-  // Daily wins journal
-  dailyWins                  DailyWin[]
-
-  // Governance
-  consents                   UserConsent[]
-  sensitiveAccessLogs        SensitiveAccessLog[]
-
-  // AAC Communicator
-  aacVocabulary              AACVocabulary[]
-
-  // Search Optimization
-  userFinder                 UserFinder?
-
-  @@index([email])
-  @@index([createdAt])
-}
-
-model UserFinder {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  username    String   @unique
-  displayName String
-  keywords    String   @db.Text // Normalized for search: "username displayname"
-  avatarUrl   String?
-  updatedAt   DateTime @updatedAt
-
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([keywords])
-}
-
-// Email verification with OTP
-model EmailVerification {
-  id                    String     @id @default(cuid())
-  email                 String
-  otp                   String     @db.VarChar(6)
-  userId                String?
-  expiresAt             DateTime
-  verified              Boolean    @default(false)
-  verifiedAt            DateTime?
-  createdAt             DateTime   @default(now())
-
-  user                  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([email])
-  @@index([otp])
-  @@index([expiresAt])
-  @@index([verified])
-}
-
-model EmailVerificationToken {
-  id        String   @id @default(cuid())
-  userId    String
-  tokenHash String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([tokenHash])
-  @@index([expiresAt])
-  @@index([userId])
-}
-
-model PasswordResetToken {
-  id         String   @id @default(cuid())
-  userId     String
-  tokenHash  String   @unique
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  usedAt     DateTime?
-
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([expiresAt])
-}
-
-model Profile {
-  id                    String     @id @default(cuid())
-  userId                String     @unique
-  username              String     @unique @db.VarChar(50)
-  displayName           String     @db.VarChar(255)
-  bio                   String?    @db.Text
-  avatarUrl             String?
-  location              String?
-  website               String?
-  verifiedTherapist     Boolean    @default(false)
-  verifiedAt            DateTime?
-  shadowbanned          Boolean    @default(false)
-  shadowbannedAt        DateTime?
-  notificationPrefs     Json       @default("{}")
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([username])
-  @@index([verifiedTherapist])
-  @@index([shadowbanned])
-}
-
-model UserRole {
-  id                    String     @id @default(cuid())
-  userId                String
-  role                  Role
-  grantedAt             DateTime   @default(now())
-  grantedBy             String?
-  createdAt             DateTime   @default(now())
-
-  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, role])
-  @@index([userId])
-  @@index([role])
-  @@index([createdAt])
-}
-
-model AuditLog {
-  id                    String     @id @default(cuid())
-  userId                String
-  action                String
-  targetType            String?
-  targetId              String?
-  changes               Json?
-  ipAddress             String?
-  userAgent             String?
-  createdAt             DateTime   @default(now())
-
-  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([targetType])
-  @@index([targetId])
-  @@index([createdAt])
-}
-
-// ============================================================================
-// COMMUNITY - POSTS, COMMENTS, VOTES
-// ============================================================================
-
-model Category {
-  id                    String     @id @default(cuid())
-  name                  String     @unique @db.VarChar(100)
-  slug                  String     @unique @db.VarChar(100)
-  description           String?    @db.Text
-  icon                  String?
-  order                 Int        @default(0)
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  posts                 Post[]
-
-  @@index([slug])
-  @@index([order])
-}
-
-model Tag {
-  id                    String     @id @default(cuid())
-  name                  String     @unique @db.VarChar(50)
-  slug                  String     @unique @db.VarChar(50)
-  description           String?
-  color                 String?    @db.VarChar(7)
-  createdAt             DateTime   @default(now())
-
-  posts                 Post[]
-
-  @@index([slug])
-  @@index([name])
-}
-
-model Post {
-  id                    String     @id @default(cuid())
-  title                 String     @db.VarChar(255)
-  content               String     @db.Text
-  images                String[]   // For community post image attachments
-  authorId              String?
-  isAnonymous           Boolean    @default(false)
-  categoryId            String
-  status                PostStatus @default(ACTIVE)
-  viewCount             Int        @default(0)
-  commentCount          Int        @default(0)
-  voteScore             Int        @default(0)
-  isPinned              Boolean    @default(false)
-  isLocked              Boolean    @default(false)
-  pinnedAt              DateTime?
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  author                User?      @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  category              Category   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  tags                  Tag[]
-  comments              Comment[]
-  bookmarks             Bookmark[]
-  moderationActions     ModerationAction[]
-
-  @@index([authorId])
-  @@index([categoryId])
-  @@index([status])
-  @@index([createdAt])
-  @@index([updatedAt])
-  @@index([viewCount])
-}
-
-model Comment {
-  id                    String     @id @default(cuid())
-  content               String     @db.Text
-  authorId              String
-  postId                String
-  parentCommentId       String?
-  status                CommentStatus @default(ACTIVE)
-  isAnonymous           Boolean    @default(false)
-  voteScore             Int        @default(0)
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  author                User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  post                  Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
-  parentComment         Comment?   @relation("ChildComments", fields: [parentCommentId], references: [id], onDelete: Cascade)
-  childComments         Comment[]  @relation("ChildComments")
-  moderationActions     ModerationAction[]
-
-  @@index([authorId])
-  @@index([postId])
-  @@index([parentCommentId])
-  @@index([status])
-  @@index([createdAt])
-}
-
-model Vote {
-  id                    String     @id @default(cuid())
-  userId                String
-  targetType            VoteType
-  targetId              String
-  value                 Int        @db.SmallInt // +1 or -1
-  createdAt             DateTime   @default(now())
-
-  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, targetId, targetType])
-  @@index([userId])
-  @@index([targetId])
-  @@index([targetType])
-  @@index([createdAt])
-}
-
-model Bookmark {
-  id                    String     @id @default(cuid())
-  userId                String
-  postId                String
-  createdAt             DateTime   @default(now())
-
-  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post                  Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, postId])
-  @@index([userId])
-  @@index([postId])
-  @@index([createdAt])
-}
-
-model Report {
-  id                    String     @id @default(cuid())
-  reporterId            String
-  targetType            ReportTargetType
-  targetId              String
-  reason                ReportReason
-  description           String?    @db.Text
-  status                ReportStatus @default(OPEN)
-  reviewedBy            String?
-  reviewedAt            DateTime?
-  notes                 String?    @db.Text
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  reporter              User       @relation("ReporterUser", fields: [reporterId], references: [id], onDelete: Cascade)
-
-  @@index([reporterId])
-  @@index([targetType])
-  @@index([targetId])
-  @@index([status])
-  @@index([createdAt])
-}
-
-model ModerationAction {
-  id                    String     @id @default(cuid())
-  action                ModerationActionType
-  actorId               String
-  targetUserId          String?
-  postId                String?
-  commentId             String?
-  notes                 String?    @db.Text
-  createdAt             DateTime   @default(now())
-
-  actor                 User       @relation("ModeratorUser", fields: [actorId], references: [id], onDelete: Cascade)
-  targetUser            User?      @relation("TargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
-  post                  Post?      @relation(fields: [postId], references: [id], onDelete: Cascade)
-  comment               Comment?   @relation(fields: [commentId], references: [id], onDelete: Cascade)
-
-  @@index([actorId])
-  @@index([targetUserId])
-  @@index([postId])
-  @@index([commentId])
-  @@index([action])
-  @@index([createdAt])
-}
-
-model ModActionLog {
-  id                    String     @id @default(cuid())
-  actionType            ModerationActionType
-  targetType            ReportTargetType
-  targetId              String
-  targetTitle           String?    @db.VarChar(255)
-  moderatorId           String
-  reason                String?    @db.VarChar(255)
-  notes                 String?    @db.Text
-  createdAt             DateTime   @default(now())
-
-  moderator             User       @relation("ModActionLogModerator", fields: [moderatorId], references: [id], onDelete: Cascade)
-
-  @@index([moderatorId])
-  @@index([actionType])
-  @@index([targetType])
-  @@index([targetId])
-  @@index([createdAt])
-}
-
-// ============================================================================
-// PROVIDERS DIRECTORY
-// ============================================================================
-
-model Provider {
-  id                    String     @id @default(cuid())
-  externalSource        ProviderSource
-  externalId            String?    @db.VarChar(255)
-  name                  String     @db.VarChar(255)
-  phone                  String?    @db.VarChar(20)
-  address               String?    @db.Text
-  city                  String?    @db.VarChar(100)
-  state                 String?    @db.VarChar(50)
-  zipCode               String?    @db.VarChar(10)
-  latitude              Float?
-  longitude             Float?
-  website               String?
-  email                 String?
-  specialties           ProviderSpecialty[]
-  rating                Decimal?   @db.Decimal(3, 2)
-  totalReviews          Int        @default(0)
-  isVerified            Boolean    @default(false)
-  verifiedAt            DateTime?
-  claimedByUserId       String?
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  reviews               ProviderReview[]
-  claimedByUser         User?      @relation(fields: [claimedByUserId], references: [id], onDelete: SetNull)
-  claimRequests         ProviderClaimRequest[]
-
-  @@unique([externalSource, externalId])
-  @@index([externalSource])
-  @@index([name])
-  @@index([city])
-  @@index([isVerified])
-  @@index([createdAt])
-  @@index([latitude, longitude])
-}
-
-model ProviderReview {
-  id                    String     @id @default(cuid())
-  providerId            String
-  authorId              String
-  rating                Int        @db.SmallInt // 1-5
-  content               String?    @db.Text
-  status                String     @default("ACTIVE")
-  helpful               Int        @default(0)
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  provider              Provider   @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  author                User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  @@unique([providerId, authorId])
-  @@index([providerId])
-  @@index([authorId])
-  @@index([rating])
-  @@index([createdAt])
-}
-
-model ProviderClaimRequest {
-  id                    String     @id @default(cuid())
-  providerId            String
-  requesterUserId       String
-  status                ProviderClaimStatus @default(PENDING)
-  message               String?    @db.Text
-  reviewedAt            DateTime?
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  provider              Provider   @relation(fields: [providerId], references: [id], onDelete: Cascade)
-
-  @@unique([providerId, requesterUserId])
-  @@index([providerId])
-  @@index([status])
-  @@index([createdAt])
-}
-
-// ============================================================================
-// AI CHAT
-// ============================================================================
-
-model AIConversation {
-  id                    String     @id @default(cuid())
-  userId                String
-  title                 String     @db.VarChar(255)
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages              AIMessage[]
-
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model AIMessage {
-  id                    String     @id @default(cuid())
-  conversationId        String
-  userId                String
-  role                  String     // "user", "assistant", "system"
-  content               String     @db.Text
-  tokens                Int?
-  createdAt             DateTime   @default(now())
-
-  conversation          AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([conversationId])
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model RateLimitLog {
-  id                    String     @id @default(cuid())
-  userId                String
-  actionType            String     @db.VarChar(50)
-  createdAt             DateTime   @default(now())
-
-  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([actionType])
-  @@index([createdAt])
-}
-
-// ============================================================================
-// NOTIFICATIONS
-// ============================================================================
-
-model Notification {
-  id                    String     @id @default(cuid())
-  userId                String
-  type                  NotificationType
-  payload               Json
-  readAt                DateTime?
-  createdAt             DateTime   @default(now())
-
-  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([readAt])
-  @@index([createdAt])
-}
-
-// ============================================================================
-// RESOURCES
-// ============================================================================
-
-model Resource {
-  id                    String     @id @default(cuid())
-  title                 String     @db.VarChar(255)
-  content               String?    @db.Text
-  link                  String?
-  category              ResourceCategory
-  createdBy             String
-  status                String     @default("ACTIVE")
-  views                 Int        @default(0)
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  creator               User       @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-
-  savedBy               SavedResource[]
-
-  @@index([createdBy])
-  @@index([category])
-  @@index([status])
-  @@index([createdAt])
-}
-
-model SavedResource {
-  id                    String     @id @default(cuid())
-  userId                String
-  resourceId            String
-  createdAt             DateTime   @default(now())
-
-  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  resource              Resource   @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, resourceId])
-  @@index([userId])
-  @@index([resourceId])
-}
-
-// ============================================================================
-// DATA CATALOG & GOVERNANCE (Enterprise Internal)
-// ============================================================================
-
 enum DataSensitivity {
   PUBLIC
   INTERNAL
@@ -727,97 +1098,6 @@ enum DataSensitivity {
   PII
   PHI
 }
-
-model DataOwner {
-  id                    String     @id @default(cuid())
-  teamName              String     @unique @db.VarChar(100)
-  contactEmail          String     @db.VarChar(255)
-  slackChannel          String?    @db.VarChar(100)
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  datasets              Dataset[]
-
-  @@index([teamName])
-}
-
-model Dataset {
-  id                    String     @id @default(cuid())
-  name                  String     @unique @db.VarChar(255)
-  description           String     @db.Text
-  domain                String     @db.VarChar(100)
-  ownerTeam             String
-  sensitivity           DataSensitivity @default(INTERNAL)
-  retentionPolicy       String?    @db.VarChar(100) // e.g., "7 years", "Indefinite"
-  updateFrequency       String?    @db.VarChar(100) // e.g., "Daily", "Real-time"
-  tags                  String[]
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  owner                 DataOwner  @relation(fields: [ownerTeam], references: [teamName], onDelete: Restrict)
-  fields                DatasetField[]
-  glossaryTerms         DatasetGlossaryTerm[]
-  qualityRules          DataQualityRule[]
-  lineageNodes          DataLineageNode[]
-
-  @@index([domain])
-
-  @@index([sensitivity])
-  @@index([name])
-  @@index([ownerTeam])
-  @@index([createdAt])
-}
-
-model DatasetField {
-  id                    String     @id @default(cuid())
-  datasetId             String
-  name                  String     @db.VarChar(255)
-  type                  String     @db.VarChar(100)
-  description           String     @db.Text
-  isNullable            Boolean    @default(true)
-  sensitivity           DataSensitivity @default(INTERNAL)
-  examples              String?    @db.Text
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  dataset               Dataset    @relation(fields: [datasetId], references: [id], onDelete: Cascade)
-
-  @@unique([datasetId, name])
-  @@index([datasetId])
-  @@index([sensitivity])
-  @@index([name])
-}
-
-model BusinessGlossaryTerm {
-  id                    String     @id @default(cuid())
-  name                  String     @unique @db.VarChar(100)
-  definition            String     @db.Text
-  examples              String?    @db.Text
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  datasets              DatasetGlossaryTerm[]
-
-  @@index([name])
-}
-
-model DatasetGlossaryTerm {
-  id                    String     @id @default(cuid())
-  datasetId             String
-  termId                String
-  createdAt             DateTime   @default(now())
-
-  dataset               Dataset    @relation(fields: [datasetId], references: [id], onDelete: Cascade)
-  term                  BusinessGlossaryTerm @relation(fields: [termId], references: [id], onDelete: Cascade)
-
-  @@unique([datasetId, termId])
-  @@index([datasetId])
-  @@index([termId])
-}
-
-// ============================================================================
-// THERAPY SESSION TRACKING
-// ============================================================================
 
 enum TherapyType {
   ABA
@@ -830,263 +1110,6 @@ enum TherapyType {
   OTHER
 }
 
-model TherapySession {
-  id                    String       @id @default(cuid())
-  userId                String
-  childName             String       @db.VarChar(100)
-  therapistName         String       @db.VarChar(100)
-  therapyType           TherapyType
-  sessionDate           DateTime
-  duration              Int          @default(60) // minutes
-  notes                 String?      @db.Text
-  wentWell              String?      @db.Text
-  toWorkOn              String?      @db.Text
-  mood                  Int?         @db.SmallInt // 1-5 scale
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
-
-  @@index([userId])
-  @@index([sessionDate])
-  @@index([therapyType])
-  @@index([createdAt])
-}
-
-// ============================================================================
-// EMERGENCY INFO CARDS
-// ============================================================================
-
-model EmergencyCard {
-  id                    String       @id @default(cuid())
-  userId                String
-  childName             String       @db.VarChar(100)
-  childAge              Int?
-  diagnosis             String?      @db.VarChar(255)
-  triggers              String?      @db.Text
-  calmingStrategies     String?      @db.Text
-  communication         String?      @db.Text
-  medications           String?      @db.Text
-  allergies             String?      @db.Text
-  emergencyContact1Name String?      @db.VarChar(100)
-  emergencyContact1Phone String?     @db.VarChar(20)
-  emergencyContact2Name String?      @db.VarChar(100)
-  emergencyContact2Phone String?     @db.VarChar(20)
-  doctorName            String?      @db.VarChar(100)
-  doctorPhone           String?      @db.VarChar(20)
-  additionalNotes       String?      @db.Text
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
-
-  @@index([userId])
-  @@index([createdAt])
-}
-
-// ============================================================================
-// PRIVATE MESSAGING
-// ============================================================================
-
-model Conversation {
-  id                    String          @id @default(cuid())
-  userAId               String
-  userBId               String
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
-
-  userA                 User            @relation("ConversationUserA", fields: [userAId], references: [id], onDelete: Cascade)
-  userB                 User            @relation("ConversationUserB", fields: [userBId], references: [id], onDelete: Cascade)
-  messages              DirectMessage[]
-
-  @@unique([userAId, userBId])
-  @@index([userAId])
-  @@index([userBId])
-  @@index([updatedAt])
-}
-
-model DirectMessage {
-  id                    String          @id @default(cuid())
-  conversationId        String
-  senderId              String
-  content               String?         @db.Text
-  attachmentUrl         String?
-  attachmentType        String?         // "image", "file", "audio"
-  createdAt             DateTime        @default(now())
-  deletedAt             DateTime?       // Soft delete for everyone
-  deletedBySender       Boolean         @default(false) // Delete for me (sender)
-  deletedByReceiver     Boolean         @default(false) // Delete for me (receiver)
-  readAt                DateTime?
-
-  conversation          Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender                User            @relation("DirectMessageSender", fields: [senderId], references: [id], onDelete: Cascade)
-
-  @@index([conversationId])
-  @@index([senderId])
-  @@index([createdAt])
-  @@index([deletedAt])
-  @@index([readAt])
-}
-
-model BlockedUser {
-  id                    String          @id @default(cuid())
-  blockerId             String
-  blockedId             String
-  createdAt             DateTime        @default(now())
-
-  blocker               User            @relation("BlockedByUser", fields: [blockerId], references: [id], onDelete: Cascade)
-  blocked               User            @relation("BlockedUser", fields: [blockedId], references: [id], onDelete: Cascade)
-
-  @@unique([blockerId, blockedId])
-  @@index([blockerId])
-  @@index([blockedId])
-}
-
-model MessageReport {
-  id                    String          @id @default(cuid())
-  reporterId            String
-  reportedUserId        String
-  conversationId        String?
-  reason                String          @db.VarChar(255)
-  description           String?         @db.Text
-  status                ReportStatus    @default(OPEN)
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
-
-  reporter              User            @relation("MessageReporter", fields: [reporterId], references: [id], onDelete: Cascade)
-  reportedUser          User            @relation("MessageReported", fields: [reportedUserId], references: [id], onDelete: Cascade)
-
-  @@index([reporterId])
-  @@index([reportedUserId])
-  @@index([status])
-  @@index([createdAt])
-}
-
-model MessageRateLimit {
-  id                    String          @id @default(cuid())
-  userId                String
-  actionType            String          @db.VarChar(50)
-  createdAt             DateTime        @default(now())
-
-  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([actionType])
-  @@index([createdAt])
-}
-
-// LinkedIn-style connection requests
-model ConnectionRequest {
-  id                    String                    @id @default(cuid())
-  senderId              String
-  receiverId            String
-  message               String?                   @db.VarChar(300)
-  status                ConnectionRequestStatus   @default(PENDING)
-  createdAt             DateTime                  @default(now())
-  updatedAt             DateTime                  @updatedAt
-  respondedAt           DateTime?
-  seenAt                DateTime?
-
-  sender                User                      @relation("ConnectionRequestSender", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver              User                      @relation("ConnectionRequestReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
-
-  @@unique([senderId, receiverId])
-  @@index([senderId])
-  @@index([receiverId])
-  @@index([status])
-  @@index([createdAt])
-  @@index([seenAt])
-}
-
-// ============================================================================
-// DAILY WINS JOURNAL
-// ============================================================================
-
-model DailyWin {
-  id                    String     @id @default(cuid())
-  userId                String
-  date                  DateTime   @db.Date
-  content               String     @db.Text
-  mood                  Int?       @db.SmallInt // 1-5 mood scale
-  category              String?    @db.VarChar(50) // optional category like "therapy", "school", "social", etc.
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([date])
-  @@index([createdAt])
-}
-
-// ============================================================================
-// OWNER DASHBOARD FEATURES
-// ============================================================================
-
-model OwnerNote {
-  id                    String     @id @default(cuid())
-  userId                String
-  note                  String     @db.Text
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model UserSession {
-  id                    String     @id @default(cuid())
-  userId                String
-  sessionToken          String     @unique
-  lastActiveAt          DateTime   @default(now())
-  userAgent             String?    @db.Text
-  ipAddress             String?    @db.VarChar(50)
-  createdAt             DateTime   @default(now())
-
-  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([lastActiveAt])
-  @@index([createdAt])
-}
-
-model ScreeningResult {
-  id                    String     @id @default(cuid())
-  userId                String?
-  screeningType         String     @db.VarChar(50) // e.g., "M-CHAT", "ADOS", "AQ"
-  score                 Int?
-  riskLevel             String?    @db.VarChar(20) // e.g., "low", "medium", "high"
-  completedAt           DateTime   @default(now())
-  answers               Json?
-  createdAt             DateTime   @default(now())
-
-  user                  User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([screeningType])
-  @@index([riskLevel])
-  @@index([completedAt])
-}
-
-model SearchQuery {
-  id                    String     @id @default(cuid())
-  userId                String?
-  query                 String     @db.VarChar(500)
-  searchType            String     @db.VarChar(50) // e.g., "forum", "providers", "resources"
-  resultsCount          Int?
-  createdAt             DateTime   @default(now())
-
-  user                  User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([searchType])
-  @@index([query])
-  @@index([createdAt])
-}
-
-
-// ============================================================================
-// DATA LINEAGE
-// ============================================================================
-
 enum LineageNodeType {
   SOURCE
   PROCESS
@@ -1094,151 +1117,14 @@ enum LineageNodeType {
   REPORT
 }
 
-model DataLineageNode {
-  id                    String     @id @default(cuid())
-  datasetId             String?
-  name                  String     @db.VarChar(255)
-  type                  LineageNodeType
-  metadata              Json?
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  dataset               Dataset?   @relation(fields: [datasetId], references: [id], onDelete: SetNull)
-  upcomingEdges         DataLineageEdge[] @relation("SourceNode")
-  outgoingEdges         DataLineageEdge[] @relation("TargetNode")
-
-  @@index([datasetId])
-  @@index([type])
-}
-
-model DataLineageEdge {
-  id                    String     @id @default(cuid())
-  sourceNodeId          String
-  targetNodeId          String
-  transformationLogic   String?    @db.Text
-  createdAt             DateTime   @default(now())
-
-  sourceNode            DataLineageNode @relation("SourceNode", fields: [sourceNodeId], references: [id], onDelete: Cascade)
-  targetNode            DataLineageNode @relation("TargetNode", fields: [targetNodeId], references: [id], onDelete: Cascade)
-
-  @@index([sourceNodeId])
-  @@index([targetNodeId])
-}
-
-// ============================================================================
-// DATA QUALITY & ML ANOMALY DETECTION
-// ============================================================================
-
 enum DataQualityRuleType {
   NULL_CHECK
   REGEX_MATCH
   RANGE_CHECK
   FOREIGN_KEY
-  ANOMALY_DETECTION // ML-based Z-Score or Isolation Forest
+  ANOMALY_DETECTION
   CUSTOM_SQL
 }
-
-model DataQualityRule {
-  id                    String     @id @default(cuid())
-  datasetId             String
-  fieldName             String?    @db.VarChar(255)
-  ruleType              DataQualityRuleType
-  name                  String     @db.VarChar(255)
-  description           String?    @db.Text
-  criteria              Json       // Stores params like { min: 0, max: 100 } or { regex: "^[A-Z]" }
-  severity              String     @default("WARNING") // WARNING, CRITICAL
-  isActive              Boolean    @default(true)
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-
-  dataset               Dataset    @relation(fields: [datasetId], references: [id], onDelete: Cascade)
-  executions            DataQualityResult[]
-
-  @@index([datasetId])
-  @@index([ruleType])
-}
-
-model DataQualityResult {
-  id                    String     @id @default(cuid())
-  ruleId                String
-  status                String     // PASS, FAIL, ERROR
-  recordsChecked        Int        @default(0)
-  failuresFound         Int        @default(0)
-  anomalyScore          Float?     // For ML rules
-  failureSample         Json?      // Store IDs or samples of failed rows
-  runDate               DateTime   @default(now())
-  executionDurationMs   Int?
-
-  rule                  DataQualityRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
-
-  @@index([ruleId])
-  @@index([status])
-  @@index([runDate])
-}
-
-// ============================================================================
-// PIPELINE & JOB MONITORING
-// ============================================================================
-
-model JobExecution {
-  id                    String     @id @default(cuid())
-  jobName               String     @db.VarChar(255)
-  status                String     // RUNNING, SUCCESS, FAILED
-  source                String?    // e.g., "PythonService", "NextJS", "Cron"
-  recordsProcessed      Int        @default(0)
-  startedAt             DateTime   @default(now())
-  completedAt           DateTime?
-  errorLog              String?    @db.Text
-  metadata              Json?
-
-  @@index([jobName])
-  @@index([status])
-  @@index([startedAt])
-}
-
-// ============================================================================
-// GOVERNANCE & COMPLIANCE
-// ============================================================================
-
-model UserConsent {
-  id                    String     @id @default(cuid())
-  userId                String
-  consentType           String     @db.VarChar(100) // e.g., "analytics_tracking", "ai_training", "research"
-  version               String     @db.VarChar(20)
-  hasGranted            Boolean    @default(false)
-  grantedAt             DateTime?
-  revokedAt             DateTime?
-  ipAddress             String?
-  userAgent             String?
-  createdAt             DateTime   @default(now())
-
-  user                  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([consentType])
-  @@index([hasGranted])
-}
-
-model SensitiveAccessLog {
-  id                    String     @id @default(cuid())
-  adminUserId           String
-  datasetName           String     @db.VarChar(255)
-  actionType            String     // VIEW, EXPORT, UPDATE
-  recordCount           Int?
-  filterCriteria        Json?
-  reason                String?    @db.Text
-  accessedAt            DateTime   @default(now())
-
-  adminUser             User       @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
-
-  @@index([adminUserId])
-  @@index([datasetName])
-  @@index([accessedAt])
-}
-
-// ============================================================================
-// AAC COMMUNICATOR - Augmentative Alternative Communication
-// ============================================================================
 
 enum AACCategory {
   CORE
@@ -1248,24 +1134,4 @@ enum AACCategory {
   SOCIAL
   ACTIONS
   CUSTOM
-}
-
-model AACVocabulary {
-  id                    String       @id @default(cuid())
-  userId                String
-  label                 String       @db.VarChar(100)
-  symbol                String       @db.VarChar(255) // Emoji or custom image URL
-  category              AACCategory  @default(CUSTOM)
-  audioText             String?      @db.VarChar(255) // Custom pronunciation override
-  order                 Int          @default(0)
-  isActive              Boolean      @default(true)
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
-
-  user                  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([category])
-  @@index([order])
-  @@index([isActive])
 }

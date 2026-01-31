@@ -58,26 +58,44 @@ export async function PATCH(
           where: { id },
           data: {
             status: "ACCEPTED",
-            respondedAt: new Date(),
           },
         });
 
-        const [userAId, userBId] = [connectionRequest.senderId, connectionRequest.receiverId].sort();
-        
+        // Create persistent Connection record
+        // Sort IDs to ensure uniqueness constraint works (user_a < user_b usually preferred but unique constraint handles both if ordered)
+        // Our constraint is unique([userA, userB]). We should sort.
+        const [userA, userB] = [connectionRequest.senderId, connectionRequest.receiverId].sort();
+
+        // Idempotent creation of Connection
+        const existingConnection = await tx.connection.findUnique({
+          where: { userA_userB: { userA, userB } }
+        });
+
+        if (!existingConnection) {
+          await tx.connection.create({
+            data: { userA, userB }
+          });
+        }
+
+        // Check for existing conversation via participants
         const existingConversation = await tx.conversation.findFirst({
           where: {
-            OR: [
-              { userAId: connectionRequest.senderId, userBId: connectionRequest.receiverId },
-              { userAId: connectionRequest.receiverId, userBId: connectionRequest.senderId },
-            ],
-          },
+            AND: [
+              { participants: { some: { userId: connectionRequest.senderId } } },
+              { participants: { some: { userId: connectionRequest.receiverId } } }
+            ]
+          }
         });
 
         if (!existingConversation) {
           await tx.conversation.create({
             data: {
-              userAId,
-              userBId,
+              participants: {
+                create: [
+                  { userId: connectionRequest.senderId },
+                  { userId: connectionRequest.receiverId }
+                ]
+              }
             },
           });
         }
@@ -91,7 +109,6 @@ export async function PATCH(
         where: { id },
         data: {
           status: "DECLINED",
-          respondedAt: new Date(),
         },
       });
 

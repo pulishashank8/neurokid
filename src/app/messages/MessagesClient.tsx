@@ -283,6 +283,8 @@ function MessagesContent() {
 
   // File Upload State
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadingFile, setUploadingFile] = useState(false);
 
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
@@ -322,50 +324,34 @@ function MessagesContent() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("File size limit is 2MB");
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size limit is 5MB");
       return;
     }
 
-    setUploadingFile(true);
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const uploadRes = await fetch("/api/upload", {
-        method: "POST",
-        body: formData
-      });
-
-      if (!uploadRes.ok) throw new Error("Upload failed");
-      const { url, type } = await uploadRes.json();
-
-      // Send message with attachment
-      const res = await fetch(`/api/messages/conversations/${selectedConversation}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: newMessage.trim(),
-          attachmentUrl: url,
-          attachmentType: type.startsWith("image/") ? "image" : "file"
-        }),
-      });
-
-      if (res.ok) {
-        setNewMessage("");
-        if (selectedConversation) fetchMessages(selectedConversation);
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to upload file");
-    } finally {
-      setUploadingFile(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Only images (JPG, PNG, WEBP) are allowed");
+      return;
     }
+
+    setSelectedFile(file);
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+
+    // Clear input so same file can be selected again if needed (though we just selected it)
+    e.target.value = "";
+  };
+
+  const clearSelection = () => {
+    setSelectedFile(null);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -395,6 +381,13 @@ function MessagesContent() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Clean up preview URL on unmount or change
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   const fetchConversations = async () => {
     try {
@@ -577,22 +570,30 @@ function MessagesContent() {
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedConversation || sendingMessage) return;
+    if ((!newMessage.trim() && !selectedFile) || !selectedConversation || sendingMessage) return;
 
     setSendingMessage(true);
     try {
+      const formData = new FormData();
+      formData.append("content", newMessage.trim());
+      if (selectedFile) {
+        formData.append("image", selectedFile);
+      }
+
       const res = await fetch(`/api/messages/conversations/${selectedConversation}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: newMessage.trim() }),
+        body: formData,
+        // Content-Type is set automatically by fetch when using FormData
       });
 
       if (res.ok) {
         setNewMessage("");
+        clearSelection();
         fetchMessages(selectedConversation);
         fetchConversations();
       } else {
-        toast.error("Failed to send message");
+        const data = await res.json();
+        toast.error(data.error || "Failed to send message");
       }
     } catch {
       toast.error("Failed to send message");
@@ -995,6 +996,21 @@ function MessagesContent() {
                     )))}
                   <div ref={messagesEndRef} />
                 </div>
+
+                {/* Image Preview */}
+                {previewUrl && (
+                  <div className="px-4 pt-3 pb-1 bg-gray-100 dark:bg-[#202c33] border-t border-gray-200 dark:border-gray-800 flex justify-start">
+                    <div className="relative group">
+                      <img src={previewUrl} alt="Preview" className="h-24 w-auto rounded-xl object-cover border-2 border-emerald-500/30 shadow-sm" />
+                      <button
+                        onClick={clearSelection}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-md hover:bg-red-600 transition-all transform hover:scale-110 active:scale-95"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Input Area */}
                 <div className="p-3 bg-gray-100 dark:bg-[#202c33] border-t border-gray-200 dark:border-gray-800 flex items-end gap-2">

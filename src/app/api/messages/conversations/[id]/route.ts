@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { createClient } from "@supabase/supabase-js";
+
+// Initialize Supabase Client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function checkRateLimit(userId: string, actionType: string, maxCount: number, windowMinutes: number): Promise<boolean> {
   const windowStart = new Date(Date.now() - windowMinutes * 60 * 1000);
@@ -24,17 +30,40 @@ async function logRateLimit(userId: string, actionType: string): Promise<void> {
 }
 
 async function verifyConversationAccess(conversationId: string, userId: string) {
+  // Check if user is a participant
+  const isParticipant = await prisma.conversationParticipant.findFirst({
+    where: { conversationId, userId }
+  });
+
+  if (!isParticipant) {
+    return { authorized: false, error: "Access denied", status: 403 };
+  }
+
   const conversation = await prisma.conversation.findUnique({
     where: { id: conversationId },
-    select: { id: true, userAId: true, userBId: true }
+    include: {
+      participants: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              lastActiveAt: true,
+              profile: {
+                select: {
+                  username: true,
+                  displayName: true,
+                  avatarUrl: true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   });
 
   if (!conversation) {
     return { authorized: false, error: "Conversation not found", status: 404 };
-  }
-
-  if (conversation.userAId !== userId && conversation.userBId !== userId) {
-    return { authorized: false, error: "Access denied", status: 403 };
   }
 
   return { authorized: true, conversation };
@@ -62,60 +91,19 @@ export async function GET(
     const cursor = searchParams.get("cursor");
     const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
 
-    const conversation = await prisma.conversation.findUnique({
-      where: { id: conversationId },
-      include: {
-        userA: {
-          select: {
-            id: true,
-            lastActiveAt: true,
-            profile: {
-              select: {
-                username: true,
-                displayName: true,
-                avatarUrl: true
-              }
-            }
-          }
-        },
-        userB: {
-          select: {
-            id: true,
-            lastActiveAt: true,
-            profile: {
-              select: {
-                username: true,
-                displayName: true,
-                avatarUrl: true
-              }
-            }
-          }
-        }
-      }
-    });
+    const conversation = access.conversation!;
+    // Identify other user (assuming 1-on-1 for now, or just pick the first other one)
+    const otherParticipant = conversation.participants.find(p => p.userId !== userId);
+    const otherUser = otherParticipant ? otherParticipant.user : {
+      id: "unknown",
+      profile: { username: "Unknown", displayName: "Unknown User", avatarUrl: null },
+      lastActiveAt: null
+    };
 
-    const otherUser = conversation!.userAId === userId ? conversation!.userB : conversation!.userA;
-
-    // Mark messages as read
-    await prisma.directMessage.updateMany({
+    // Fetch messages using NEW schema
+    const messages = await prisma.message.findMany({
       where: {
-        conversationId,
-        senderId: otherUser.id,
-        readAt: null
-      },
-      data: {
-        readAt: new Date()
-      }
-    });
-
-    const messages = await prisma.directMessage.findMany({
-      where: {
-        conversationId,
-        deletedAt: null,
-        OR: [
-          { senderId: userId, deletedBySender: false },
-          { senderId: { not: userId }, deletedByReceiver: false }
-        ]
+        conversationId
       },
       orderBy: { createdAt: "desc" },
       take: limit + 1,
@@ -125,9 +113,7 @@ export async function GET(
         content: true,
         senderId: true,
         createdAt: true,
-        readAt: true,
-        attachmentUrl: true,
-        attachmentType: true
+        imageUrl: true
       }
     });
 
@@ -135,6 +121,7 @@ export async function GET(
     const paginatedMessages = hasMore ? messages.slice(0, -1) : messages;
     const nextCursor = hasMore ? paginatedMessages[paginatedMessages.length - 1]?.id : null;
 
+    // Check block status
     const isBlocked = await prisma.blockedUser.findFirst({
       where: {
         OR: [
@@ -146,7 +133,7 @@ export async function GET(
 
     return NextResponse.json({
       conversation: {
-        id: conversation!.id,
+        id: conversation.id,
         otherUser: {
           id: otherUser.id,
           username: otherUser.profile?.username || "Unknown",
@@ -161,9 +148,8 @@ export async function GET(
         content: msg.content,
         isFromMe: msg.senderId === userId,
         createdAt: msg.createdAt,
-        readAt: msg.readAt,
-        attachmentUrl: msg.attachmentUrl,
-        attachmentType: msg.attachmentType
+        attachmentUrl: msg.imageUrl,
+        attachmentType: msg.imageUrl ? "image" : null
       })),
       nextCursor,
       hasMore
@@ -193,7 +179,8 @@ export async function POST(
     }
 
     const conversation = access.conversation!;
-    const otherUserId = conversation.userAId === userId ? conversation.userBId : conversation.userAId;
+    const otherParticipant = conversation.participants.find(p => p.userId !== userId);
+    const otherUserId = otherParticipant?.userId || "unknown";
 
     const isBlocked = await prisma.blockedUser.findFirst({
       where: {
@@ -213,39 +200,70 @@ export async function POST(
       return NextResponse.json({ error: "Too many messages. Please slow down." }, { status: 429 });
     }
 
-    const body = await request.json();
-    const { content, attachmentUrl, attachmentType } = body;
+    // Handle Multipart Form Data
+    const formData = await request.formData();
+    const content = formData.get("content")?.toString() || "";
+    const file = formData.get("image") as File | null; // Frontend field name 'image'
 
-    // Content is required UNLESS there is an attachment
-    if ((!content || typeof content !== "string" || content.trim().length === 0) && !attachmentUrl) {
-      return NextResponse.json({ error: "Message content or attachment is required" }, { status: 400 });
+    if (!content.trim() && !file) {
+      return NextResponse.json({ error: "Message content or image is required" }, { status: 400 });
     }
 
-    if (content && content.length > 5000) {
-      return NextResponse.json({ error: "Message is too long (max 5000 characters)" }, { status: 400 });
+    let imageUrl: string | null = null;
+
+    if (file) {
+      // Validate file
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+      if (!allowedTypes.includes(file.type)) {
+        return NextResponse.json({ error: "Invalid file type. Only JPG, PNG, WEBP allowed." }, { status: 400 });
+      }
+
+      if (file.size > 5 * 1024 * 1024) { // 5MB
+        return NextResponse.json({ error: "File too large. Max 5MB." }, { status: 400 });
+      }
+
+      const fileBuffer = await file.arrayBuffer();
+      const fileName = `${Date.now()}_${file.name.replace(/\s+/g, "_")}`;
+      const filePath = `messages/${userId}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("uploads")
+        .upload(filePath, fileBuffer, {
+          contentType: file.type,
+          upsert: false
+        });
+
+      if (uploadError) {
+        console.error("Supabase upload error:", uploadError);
+        return NextResponse.json({ error: "Failed to upload image" }, { status: 500 });
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("uploads")
+        .getPublicUrl(filePath);
+
+      imageUrl = publicUrlData.publicUrl;
     }
 
-    const message = await prisma.directMessage.create({
+    const message = await prisma.message.create({
       data: {
         conversationId,
         senderId: userId,
-        content: content ? content.trim() : null,
-        attachmentUrl,
-        attachmentType
+        content: content.trim() || null,
+        imageUrl: imageUrl
       },
       select: {
         id: true,
         content: true,
         createdAt: true,
-        attachmentUrl: true,
-        attachmentType: true
+        imageUrl: true
       }
     });
 
-    await prisma.conversation.update({
-      where: { id: conversationId },
-      data: { updatedAt: new Date() }
-    });
+    // We don't need to manually update conversation updated_at because 
+    // we can rely on message created_at sort order, but it's good practice for sorting conversations list.
+    // However, the new schema does NOT have 'updatedAt' column on Conversation (only created_at).
+    // So skipping that update.
 
     await logRateLimit(userId, "message");
 
@@ -255,8 +273,8 @@ export async function POST(
         content: message.content,
         isFromMe: true,
         createdAt: message.createdAt,
-        attachmentUrl: message.attachmentUrl,
-        attachmentType: message.attachmentType
+        attachmentUrl: message.imageUrl,
+        attachmentType: message.imageUrl ? "image" : null
       }
     }, { status: 201 });
   } catch (error) {

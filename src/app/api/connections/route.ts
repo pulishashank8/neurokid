@@ -114,7 +114,7 @@ export async function GET(request: Request) {
           sender: { include: { profile: true } },
           receiver: { include: { profile: true } },
         },
-        orderBy: { respondedAt: "desc" },
+        orderBy: { createdAt: "desc" }, // responded_at replaced by createdAt of Connection? Or we rely on request createdAt/updatedAt
         take: LIMIT,
       });
 
@@ -122,7 +122,8 @@ export async function GET(request: Request) {
         const otherUser = r.senderId === userId ? r.receiver : r.sender;
         return {
           id: r.id,
-          connectedAt: r.respondedAt,
+          // Use updated at if available or created at
+          connectedAt: r.createdAt,
           user: {
             id: otherUser.id,
             username: otherUser.profile?.username,
@@ -240,7 +241,7 @@ export async function POST(request: Request) {
             receiverId: actualReceiverId,
             message: message?.trim() || null,
             status: "PENDING",
-            respondedAt: null,
+            // respondedAt removed, use standard updated/created
           },
         });
 
@@ -259,14 +260,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, message: "Connection request sent" });
   } catch (error: any) {
     console.error("Error sending connection request:", error);
-    
+
     if (error.code === "P2002") {
       return NextResponse.json(
         { error: "A connection request already exists" },
         { status: 409 }
       );
     }
-    
+
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
