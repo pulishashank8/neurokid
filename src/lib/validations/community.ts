@@ -12,6 +12,7 @@ export const createPostSchema = z.object({
   categoryId: z.string().min(1, "Category is required"),
   tagIds: z.array(z.string().min(1)).max(5, "Maximum 5 tags allowed").default([]),
   isAnonymous: z.boolean().default(false).optional(),
+  images: z.array(z.string().url()).max(5, "Maximum 5 images allowed").default([]).optional(),
 }).strict(); // Reject unexpected fields
 
 export const updatePostSchema = z.object({

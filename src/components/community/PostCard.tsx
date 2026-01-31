@@ -37,6 +37,7 @@ interface Post {
   isPinned?: boolean;
   isLocked?: boolean;
   isAnonymous?: boolean;
+  images?: string[];
 }
 
 interface PostCardProps {

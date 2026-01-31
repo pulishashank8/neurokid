@@ -128,6 +128,7 @@ export const GET = withApiHandler(async (request: NextRequest) => {
       isLocked: true,
       status: true,
       voteScore: true,
+      images: true,
       category: {
         select: {
           id: true,
@@ -213,6 +214,8 @@ export const GET = withApiHandler(async (request: NextRequest) => {
       commentCount: post._count.comments,
       isPinned: post.isPinned,
       isLocked: post.isLocked,
+      votes: post.votes, // Pass votes if needed
+      images: post.images || [],
       status: post.status,
     };
   });
@@ -364,6 +367,7 @@ export const POST = withApiHandler(async (request: NextRequest) => {
       tags: tagIds && tagIds.length > 0 ? {
         connect: tagIds.map((tagId) => ({ id: tagId })),
       } : undefined,
+      images: validation.data.images || [],
     },
     include: {
       category: true,

@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createPostSchema, CreatePostInput } from "@/lib/validations/community";
 import toast from "react-hot-toast";
+import { X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { useRef } from "react";
 
 interface Category {
   id: string;
@@ -46,6 +48,9 @@ export function PostEditor({
   const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tagIds || []);
   const [showPreview, setShowPreview] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -83,6 +88,7 @@ export function PostEditor({
           ...data,
           isAnonymous,
           tagIds: selectedTags,
+          images: imageUrls,
         }),
       });
 
@@ -137,6 +143,52 @@ export function PostEditor({
         ? prev.filter((id) => id !== tagId)
         : [...prev, tagId].slice(0, 5)
     );
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image size limit is 2MB");
+      return;
+    }
+
+    if (imageUrls.length >= 4) {
+      toast.error("Maximum 4 images allowed");
+      return;
+    }
+
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!res.ok) throw new Error("Upload failed");
+      const { url, type } = await res.json();
+
+      if (!type.startsWith("image/")) {
+        toast.error("Only images are allowed");
+        return;
+      }
+
+      setImageUrls(prev => [...prev, url]);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to upload image");
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImageUrls(prev => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -247,6 +299,45 @@ export function PostEditor({
         <p className="text-xs text-[var(--text-muted)] mt-2">
           {content?.length || 0} / 50,000 characters
         </p>
+
+        {/* Image Upload */}
+        <div className="mt-4">
+          <div className="flex items-center gap-2 mb-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingImage || imageUrls.length >= 4}
+              className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated-hover)] border border-[var(--border-light)] rounded-lg text-sm font-medium text-[var(--text-secondary)] transition-colors disabled:opacity-50"
+            >
+              {uploadingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+              Add Image {imageUrls.length}/4
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleImageUpload}
+            />
+          </div>
+
+          {imageUrls.length > 0 && (
+            <div className="flex gap-3 overflow-x-auto py-2">
+              {imageUrls.map((url, index) => (
+                <div key={index} className="relative w-24 h-24 flex-shrink-0 group">
+                  <img src={url} alt={`Upload ${index + 1}`} className="w-full h-full object-cover rounded-lg border border-[var(--border-light)]" />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Anonymous Toggle */}

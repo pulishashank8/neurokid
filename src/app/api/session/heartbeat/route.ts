@@ -35,6 +35,12 @@ export async function POST(request: NextRequest) {
             },
         });
 
+        // Also update the User's main lastActiveAt
+        await prisma.user.update({
+            where: { id: userId },
+            data: { lastActiveAt: new Date() }
+        });
+
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error('Session heartbeat error:', error);

@@ -135,11 +135,11 @@ export const authOptions: NextAuthOptions = {
 
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 5 * 60 * 60, // 5 hours
   },
 
   jwt: {
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 5 * 60 * 60, // 5 hours
   },
 
   pages: {
@@ -211,6 +211,17 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.username = (user as any).username;
         token.roles = (user as any).roles || [];
+        // Store login timestamp for absolute timeout (48h)
+        token.loginAt = Date.now();
+      }
+
+      // Check absolute timeout (48 hours)
+      if (token.loginAt) {
+        const now = Date.now();
+        const MAX_SESSION_DURATION = 48 * 60 * 60 * 1000; // 48 hours
+        if (now - (token.loginAt as number) > MAX_SESSION_DURATION) {
+          return { ...token, forceSignOut: true };
+        }
       }
 
       // Refresh user data including username on every token update
@@ -240,9 +251,8 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token }) {
-      if ((token as any).disabled) {
-        // Return an empty session instead of null
-        return { expires: session.expires, user: undefined } as any;
+      if ((token as any).disabled || (token as any).forceSignOut) {
+        return null as any; // Force sign out
       }
       if (session.user) {
         (session.user as any).id = token.id as string;

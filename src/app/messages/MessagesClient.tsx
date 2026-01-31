@@ -6,15 +6,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import {
   Search, UserPlus, MessageCircle, Send, ArrowLeft,
-  Check, X, Clock, User, Sparkles, Users, Inbox, Heart, Star
+  Check, X, Clock, User, Sparkles, Users, Inbox, Heart, Star,
+  Paperclip, FileUp
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { ActionMenu } from "@/components/community/ActionMenu";
 import { formatDistanceToNow } from "date-fns";
 
 type TabType = "search" | "pending" | "conversations";
-
-
 
 interface SearchUser {
   id: string;
@@ -64,6 +63,9 @@ interface Message {
   content: string;
   isFromMe: boolean;
   createdAt: string;
+  readAt?: string;
+  attachmentUrl?: string;
+  attachmentType?: string;
 }
 
 // Premium 3D Avatar Component
@@ -277,7 +279,11 @@ function MessagesContent() {
   const [loading, setLoading] = useState(true);
   const [connectionMessage, setConnectionMessage] = useState("");
   const [showConnectionModal, setShowConnectionModal] = useState<string | null>(null);
-  const [otherUser, setOtherUser] = useState<{ id: string; username: string; displayName: string; avatarUrl?: string } | null>(null);
+  const [otherUser, setOtherUser] = useState<{ id: string; username: string; displayName: string; avatarUrl?: string; lastActiveAt?: string } | null>(null);
+
+  // File Upload State
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
 
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
@@ -301,17 +307,64 @@ function MessagesContent() {
     }
   };
 
-  const handleDeleteMessage = async (messageId: string) => {
+  const handleDeleteMessage = async (messageId: string, type: "me" | "everyone") => {
     try {
-      const res = await fetch(`/api/messages/${messageId}`, { method: "DELETE" });
+      const res = await fetch(`/api/messages/${messageId}?type=${type}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Message deleted");
+        toast.success(type === "everyone" ? "Message deleted for everyone" : "Message deleted for you");
         if (selectedConversation) fetchMessages(selectedConversation);
       } else {
-        toast.error("Failed to delete message");
+        const data = await res.json();
+        toast.error(data.error || "Failed to delete message");
       }
     } catch {
       toast.error("Failed to delete message");
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("File size limit is 2MB");
+      return;
+    }
+
+    setUploadingFile(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!uploadRes.ok) throw new Error("Upload failed");
+      const { url, type } = await uploadRes.json();
+
+      // Send message with attachment
+      const res = await fetch(`/api/messages/conversations/${selectedConversation}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: newMessage.trim(),
+          attachmentUrl: url,
+          attachmentType: type.startsWith("image/") ? "image" : "file"
+        }),
+      });
+
+      if (res.ok) {
+        setNewMessage("");
+        if (selectedConversation) fetchMessages(selectedConversation);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to upload file");
+    } finally {
+      setUploadingFile(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -699,7 +752,6 @@ function MessagesContent() {
                         value={searchQuery}
                         onChange={(e) => handleSearch(e.target.value)}
                         placeholder="Search users..."
-                        placeholder="Search users..."
                         className="w-full pl-12 pr-4 py-4 bg-white/50 dark:bg-white/5 border-2 border-transparent dark:border-white/10 rounded-2xl text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:border-emerald-400 focus:dark:border-emerald-500/50 focus:bg-white dark:focus:bg-black/40 transition-all duration-300"
                       />
                     </div>
@@ -756,78 +808,94 @@ function MessagesContent() {
           </GlassCard>
 
           {/* Chat Area */}
-          <GlassCard className="lg:col-span-2 overflow-hidden flex flex-col min-h-[60vh]" hover={false}>
+          {/* WhatsApp-Style Chat Area */}
+          <div className="lg:col-span-2 overflow-hidden flex flex-col min-h-[60vh] bg-[#efeae2] dark:bg-[#0b141a] border border-gray-200 dark:border-gray-800 rounded-3xl shadow-xl relative z-20">
             {selectedConversation && otherUser ? (
               <>
                 {/* Chat Header */}
-                {/* Chat Header */}
-                <div className="p-5 border-b border-gray-200/50 dark:border-white/10 flex items-center gap-4 bg-white/50 dark:bg-white/5 backdrop-blur-sm">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center gap-4 bg-gray-100 dark:bg-[#202c33] z-20 shadow-sm">
                   <button
                     onClick={() => setSelectedConversation(null)}
-                    className="lg:hidden p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors duration-200"
+                    className="lg:hidden p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/5 transition-colors"
                   >
                     <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   </button>
                   <AvatarPlaceholder name={otherUser.displayName} size="md" online />
                   <div>
-                    <p className="font-bold text-gray-800 dark:text-gray-100 text-lg">{otherUser.displayName}</p>
-                    <p className="text-sm text-emerald-500 dark:text-emerald-400 flex items-center gap-1">
-                      <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
-                      Online
-                    </p>
+                    <div className="flex flex-col">
+                      <p className="font-bold text-gray-900 dark:text-gray-100 text-lg leading-none mb-1">{otherUser.displayName}</p>
+                      {otherUser.lastActiveAt && (
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                          {(() => {
+                            const lastActive = new Date(otherUser.lastActiveAt);
+                            const now = new Date();
+                            const diffInSeconds = Math.floor((now.getTime() - lastActive.getTime()) / 1000);
+
+                            if (diffInSeconds < 60) return "Online";
+
+                            return `Last seen ${formatDistanceToNow(lastActive, { addSuffix: true })}`;
+                          })()}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Messages */}
-                {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar bg-gray-50/30 dark:bg-transparent">
+                {/* Messages Container */}
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-2 custom-scrollbar relative">
                   {messages.map((msg, index) => (
                     <div
                       key={msg.id}
-                      className={`flex ${msg.isFromMe ? "justify-end" : "justify-start"} animate-slide-up group/message`}
-                      style={{ animationDelay: `${index * 50}ms` }}
+                      className={`flex ${msg.isFromMe ? "justify-end" : "justify-start"} mb-1 group/message`}
                     >
-                      <div className="flex flex-col items-end">
-                        <div
-                          className={`
-                          relative max-w-[75%] px-5 py-3 rounded-3xl shadow-sm
-                          ${msg.isFromMe
-                              ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-br-lg shadow-lg shadow-emerald-500/20"
-                              : "bg-white dark:bg-white/10 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-white/5 rounded-bl-lg"
-                            }
-                        `}
-                          style={{
-                            boxShadow: msg.isFromMe
-                              ? '0 4px 15px -3px rgba(16, 185, 129, 0.3)'
-                              : '0 4px 15px -3px rgba(0, 0, 0, 0.05)'
-                          }}
-                        >
-                          {editingMessageId === msg.id ? (
-                            <div className="min-w-[200px]">
-                              <input
-                                value={editContent}
-                                onChange={(e) => setEditContent(e.target.value)}
-                                className="w-full px-2 py-1 bg-white/20 rounded text-white placeholder:text-white/70 focus:outline-none mb-2"
-                                autoFocus
-                              />
-                              <div className="flex gap-2 justify-end">
-                                <button onClick={() => setEditingMessageId(null)} className="text-xs opacity-70 hover:opacity-100">Cancel</button>
-                                <button onClick={() => handleUpdateMessage(msg.id, editContent)} className="text-xs font-bold hover:opacity-90">Save</button>
-                              </div>
+                      <div className={`
+                        relative max-w-[85%] sm:max-w-[70%] px-4 py-2 rounded-2xl shadow-sm text-[15px] leading-relaxed
+                        ${msg.isFromMe
+                          ? "bg-[#d9fdd3] dark:bg-[#005c4b] text-gray-900 dark:text-[rgba(255,255,255,0.9)] rounded-tr-none"
+                          : "bg-white dark:bg-[#202c33] text-gray-900 dark:text-[rgba(255,255,255,0.9)] rounded-tl-none"
+                        }
+                      `}>
+                        {editingMessageId === msg.id ? (
+                          <div className="min-w-[200px]">
+                            <input
+                              value={editContent}
+                              onChange={(e) => setEditContent(e.target.value)}
+                              className="w-full px-2 py-1 bg-black/5 dark:bg-white/5 rounded text-inherit focus:outline-none mb-2"
+                              autoFocus
+                            />
+                            <div className="flex gap-2 justify-end">
+                              <button onClick={() => setEditingMessageId(null)} className="text-xs opacity-70 hover:opacity-100">Cancel</button>
+                              <button onClick={() => handleUpdateMessage(msg.id, editContent)} className="text-xs font-bold hover:opacity-90 text-emerald-600 dark:text-emerald-400">Save</button>
                             </div>
-                          ) : (
-                            <>
-                              <p className="leading-relaxed">{msg.content}</p>
-                              <p className={`text-xs mt-2 ${msg.isFromMe ? "text-white/70" : "text-gray-400 dark:text-gray-500"}`}>
-                                {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
-                              </p>
-                            </>
-                          )}
-                        </div>
+                          </div>
+                        ) : (
+                          <>
+                            {msg.attachmentUrl && (
+                              <div className="mb-2">
+                                {msg.attachmentType === "image" ? (
+                                  <img src={msg.attachmentUrl} alt="Attachment" className="max-w-full rounded-lg" />
+                                ) : (
+                                  <a href={msg.attachmentUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 bg-black/5 dark:bg-white/10 rounded-lg">
+                                    <FileUp className="w-5 h-5" />
+                                    <span className="text-sm underline">Download File</span>
+                                  </a>
+                                )}
+                              </div>
+                            )}
+                            <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                            <div className={`text-[10px] text-right mt-1 font-medium flex justify-end items-center gap-1 ${msg.isFromMe ? "text-emerald-900/40 dark:text-emerald-100/40" : "text-gray-400 dark:text-gray-500"}`}>
+                              {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
+                              {msg.isFromMe && (
+                                <span className={msg.readAt ? "text-blue-500" : ""}>
+                                  {msg.readAt ? "✓✓" : "✓"}
+                                </span>
+                              )}
+                            </div>
+                          </>
+                        )}
 
-                        {/* Action Menu */}
                         {msg.isFromMe && !editingMessageId && (
-                          <div className="opacity-0 group-hover/message:opacity-100 transition-opacity -mt-2 mr-2">
+                          <div className="absolute top-0 right-full mr-2 opacity-0 group-hover/message:opacity-100 transition-opacity">
                             <ActionMenu
                               isOwner={true}
                               resourceName="Message"
@@ -835,7 +903,18 @@ function MessagesContent() {
                                 setEditingMessageId(msg.id);
                                 setEditContent(msg.content);
                               }}
-                              onDelete={() => handleDeleteMessage(msg.id)}
+                              onDelete={() => {
+                                // Prompt for delete type? For now, we'll try to keep it simple in the UI or default to everyone if possible, 
+                                // but the user explicitly asked for generic options. 
+                                // We can use the toast to ask or just default 'everyone' for now since that's what usually people want for sent messages, 
+                                // or we can add a small UI. 
+                                // Let's implement a simple confirm that sets a state.
+                                if (confirm("Delete for everyone?")) {
+                                  handleDeleteMessage(msg.id, "everyone");
+                                } else if (confirm("Delete just for me?")) {
+                                  handleDeleteMessage(msg.id, "me");
+                                }
+                              }}
                             />
                           </div>
                         )}
@@ -845,35 +924,51 @@ function MessagesContent() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Message Input */}
-                <div className="p-5 border-t border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-white/80 to-gray-50/80 dark:from-gray-800/80 dark:to-gray-900/80 backdrop-blur-sm">
-                  <div className="flex gap-3">
+                {/* Input Area */}
+                <div className="p-3 bg-gray-100 dark:bg-[#202c33] border-t border-gray-200 dark:border-gray-800 flex items-end gap-2">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-3 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10 rounded-full transition-all"
+                    title="Attach file"
+                    disabled={uploadingFile}
+                  >
+                    <Paperclip className="w-6 h-6" />
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    onChange={handleFileUpload}
+                  />
+
+                  <div className="flex-1 bg-white dark:bg-[#2a3942] rounded-2xl flex items-center border border-transparent focus-within:border-emerald-500/50 transition-all">
                     <input
                       type="text"
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
-                      placeholder="Type your message..."
-                      className="flex-1 px-5 py-4 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-400/10 transition-all duration-300"
+                      placeholder="Type a message"
+                      className="w-full px-4 py-3 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-500 focus:outline-none"
                     />
-                    <button
-                      onClick={sendMessage}
-                      disabled={!newMessage.trim() || sendingMessage}
-                      className="px-5 py-4 bg-gradient-to-r from-emerald-400 to-teal-400 text-white rounded-2xl hover:shadow-lg hover:shadow-emerald-400/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none transform hover:-translate-y-0.5 disabled:hover:translate-y-0 transition-all duration-300"
-                    >
-                      <Send className="w-5 h-5" />
-                    </button>
                   </div>
+
+                  <button
+                    onClick={sendMessage}
+                    disabled={(!newMessage.trim() && !uploadingFile) || sendingMessage}
+                    className="p-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-full shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-95 flex items-center justify-center"
+                  >
+                    <Send className="w-5 h-5 ml-0.5" />
+                  </button>
                 </div>
               </>
             ) : (
               <EmptyState
                 icon={MessageCircle}
-                title="Select a conversation"
-                description="Choose a chat from the sidebar to start messaging with your friends."
+                title="Your Personal Space"
+                description="Select a conversation to start chatting securely with your community."
               />
             )}
-          </GlassCard>
+          </div>
         </div>
       </div>
 

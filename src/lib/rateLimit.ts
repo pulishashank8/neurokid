@@ -201,6 +201,7 @@ export const RATE_LIMITERS = {
   resendVerification: new RateLimiter("resendVerification", 3, 300), // 3 per 5 min per email
   verification: new RateLimiter("verification", 1, 60), // 1 per min cooldown per email
   verificationDaily: new RateLimiter("verificationDaily", 10, 86400), // 10/day per email
+  upload: new RateLimiter("upload", 10, 60), // 10 uploads per minute per user
 };
 
 /**

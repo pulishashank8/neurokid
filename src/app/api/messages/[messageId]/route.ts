@@ -39,18 +39,25 @@ export async function DELETE(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    if (message.senderId !== userId) {
-      return NextResponse.json({ error: "You can only delete your own messages" }, { status: 403 });
-    }
+    const searchParams = request.nextUrl.searchParams;
+    const deleteType = searchParams.get("type") || "everyone";
 
-    if (message.deletedAt) {
-      return NextResponse.json({ error: "Message already deleted" }, { status: 400 });
+    if (deleteType === "everyone") {
+      if (message.senderId !== userId) {
+        return NextResponse.json({ error: "You can only delete your own messages for everyone" }, { status: 403 });
+      }
+      await prisma.directMessage.update({
+        where: { id: messageId },
+        data: { deletedAt: new Date() }
+      });
+    } else {
+      // Delete for me
+      const isSender = message.senderId === userId;
+      await prisma.directMessage.update({
+        where: { id: messageId },
+        data: isSender ? { deletedBySender: true } : { deletedByReceiver: true }
+      });
     }
-
-    await prisma.directMessage.update({
-      where: { id: messageId },
-      data: { deletedAt: new Date() }
-    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

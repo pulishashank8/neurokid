@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 async function checkRateLimit(userId: string, actionType: string, maxCount: number, windowMinutes: number): Promise<boolean> {
   const windowStart = new Date(Date.now() - windowMinutes * 60 * 1000);
-  
+
   const count = await prisma.messageRateLimit.count({
     where: {
       userId,
@@ -13,7 +13,7 @@ async function checkRateLimit(userId: string, actionType: string, maxCount: numb
       createdAt: { gte: windowStart }
     }
   });
-  
+
   return count < maxCount;
 }
 
@@ -68,6 +68,7 @@ export async function GET(
         userA: {
           select: {
             id: true,
+            lastActiveAt: true,
             profile: {
               select: {
                 username: true,
@@ -80,6 +81,7 @@ export async function GET(
         userB: {
           select: {
             id: true,
+            lastActiveAt: true,
             profile: {
               select: {
                 username: true,
@@ -92,10 +94,28 @@ export async function GET(
       }
     });
 
+    const otherUser = conversation!.userAId === userId ? conversation!.userB : conversation!.userA;
+
+    // Mark messages as read
+    await prisma.directMessage.updateMany({
+      where: {
+        conversationId,
+        senderId: otherUser.id,
+        readAt: null
+      },
+      data: {
+        readAt: new Date()
+      }
+    });
+
     const messages = await prisma.directMessage.findMany({
       where: {
         conversationId,
-        deletedAt: null
+        deletedAt: null,
+        OR: [
+          { senderId: userId, deletedBySender: false },
+          { senderId: { not: userId }, deletedByReceiver: false }
+        ]
       },
       orderBy: { createdAt: "desc" },
       take: limit + 1,
@@ -104,15 +124,16 @@ export async function GET(
         id: true,
         content: true,
         senderId: true,
-        createdAt: true
+        createdAt: true,
+        readAt: true,
+        attachmentUrl: true,
+        attachmentType: true
       }
     });
 
     const hasMore = messages.length > limit;
     const paginatedMessages = hasMore ? messages.slice(0, -1) : messages;
     const nextCursor = hasMore ? paginatedMessages[paginatedMessages.length - 1]?.id : null;
-
-    const otherUser = conversation!.userAId === userId ? conversation!.userB : conversation!.userA;
 
     const isBlocked = await prisma.blockedUser.findFirst({
       where: {
@@ -130,7 +151,8 @@ export async function GET(
           id: otherUser.id,
           username: otherUser.profile?.username || "Unknown",
           displayName: otherUser.profile?.displayName || "Unknown User",
-          avatarUrl: otherUser.profile?.avatarUrl
+          avatarUrl: otherUser.profile?.avatarUrl,
+          lastActiveAt: otherUser.lastActiveAt
         },
         isBlocked: !!isBlocked
       },
@@ -138,7 +160,8 @@ export async function GET(
         id: msg.id,
         content: msg.content,
         isFromMe: msg.senderId === userId,
-        createdAt: msg.createdAt
+        createdAt: msg.createdAt,
+        readAt: msg.readAt
       })),
       nextCursor,
       hasMore
@@ -189,13 +212,14 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { content } = body;
+    const { content, attachmentUrl, attachmentType } = body;
 
-    if (!content || typeof content !== "string" || content.trim().length === 0) {
-      return NextResponse.json({ error: "Message content is required" }, { status: 400 });
+    // Content is required UNLESS there is an attachment
+    if ((!content || typeof content !== "string" || content.trim().length === 0) && !attachmentUrl) {
+      return NextResponse.json({ error: "Message content or attachment is required" }, { status: 400 });
     }
 
-    if (content.length > 5000) {
+    if (content && content.length > 5000) {
       return NextResponse.json({ error: "Message is too long (max 5000 characters)" }, { status: 400 });
     }
 
@@ -203,7 +227,9 @@ export async function POST(
       data: {
         conversationId,
         senderId: userId,
-        content: content.trim()
+        content: content ? content.trim() : null,
+        attachmentUrl,
+        attachmentType
       },
       select: {
         id: true,

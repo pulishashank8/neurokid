@@ -152,6 +152,7 @@ model User {
   createdAt             DateTime   @default(now())
   updatedAt             DateTime   @updatedAt
   lastLoginAt           DateTime?
+  lastActiveAt          DateTime?  // For real-time online status
   
   // Ban status
   isBanned              Boolean    @default(false)
@@ -377,6 +378,7 @@ model Post {
   id                    String     @id @default(cuid())
   title                 String     @db.VarChar(255)
   content               String     @db.Text
+  images                String[]   // For community post image attachments
   authorId              String?
   isAnonymous           Boolean    @default(false)
   categoryId            String
@@ -903,9 +905,13 @@ model DirectMessage {
   id                    String          @id @default(cuid())
   conversationId        String
   senderId              String
-  content               String          @db.Text
+  content               String?         @db.Text
+  attachmentUrl         String?
+  attachmentType        String?         // "image", "file", "audio"
   createdAt             DateTime        @default(now())
-  deletedAt             DateTime?
+  deletedAt             DateTime?       // Soft delete for everyone
+  deletedBySender       Boolean         @default(false) // Delete for me (sender)
+  deletedByReceiver     Boolean         @default(false) // Delete for me (receiver)
   readAt                DateTime?
 
   conversation          Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
