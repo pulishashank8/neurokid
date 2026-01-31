@@ -19,6 +19,7 @@ export const updatePostSchema = z.object({
   content: z.string().min(10).max(50000).optional(),
   categoryId: z.string().min(1).optional(),
   tagIds: z.array(z.string().min(1)).max(5).optional(),
+  isAnonymous: z.boolean().optional(),
 }).strict();
 
 export const getPostsSchema = z.object({

@@ -161,12 +161,12 @@ export default function PostDetailPage({
                   <User className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  {post.isAnonymous ? (
+                  {post.isAnonymous || !post.author ? (
                     <p className="text-sm sm:text-base font-semibold text-[var(--muted)] italic">
                       Anonymous
                     </p>
                   ) : (
-                    <Link 
+                    <Link
                       href={`/user/${encodeURIComponent(post.author.username)}`}
                       className="text-sm sm:text-base font-semibold text-[var(--text-primary)] hover:text-[var(--primary)] hover:underline transition-colors"
                     >
@@ -174,7 +174,12 @@ export default function PostDetailPage({
                     </Link>
                   )}
                   <p className="text-xs sm:text-sm text-[var(--text-muted)]">
-                    {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
+                    {(() => {
+                      const date = new Date(post.createdAt);
+                      return !isNaN(date.getTime())
+                        ? formatDistanceToNow(date, { addSuffix: true })
+                        : "Just now";
+                    })()}
                   </p>
                 </div>
               </div>

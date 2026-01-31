@@ -294,7 +294,7 @@ export default function NavBar() {
                 style={{ boxShadow: '0 2px 10px rgba(244, 63, 94, 0.3)' }}
               >
                 <Phone className="w-3.5 h-3.5" />
-                <span>Get Help</span>
+                <span>Help</span>
               </Link>
 
               {/* Theme Toggle - Premium */}

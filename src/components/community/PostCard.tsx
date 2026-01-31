@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import toast from "react-hot-toast";
 import { formatDistanceToNow } from "date-fns";
 import { VoteButtons } from "./VoteButtons";
 import { BookmarkButton } from "./BookmarkButton";
 import { ReportButton } from "./ReportButton";
+import { ActionMenu } from "./ActionMenu";
 import { MessageCircle, Pin, Lock, Ban, User } from "lucide-react";
 
 interface Post {
@@ -46,12 +50,36 @@ export function PostCard({
   compact = false,
   showActions = true,
 }: PostCardProps) {
+  const router = useRouter();
+  const { data: session } = useSession();
   const createdDate = new Date(post.createdAt);
 
   return (
     <article className="group relative bg-[var(--surface)] rounded-2xl border border-[var(--border)] shadow-premium hover:shadow-premium-hover card-3d overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-      
+
+      {/* Edit/Delete Menu - Only visible to owner */}
+      {showActions && (
+        <div className="absolute top-4 right-4 z-20">
+          <ActionMenu
+            isOwner={session?.user?.id === post.author.id}
+            resourceName="Post"
+            onEdit={() => router.push(`/community/${post.id}/edit`)}
+            onDelete={async () => {
+              try {
+                const res = await fetch(`/api/posts/${post.id}`, { method: "DELETE" });
+                if (!res.ok) throw new Error("Failed to delete post");
+                toast.success("Post deleted successfully");
+                router.refresh(); // Refresh to show changes
+              } catch (error) {
+                toast.error("Failed to delete post");
+                console.error(error);
+              }
+            }}
+          />
+        </div>
+      )}
+
       <div className="relative flex">
         <div className="hidden sm:flex flex-col items-center gap-1 p-4 bg-[var(--surface2)]/50 border-r border-[var(--border)]/50">
           <VoteButtons
@@ -107,7 +135,7 @@ export function PostCard({
                   Anonymous
                 </span>
               ) : (
-                <Link 
+                <Link
                   href={`/user/${encodeURIComponent(post.author.username)}`}
                   className="font-medium text-sm text-[var(--text)] hover:text-[var(--primary)] hover:underline transition-colors"
                   onClick={(e) => e.stopPropagation()}
@@ -116,18 +144,18 @@ export function PostCard({
                 </Link>
               )}
             </div>
-            
+
             <span className="w-1 h-1 rounded-full bg-[var(--border)]" />
-            
-            <Link 
+
+            <Link
               href={`/community?category=${post.category.id}`}
               className="inline-flex items-center px-3 py-1 bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 text-[var(--primary)] text-xs font-semibold rounded-full transition-colors"
             >
               {post.category.name}
             </Link>
-            
+
             <span className="w-1 h-1 rounded-full bg-[var(--border)]" />
-            
+
             <time className="text-xs text-[var(--muted)]">
               {formatDistanceToNow(createdDate, { addSuffix: true })}
             </time>
@@ -153,8 +181,8 @@ export function PostCard({
 
           <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]/50">
             <div className="flex items-center gap-4">
-              <Link 
-                href={`/community/${post.id}`} 
+              <Link
+                href={`/community/${post.id}`}
                 className="group/comments flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--primary)] transition-colors"
               >
                 <div className="p-2 rounded-xl bg-[var(--surface2)] group-hover/comments:bg-[var(--primary)]/10 transition-colors">

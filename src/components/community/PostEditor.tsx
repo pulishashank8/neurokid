@@ -16,20 +16,34 @@ interface Tag {
   name: string;
 }
 
+// ... imports
+
 interface PostEditorProps {
   categories: Category[];
   tags: Tag[];
   onSuccess?: (postId: string) => void;
+  initialData?: {
+    title: string;
+    content: string;
+    categoryId: string;
+    isAnonymous: boolean;
+    tagIds: string[];
+  };
+  isEditing?: boolean;
+  postId?: string;
 }
 
 export function PostEditor({
   categories,
   tags,
   onSuccess,
+  initialData,
+  isEditing = false,
+  postId,
 }: PostEditorProps) {
-  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(initialData?.isAnonymous || false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tagIds || []);
   const [showPreview, setShowPreview] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -43,8 +57,11 @@ export function PostEditor({
   } = useForm<CreatePostInput>({
     resolver: zodResolver(createPostSchema) as any,
     defaultValues: {
-      isAnonymous: false,
-      tagIds: [],
+      title: initialData?.title || "",
+      content: initialData?.content || "",
+      categoryId: initialData?.categoryId || "",
+      isAnonymous: initialData?.isAnonymous || false,
+      tagIds: initialData?.tagIds || [],
     },
     mode: "onChange",
   });
@@ -56,8 +73,11 @@ export function PostEditor({
     setFieldErrors({});
 
     try {
-      const response = await fetch("/api/posts", {
-        method: "POST",
+      const url = isEditing && postId ? `/api/posts/${postId}` : "/api/posts";
+      const method = isEditing && postId ? "PATCH" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
@@ -69,23 +89,43 @@ export function PostEditor({
       const result = await response.json();
 
       if (!response.ok) {
-        // Handle field-level errors
-        if (result.fieldErrors) {
+        // Handle field-level errors from Zod (standard API response)
+        if (result.error?.details && Array.isArray(result.error.details)) {
+          const newFieldErrors: Record<string, string> = {};
+          result.error.details.forEach((err: any) => {
+            const path = err.path?.[0];
+            if (path) {
+              newFieldErrors[path] = err.message;
+              setError(path as any, { message: err.message });
+            }
+          });
+          setFieldErrors(newFieldErrors);
+        }
+        // Handle legacy field errors
+        else if (result.fieldErrors) {
           setFieldErrors(result.fieldErrors);
           Object.keys(result.fieldErrors).forEach((key) => {
             setError(key as any, { message: result.fieldErrors[key] });
           });
         }
-        throw new Error(result.message || result.error || "Failed to create post");
+
+        const errorMessage = result.error?.message ||
+          (typeof result.error === "string" ? result.error : null) ||
+          result.message ||
+          "Failed to save post";
+
+        throw new Error(errorMessage);
       }
 
-      toast.success("Post created successfully!");
-      reset();
-      setSelectedTags([]);
-      onSuccess?.(result.id);
+      toast.success(isEditing ? "Post updated successfully!" : "Post created successfully!");
+      if (!isEditing) {
+        reset();
+        setSelectedTags([]);
+      }
+      onSuccess?.(isEditing && postId ? postId : result.id);
     } catch (error: any) {
-      toast.error(error.message || "Failed to create post");
-      console.error("Error creating post:", error);
+      toast.error(error.message || "Failed to save post");
+      console.error("Error saving post:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -155,10 +195,10 @@ export function PostEditor({
                   onClick={() => handleTagToggle(tag.id)}
                   disabled={isDisabled}
                   className={`px-3 py-2 rounded-full text-xs font-medium transition-all ${isSelected
-                      ? "bg-[var(--primary)] text-white"
-                      : isDisabled
-                        ? "bg-[var(--bg-elevated)] text-[var(--text-muted)] opacity-50 cursor-not-allowed"
-                        : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated-hover)]"
+                    ? "bg-[var(--primary)] text-white"
+                    : isDisabled
+                      ? "bg-[var(--bg-elevated)] text-[var(--text-muted)] opacity-50 cursor-not-allowed"
+                      : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated-hover)]"
                     }`}
                 >
                   #{tag.name}

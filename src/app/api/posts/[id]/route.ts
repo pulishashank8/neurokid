@@ -162,7 +162,7 @@ export async function PATCH(
       return forbiddenError();
     }
 
-    const { title, content, categoryId, tagIds } = validation.data;
+    const { title, content, categoryId, tagIds, isAnonymous } = validation.data;
 
     const updateData: any = {};
     if (title) updateData.title = sanitizeHtml(title);
@@ -170,6 +170,7 @@ export async function PATCH(
       updateData.content = sanitizeHtml(enforceSafeLinks(content));
     }
     if (categoryId) updateData.categoryId = categoryId;
+    if (isAnonymous !== undefined) updateData.isAnonymous = isAnonymous;
 
     if (tagIds) {
       updateData.tags = {
@@ -190,14 +191,49 @@ export async function PATCH(
               select: {
                 username: true,
                 avatarUrl: true,
+                bio: true,
               },
             },
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
           },
         },
       },
     });
 
-    return successResponse(updatedPost);
+    const formattedPost = {
+      id: updatedPost.id,
+      title: updatedPost.title,
+      content: updatedPost.content,
+      createdAt: updatedPost.createdAt,
+      updatedAt: updatedPost.updatedAt,
+      category: updatedPost.category,
+      tags: updatedPost.tags,
+      author: updatedPost.isAnonymous || !updatedPost.author
+        ? {
+          id: "anonymous",
+          username: "Anonymous",
+          avatarUrl: null,
+          bio: null,
+        }
+        : {
+          id: updatedPost.author.id,
+          username: updatedPost.author.profile?.username || "Unknown",
+          avatarUrl: updatedPost.author.profile?.avatarUrl || null,
+          bio: updatedPost.author.profile?.bio || null,
+        },
+      voteScore: updatedPost.voteScore,
+      commentCount: updatedPost._count.comments,
+      isPinned: updatedPost.isPinned,
+      isLocked: updatedPost.isLocked,
+      status: updatedPost.status,
+      isAnonymous: updatedPost.isAnonymous,
+    };
+
+    return successResponse(formattedPost);
   } catch (error) {
     console.error("Error updating post:", error);
     return errorResponse("INTERNAL_ERROR", "Failed to update post", 500);

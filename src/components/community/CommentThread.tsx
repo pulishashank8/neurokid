@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { VoteButtons } from "./VoteButtons";
 import { ReportButton } from "./ReportButton";
 import { CommentComposer } from "./CommentComposer";
+import { ActionMenu } from "./ActionMenu";
 
 interface Comment {
   id: string;
@@ -40,6 +41,8 @@ export function CommentThread({
   onReplySuccess,
 }: CommentThreadProps) {
   const [isReplying, setIsReplying] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState("");
   const [showChildren, setShowChildren] = useState(true);
   const { data: session } = useSession();
   const createdDate = new Date(comment.createdAt);
@@ -63,7 +66,7 @@ export function CommentThread({
                   Anonymous
                 </p>
               ) : (
-                <Link 
+                <Link
                   href={`/user/${encodeURIComponent(comment.author.username)}`}
                   className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] hover:text-[var(--primary)] hover:underline transition-colors"
                 >
@@ -75,10 +78,52 @@ export function CommentThread({
               </p>
             </div>
 
-            {/* Content */}
-            <div className="mt-2 text-sm sm:text-base text-[var(--text-secondary)] whitespace-pre-wrap break-words">
-              {comment.content}
-            </div>
+            {/* Content (Edit Mode vs View Mode) */}
+            {isEditing ? (
+              <div className="mt-2 space-y-2">
+                <textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  className="w-full px-3 py-2 bg-[var(--bg-elevated)] border border-[var(--border-light)] rounded-[var(--radius-md)] text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] resize-none"
+                  rows={3}
+                  autoFocus
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={async () => {
+                      if (!editContent.trim()) return;
+                      try {
+                        const res = await fetch(`/api/comments/${comment.id}`, {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ content: editContent })
+                        });
+                        if (!res.ok) throw new Error("Failed to update comment");
+                        toast.success("Comment updated");
+                        setIsEditing(false);
+                        onReplySuccess?.();
+                      } catch (err) {
+                        toast.error("Failed to update comment");
+                        console.error(err);
+                      }
+                    }}
+                    className="px-3 py-1 bg-[var(--primary)] text-white text-xs font-medium rounded-[var(--radius-sm)] hover:opacity-90 transition-opacity"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="px-3 py-1 bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-xs font-medium rounded-[var(--radius-sm)] hover:bg-[var(--bg-elevated-hover)] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-2 text-sm sm:text-base text-[var(--text-secondary)] whitespace-pre-wrap break-words">
+                {comment.content}
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 mt-3">
@@ -107,6 +152,29 @@ export function CommentThread({
                 )}
 
                 <ReportButton targetType="COMMENT" targetId={comment.id} />
+
+                {/* Edit/Delete for Owner */}
+                {session?.user?.id === comment.author.id && (
+                  <ActionMenu
+                    isOwner={true}
+                    resourceName="Comment"
+                    onEdit={() => {
+                      setEditContent(comment.content);
+                      setIsEditing(true);
+                    }}
+                    onDelete={async () => {
+                      try {
+                        const res = await fetch(`/api/comments/${comment.id}`, { method: "DELETE" });
+                        if (!res.ok) throw new Error("Failed to delete comment");
+                        toast.success("Comment deleted");
+                        onReplySuccess?.(); // Refresh list
+                      } catch (error) {
+                        toast.error("Failed to delete comment");
+                        console.error(error);
+                      }
+                    }}
+                  />
+                )}
               </div>
             </div>
 
@@ -159,7 +227,6 @@ export function CommentThread({
   );
 }
 
-/* Thread list component */
 interface CommentThreadListProps {
   comments: Comment[];
   postId: string;

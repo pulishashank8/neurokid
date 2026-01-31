@@ -9,9 +9,12 @@ import {
   Check, X, Clock, User, Sparkles, Users, Inbox, Heart, Star
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { ActionMenu } from "@/components/community/ActionMenu";
 import { formatDistanceToNow } from "date-fns";
 
 type TabType = "search" | "pending" | "conversations";
+
+
 
 interface SearchUser {
   id: string;
@@ -125,9 +128,9 @@ function FloatingOrbs() {
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
       {/* Main gradient orbs */}
-      <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-emerald-400/20 via-teal-400/15 to-cyan-400/10 rounded-full blur-3xl animate-float"></div>
-      <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-br from-blue-400/15 via-indigo-400/10 to-purple-400/15 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
-      <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-gradient-to-br from-pink-400/10 via-rose-400/10 to-orange-400/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
+      <div className="absolute -top-40 -right-40 w-96 h-96 bg-emerald-400/10 dark:bg-emerald-900/20 rounded-full blur-3xl animate-float"></div>
+      <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-400/10 dark:bg-blue-900/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+      <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-purple-400/5 dark:bg-purple-900/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
 
       {/* Subtle sparkle particles */}
       <div className="absolute top-20 left-1/4 w-2 h-2 bg-emerald-400/50 rounded-full animate-sparkle"></div>
@@ -143,20 +146,17 @@ function GlassCard({ children, className = "", hover = true }: { children: React
   return (
     <div className={`
       relative overflow-hidden
-      bg-white/70 dark:bg-gray-900/70
+      bg-white/80 dark:bg-black/40
       backdrop-blur-xl
-      border border-white/20 dark:border-gray-700/30
+      border border-white/20 dark:border-white/10
       rounded-3xl
-      shadow-[0_8px_32px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)]
-      ${hover ? 'hover:shadow-[0_20px_60px_rgba(16,185,129,0.15),0_8px_24px_rgba(0,0,0,0.1)] hover:-translate-y-1 hover:border-emerald-200/50 dark:hover:border-emerald-500/30' : ''}
+      shadow-lg
+      ${hover ? 'hover:shadow-xl hover:-translate-y-1 hover:border-emerald-200/50 dark:hover:border-emerald-500/30' : ''}
       transition-all duration-500 ease-out
       ${className}
-    `}
-      style={{
-        background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
-      }}>
-      {/* Subtle inner glow */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent pointer-events-none rounded-3xl"></div>
+    `}>
+      {/* Subtle inner glow for light mode only */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent pointer-events-none rounded-3xl dark:opacity-0"></div>
       {/* Content */}
       <div className="relative z-10">{children}</div>
     </div>
@@ -277,7 +277,43 @@ function MessagesContent() {
   const [loading, setLoading] = useState(true);
   const [connectionMessage, setConnectionMessage] = useState("");
   const [showConnectionModal, setShowConnectionModal] = useState<string | null>(null);
-  const [otherUser, setOtherUser] = useState<{id: string; username: string; displayName: string; avatarUrl?: string} | null>(null);
+  const [otherUser, setOtherUser] = useState<{ id: string; username: string; displayName: string; avatarUrl?: string } | null>(null);
+
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
+
+  const handleUpdateMessage = async (messageId: string, content: string) => {
+    try {
+      const res = await fetch(`/api/messages/${messageId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      });
+      if (res.ok) {
+        toast.success("Message updated");
+        setEditingMessageId(null);
+        if (selectedConversation) fetchMessages(selectedConversation);
+      } else {
+        toast.error("Failed to update message");
+      }
+    } catch {
+      toast.error("Failed to update message");
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      const res = await fetch(`/api/messages/${messageId}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Message deleted");
+        if (selectedConversation) fetchMessages(selectedConversation);
+      } else {
+        toast.error("Failed to delete message");
+      }
+    } catch {
+      toast.error("Failed to delete message");
+    }
+  };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -450,8 +486,7 @@ function MessagesContent() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-emerald-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-emerald-950/20 flex items-center justify-center">
-        <FloatingOrbs />
+      <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
         <div className="relative z-10">
           {/* Premium loading spinner */}
           <div className="relative w-20 h-20">
@@ -470,7 +505,7 @@ function MessagesContent() {
   const pendingCount = pendingReceived.length + pendingSent.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-emerald-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-emerald-950/20 relative">
+    <div className="min-h-screen bg-gray-50 dark:bg-black relative transition-colors duration-500">
       <FloatingOrbs />
 
       <div className="container max-w-7xl mx-auto px-4 py-8 pt-24 relative z-10">
@@ -502,7 +537,8 @@ function MessagesContent() {
           {/* Sidebar */}
           <GlassCard className="overflow-hidden" hover={false}>
             {/* Tabs */}
-            <div className="flex border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-gray-50/50 to-white/50 dark:from-gray-800/50 dark:to-gray-900/50">
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200/50 dark:border-white/10 bg-gradient-to-r from-gray-50/50 to-white/50 dark:from-white/5 dark:to-white/5">
               <TabButton
                 active={activeTab === "conversations"}
                 onClick={() => setActiveTab("conversations")}
@@ -556,8 +592,8 @@ function MessagesContent() {
                         className={`
                           w-full p-4 rounded-2xl flex items-center gap-4 transition-all duration-300
                           ${selectedConversation === conv.id
-                            ? "bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-200/50 dark:border-emerald-700/30 shadow-lg shadow-emerald-100/50 dark:shadow-emerald-900/20"
-                            : "hover:bg-gray-50 dark:hover:bg-gray-800/50 border border-transparent"
+                            ? "bg-emerald-50/80 dark:bg-emerald-900/20 border border-emerald-200/50 dark:border-emerald-500/20"
+                            : "hover:bg-gray-50 dark:hover:bg-white/5 border border-transparent"
                           }
                         `}
                       >
@@ -663,7 +699,8 @@ function MessagesContent() {
                         value={searchQuery}
                         onChange={(e) => handleSearch(e.target.value)}
                         placeholder="Search users..."
-                        className="w-full pl-12 pr-4 py-4 bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-2xl text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-400/10 transition-all duration-300"
+                        placeholder="Search users..."
+                        className="w-full pl-12 pr-4 py-4 bg-white/50 dark:bg-white/5 border-2 border-transparent dark:border-white/10 rounded-2xl text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:border-emerald-400 focus:dark:border-emerald-500/50 focus:bg-white dark:focus:bg-black/40 transition-all duration-300"
                       />
                     </div>
                   </div>
@@ -723,7 +760,8 @@ function MessagesContent() {
             {selectedConversation && otherUser ? (
               <>
                 {/* Chat Header */}
-                <div className="p-5 border-b border-gray-200/50 dark:border-gray-700/50 flex items-center gap-4 bg-gradient-to-r from-white/80 to-gray-50/80 dark:from-gray-800/80 dark:to-gray-900/80 backdrop-blur-sm">
+                {/* Chat Header */}
+                <div className="p-5 border-b border-gray-200/50 dark:border-white/10 flex items-center gap-4 bg-white/50 dark:bg-white/5 backdrop-blur-sm">
                   <button
                     onClick={() => setSelectedConversation(null)}
                     className="lg:hidden p-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors duration-200"
@@ -741,31 +779,66 @@ function MessagesContent() {
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar bg-gradient-to-b from-gray-50/50 to-white/50 dark:from-gray-900/50 dark:to-gray-800/50">
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar bg-gray-50/30 dark:bg-transparent">
                   {messages.map((msg, index) => (
                     <div
                       key={msg.id}
-                      className={`flex ${msg.isFromMe ? "justify-end" : "justify-start"} animate-slide-up`}
+                      className={`flex ${msg.isFromMe ? "justify-end" : "justify-start"} animate-slide-up group/message`}
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <div
-                        className={`
-                          max-w-[75%] px-5 py-3 rounded-3xl shadow-sm
+                      <div className="flex flex-col items-end">
+                        <div
+                          className={`
+                          relative max-w-[75%] px-5 py-3 rounded-3xl shadow-sm
                           ${msg.isFromMe
-                            ? "bg-gradient-to-br from-emerald-400 to-teal-500 text-white rounded-br-lg"
-                            : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-700 rounded-bl-lg"
-                          }
+                              ? "bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-br-lg shadow-lg shadow-emerald-500/20"
+                              : "bg-white dark:bg-white/10 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-white/5 rounded-bl-lg"
+                            }
                         `}
-                        style={{
-                          boxShadow: msg.isFromMe
-                            ? '0 4px 15px -3px rgba(16, 185, 129, 0.3)'
-                            : '0 4px 15px -3px rgba(0, 0, 0, 0.05)'
-                        }}
-                      >
-                        <p className="leading-relaxed">{msg.content}</p>
-                        <p className={`text-xs mt-2 ${msg.isFromMe ? "text-white/70" : "text-gray-400 dark:text-gray-500"}`}>
-                          {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
-                        </p>
+                          style={{
+                            boxShadow: msg.isFromMe
+                              ? '0 4px 15px -3px rgba(16, 185, 129, 0.3)'
+                              : '0 4px 15px -3px rgba(0, 0, 0, 0.05)'
+                          }}
+                        >
+                          {editingMessageId === msg.id ? (
+                            <div className="min-w-[200px]">
+                              <input
+                                value={editContent}
+                                onChange={(e) => setEditContent(e.target.value)}
+                                className="w-full px-2 py-1 bg-white/20 rounded text-white placeholder:text-white/70 focus:outline-none mb-2"
+                                autoFocus
+                              />
+                              <div className="flex gap-2 justify-end">
+                                <button onClick={() => setEditingMessageId(null)} className="text-xs opacity-70 hover:opacity-100">Cancel</button>
+                                <button onClick={() => handleUpdateMessage(msg.id, editContent)} className="text-xs font-bold hover:opacity-90">Save</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <p className="leading-relaxed">{msg.content}</p>
+                              <p className={`text-xs mt-2 ${msg.isFromMe ? "text-white/70" : "text-gray-400 dark:text-gray-500"}`}>
+                                {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
+                              </p>
+                            </>
+                          )}
+                        </div>
+
+                        {/* Action Menu */}
+                        {msg.isFromMe && !editingMessageId && (
+                          <div className="opacity-0 group-hover/message:opacity-100 transition-opacity -mt-2 mr-2">
+                            <ActionMenu
+                              isOwner={true}
+                              resourceName="Message"
+                              onEdit={() => {
+                                setEditingMessageId(msg.id);
+                                setEditContent(msg.content);
+                              }}
+                              onDelete={() => handleDeleteMessage(msg.id)}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

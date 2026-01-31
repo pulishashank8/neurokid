@@ -2,102 +2,73 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+import { syncUserToFinder } from "@/lib/finder";
+
+const onboardingSchema = z.object({
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .max(20, "Username must be at most 20 characters")
+    .regex(/^[a-z0-9_-]+$/, "Username can only contain lowercase letters, numbers, underscores, and hyphens"),
+  displayName: z.string().min(1, "Full name is required").max(100, "Full name too long"),
+});
 
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const userId = (session.user as any).id;
-    const { username, displayName } = await request.json();
+    const userId = (session.user as { id: string }).id;
+    const body = await request.json();
+    const validation = onboardingSchema.safeParse(body);
 
-    if (!username || !displayName) {
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Username and display name are required" },
+        { error: "Invalid input", details: validation.error.errors },
         { status: 400 }
       );
     }
 
+    const { username, displayName } = validation.data;
     const trimmedUsername = username.toLowerCase().trim();
-    const trimmedDisplayName = displayName.trim();
 
-    if (trimmedUsername.length < 3) {
-      return NextResponse.json(
-        { error: "Username must be at least 3 characters" },
-        { status: 400 }
-      );
-    }
-
-    if (trimmedUsername.length > 30) {
-      return NextResponse.json(
-        { error: "Username must be less than 30 characters" },
-        { status: 400 }
-      );
-    }
-
-    if (!/^[a-z0-9_]+$/.test(trimmedUsername)) {
-      return NextResponse.json(
-        { error: "Username can only contain letters, numbers, and underscores" },
-        { status: 400 }
-      );
-    }
-
-    if (trimmedDisplayName.length < 1 || trimmedDisplayName.length > 50) {
-      return NextResponse.json(
-        { error: "Display name must be between 1 and 50 characters" },
-        { status: 400 }
-      );
-    }
-
+    // Check if username is already taken
     const existingProfile = await prisma.profile.findUnique({
       where: { username: trimmedUsername },
     });
 
     if (existingProfile && existingProfile.userId !== userId) {
       return NextResponse.json(
-        { error: "This username is already taken. Please choose another." },
+        { error: "Username is already taken. Please try another one." },
         { status: 409 }
       );
     }
 
-    const userProfile = await prisma.profile.findUnique({
+    // Upsert profile
+    await prisma.profile.upsert({
       where: { userId },
+      update: {
+        username: trimmedUsername,
+        displayName: displayName.trim(),
+      },
+      create: {
+        userId,
+        username: trimmedUsername,
+        displayName: displayName.trim(),
+      },
     });
 
-    if (userProfile) {
-      await prisma.profile.update({
-        where: { userId },
-        data: {
-          username: trimmedUsername,
-          displayName: trimmedDisplayName,
-        },
-      });
-    } else {
-      await prisma.profile.create({
-        data: {
-          userId,
-          username: trimmedUsername,
-          displayName: trimmedDisplayName,
-        },
-      });
-    }
+    // Sync to UserFinder for search optimization
+    await syncUserToFinder(userId);
 
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("Onboarding error:", error);
-    
-    if (error.code === "P2002") {
-      return NextResponse.json(
-        { error: "This username is already taken. Please choose another." },
-        { status: 409 }
-      );
-    }
-    
+    return NextResponse.json({ success: true, message: "Profile updated successfully" });
+  } catch (error) {
+    console.error("Onboarding API Error:", error);
     return NextResponse.json(
-      { error: "Failed to complete profile" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

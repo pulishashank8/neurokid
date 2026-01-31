@@ -5,6 +5,7 @@ import { updateProfileSchema } from "@/lib/validations/community";
 import { RATE_LIMITERS, rateLimitResponse } from "@/lib/rateLimit";
 import { withApiHandler, getRequestId } from "@/lib/apiHandler";
 import { createLogger } from "@/lib/logger";
+import { syncUserToFinder } from "@/lib/finder";
 
 // SUPER STABLE SANITIZER (No external dependencies)
 function simpleSanitize(html: string): string {
@@ -120,6 +121,9 @@ export const PUT = withApiHandler(async (request: NextRequest) => {
       ...(website !== undefined && { website }),
     },
   });
+
+  // Sync to UserFinder
+  await syncUserToFinder(session.user.id);
 
   logger.info({ userId: session.user.id }, 'Profile updated successfully');
   return NextResponse.json({

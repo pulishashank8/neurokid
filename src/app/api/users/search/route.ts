@@ -26,22 +26,17 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const username = searchParams.get("username");
+    const query = (searchParams.get("q") || searchParams.get("username"))?.toLowerCase().trim();
 
-    if (!username || username.length < 2) {
+    if (!query || query.length < 2) {
       return NextResponse.json({ users: [] });
     }
 
-    const searchTerm = username.toLowerCase().trim();
-
-    const profiles = await prisma.profile.findMany({
+    // Search using UserFinder
+    const results = await prisma.userFinder.findMany({
       where: {
-        username: {
-          contains: searchTerm,
-          mode: "insensitive",
-        },
-        userId: {
-          not: userId,
+        keywords: {
+          contains: query,
         },
         user: {
           blockedUsers: {
@@ -78,23 +73,23 @@ export async function GET(request: Request) {
           },
         },
       },
-      take: 10,
+      take: 20,
     });
 
-    const users = profiles.map((profile) => {
+    const users = results.map((finder) => {
       const allRequests = [
-        ...profile.user.sentConnectionRequests,
-        ...profile.user.receivedConnectionRequests,
+        ...finder.user.sentConnectionRequests,
+        ...finder.user.receivedConnectionRequests,
       ];
 
       const relevantRequest = allRequests.find(
         (r) =>
-          (r.senderId === userId && r.receiverId === profile.userId) ||
-          (r.receiverId === userId && r.senderId === profile.userId)
+          (r.senderId === userId && r.receiverId === finder.userId) ||
+          (r.receiverId === userId && r.senderId === finder.userId)
       );
 
       let connectionStatus: "none" | "pending_sent" | "pending_received" | "connected" = "none";
-      
+
       if (relevantRequest) {
         if (relevantRequest.status === "ACCEPTED") {
           connectionStatus = "connected";
@@ -104,10 +99,10 @@ export async function GET(request: Request) {
       }
 
       return {
-        id: profile.userId,
-        username: profile.username,
-        displayName: profile.displayName,
-        avatarUrl: profile.avatarUrl,
+        id: finder.userId,
+        username: finder.username,
+        displayName: finder.displayName,
+        avatarUrl: finder.avatarUrl,
         connectionStatus,
       };
     });
