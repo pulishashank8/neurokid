@@ -126,6 +126,29 @@ export function PostCard({
             </p>
           )}
 
+          {/* Images Grid */}
+          {post.images && post.images.length > 0 && (
+            <div className={`grid gap-2 mb-4 ${post.images.length === 1 ? "grid-cols-1" :
+                post.images.length === 2 ? "grid-cols-2" :
+                  "grid-cols-2"
+              }`}>
+              {post.images.slice(0, 4).map((image, index) => (
+                <div
+                  key={index}
+                  className={`relative rounded-xl overflow-hidden bg-[var(--surface2)] ${post.images!.length === 3 && index === 0 ? "row-span-2 h-full" : "aspect-video"
+                    }`}
+                >
+                  <img
+                    src={image}
+                    alt={`Attachment ${index + 1}`}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full bg-[var(--surface2)] flex items-center justify-center text-[var(--muted)] shadow-sm">
