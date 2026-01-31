@@ -638,12 +638,9 @@ function MessagesContent() {
                     conversations.map((conv) => (
                       <button
                         key={conv.id}
-                        onClick={() => {
-                          setSelectedConversation(conv.id);
-                          fetchMessages(conv.id);
-                        }}
+                        onClick={() => router.push(`/messages?conversation=${conv.id}`)}
                         className={`
-                          w-full p-4 rounded-2xl flex items-center gap-4 transition-all duration-300
+                          w-full p-4 rounded-2xl flex items-center gap-4 transition-all duration-300 cursor-pointer touch-manipulation
                           ${selectedConversation === conv.id
                             ? "bg-emerald-50/80 dark:bg-emerald-900/20 border border-emerald-200/50 dark:border-emerald-500/20"
                             : "hover:bg-gray-50 dark:hover:bg-white/5 border border-transparent"
@@ -813,10 +810,10 @@ function MessagesContent() {
             {selectedConversation && otherUser ? (
               <>
                 {/* Chat Header */}
-                <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center gap-4 bg-gray-100 dark:bg-[#202c33] z-20 shadow-sm">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center gap-4 bg-gray-100 dark:bg-[#202c33] z-20 shadow-sm relative">
                   <button
-                    onClick={() => setSelectedConversation(null)}
-                    className="lg:hidden p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/5 transition-colors"
+                    onClick={() => router.push("/messages")}
+                    className="lg:hidden p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/5 transition-colors z-30 touch-manipulation"
                   >
                     <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   </button>

@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
         }
 
-        // 2MB Limit
+        // Limit check (2MB) - Base64 will be approx 33% larger
         if (file.size > 2 * 1024 * 1024) {
             return NextResponse.json({ error: "File size limit is 2MB" }, { status: 400 });
         }
@@ -35,18 +35,12 @@ export async function POST(request: NextRequest) {
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
-        // Save to public/uploads
-        const uploadDir = join(process.cwd(), "public/uploads");
-        await mkdir(uploadDir, { recursive: true });
+        // Convert to Base64 Data URI
+        const base64String = buffer.toString('base64');
+        const mimeType = file.type || 'application/octet-stream';
+        const dataUri = `data:${mimeType};base64,${base64String}`;
 
-        const fileName = `${uuidv4()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "")}`;
-        const filePath = join(uploadDir, fileName);
-
-        await writeFile(filePath, buffer);
-
-        const publicUrl = `/uploads/${fileName}`;
-
-        return NextResponse.json({ url: publicUrl, type: file.type });
+        return NextResponse.json({ url: dataUri, type: mimeType });
     } catch (error) {
         console.error("Upload error:", error);
         return NextResponse.json({ error: "Upload failed" }, { status: 500 });
