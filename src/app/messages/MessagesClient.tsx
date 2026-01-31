@@ -449,11 +449,23 @@ function MessagesContent() {
     }
   };
 
+  const handleSelectConversation = (conv: Conversation) => {
+    setSelectedConversation(conv.id);
+    setOtherUser(conv.otherUser);
+    fetchMessages(conv.id);
+
+    // Update URL without triggering router navigation/effect
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set("conversation", conv.id);
+    window.history.pushState({}, "", newUrl);
+  };
+
   const handleOpenChat = async (targetUserId: string) => {
     // 1. Check local
     const conv = conversations.find(c => c.otherUser.id === targetUserId);
     if (conv) {
       setSelectedConversation(conv.id);
+      setOtherUser(conv.otherUser);
       setActiveTab("conversations");
       fetchMessages(conv.id);
       // Update URL
@@ -477,6 +489,7 @@ function MessagesContent() {
       if (res.ok && data.conversation) {
         await fetchConversations(); // Refresh list to include new conv
         setSelectedConversation(data.conversation.id);
+        setOtherUser(data.conversation.otherUser);
         setActiveTab("conversations");
         fetchMessages(data.conversation.id);
 
@@ -689,7 +702,7 @@ function MessagesContent() {
                     conversations.map((conv) => (
                       <button
                         key={conv.id}
-                        onClick={() => router.push(`/messages?conversation=${conv.id}`)}
+                        onClick={() => handleSelectConversation(conv)}
                         className={`
                           w-full p-4 rounded-2xl flex items-center gap-4 transition-all duration-300 cursor-pointer touch-manipulation
                           ${selectedConversation === conv.id
