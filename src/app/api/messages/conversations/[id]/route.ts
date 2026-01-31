@@ -161,7 +161,9 @@ export async function GET(
         content: msg.content,
         isFromMe: msg.senderId === userId,
         createdAt: msg.createdAt,
-        readAt: msg.readAt
+        readAt: msg.readAt,
+        attachmentUrl: msg.attachmentUrl,
+        attachmentType: msg.attachmentType
       })),
       nextCursor,
       hasMore
@@ -234,7 +236,9 @@ export async function POST(
       select: {
         id: true,
         content: true,
-        createdAt: true
+        createdAt: true,
+        attachmentUrl: true,
+        attachmentType: true
       }
     });
 
@@ -250,7 +254,9 @@ export async function POST(
         id: message.id,
         content: message.content,
         isFromMe: true,
-        createdAt: message.createdAt
+        createdAt: message.createdAt,
+        attachmentUrl: message.attachmentUrl,
+        attachmentType: message.attachmentType
       }
     }, { status: 201 });
   } catch (error) {

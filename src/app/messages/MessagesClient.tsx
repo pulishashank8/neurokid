@@ -955,8 +955,11 @@ function MessagesContent() {
                               <div className={`text-[10px] text-right mt-1 font-medium flex justify-end items-center gap-1 ${msg.isFromMe ? "text-emerald-900/40 dark:text-emerald-100/40" : "text-gray-400 dark:text-gray-500"}`}>
                                 {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
                                 {msg.isFromMe && (
-                                  <span className={msg.readAt ? "text-blue-500" : ""}>
-                                    {msg.readAt ? "✓✓" : "✓"}
+                                  <span className={`ml-1 ${msg.readAt ? "text-blue-500" : "text-gray-400"}`}>
+                                    {msg.readAt
+                                      ? `Seen ${new Date(msg.readAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                                      : "Sent"
+                                    }
                                   </span>
                                 )}
                               </div>
