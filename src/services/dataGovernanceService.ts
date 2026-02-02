@@ -65,7 +65,7 @@ export class DataGovernanceService {
             createdAt: true,
           },
         },
-        sentDirectMessages: {
+        sentMessages: {
           select: {
             id: true,
             content: true,
@@ -109,7 +109,11 @@ export class DataGovernanceService {
       } : null,
       posts: user.posts,
       comments: user.comments,
-      messages: user.sentDirectMessages,
+      messages: user.sentMessages.map(m => ({
+        id: m.id,
+        content: m.content || "",
+        createdAt: m.createdAt
+      })),
       votes: user.votes.map(v => ({
         targetType: v.targetType,
         targetId: v.targetId,
@@ -130,25 +134,25 @@ export class DataGovernanceService {
       prisma.profile.deleteMany({
         where: { userId },
       }),
-      
+
       prisma.comment.updateMany({
         where: { authorId: userId },
         data: { content: '[Comment removed]' },
       }),
-      
+
       prisma.post.updateMany({
         where: { authorId: userId },
-        data: { 
+        data: {
           content: '[Content removed]',
           title: '[Post removed]',
         },
       }),
-      
-      prisma.directMessage.updateMany({
+
+      prisma.message.updateMany({
         where: { senderId: userId },
         data: { content: '[Message removed]' },
       }),
-      
+
       prisma.user.update({
         where: { id: userId },
         data: {
@@ -196,7 +200,7 @@ export class DataGovernanceService {
   }> {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
+
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 

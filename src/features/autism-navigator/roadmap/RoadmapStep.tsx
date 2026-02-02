@@ -12,7 +12,7 @@ import { MedicaidContactCard } from './MedicaidContactCard';
 import { StepStatusSelector } from './StepStatusSelector';
 import { StepAIChat } from './StepAIChat';
 import { isStepRecommendedForAge } from '@/features/autism-navigator/data/ageStepLogic';
-import { ResourceFinder } from '@/features/autism-navigator/lib/ResourceFinder';
+import { ResourceFinder } from '@/features/autism-navigator/utils/ResourceFinder';
 
 interface RoadmapStepProps {
   step: RoadmapStepType;

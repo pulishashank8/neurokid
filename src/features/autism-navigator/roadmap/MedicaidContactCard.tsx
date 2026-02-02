@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { getMedicaidContact, getGenericMedicaidGuidance } from '@/features/autism-navigator/data/contactData';
 import { getStateResource } from '@/features/autism-navigator/data/stateResources';
 import { Phone, MapPin, Globe, Clock, ChevronRight, User, FileText, CheckCircle2 } from 'lucide-react';
-import { ResourceFinder } from '@/features/autism-navigator/lib/ResourceFinder';
+import { ResourceFinder } from '@/features/autism-navigator/utils/ResourceFinder';
 
 interface MedicaidContactCardProps {
   state: string;

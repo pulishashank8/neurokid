@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
 
@@ -45,7 +46,7 @@ export default function ForgotPasswordPage() {
     if (success) {
         return (
             <div className="min-h-screen pt-20 px-4">
-                <Card className="max-w-md mx-auto text-center" hover={false}>
+                <Card className="max-w-md mx-auto text-center">
                     <div className="mb-4 inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full">
                         <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
                     </div>
@@ -68,7 +69,7 @@ export default function ForgotPasswordPage() {
 
     return (
         <div className="min-h-screen pt-20 px-4">
-            <Card className="max-w-md mx-auto" hover={false}>
+            <Card className="max-w-md mx-auto">
                 <div className="mb-6">
                     <Link href="/login" className="inline-flex items-center text-sm text-[var(--muted)] hover:text-[var(--text)] transition-colors mb-4">
                         <ArrowLeft className="w-4 h-4 mr-1" />
@@ -85,20 +86,27 @@ export default function ForgotPasswordPage() {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-5">
-                    <Input
-                        id="email"
-                        type="email"
-                        label="Email Address"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="you@example.com"
-                        icon={<Mail className="w-4 h-4 text-[var(--muted)]" />}
-                        required
-                    />
+                    <div className="space-y-2">
+                        <Label htmlFor="email">Email Address</Label>
+                        <div className="relative">
+                            <Input
+                                id="email"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="you@example.com"
+                                required
+                                className="pl-10"
+                            />
+                            <div className="absolute left-3 top-3 pointer-events-none">
+                                <Mail className="w-4 h-4 text-[var(--muted)]" />
+                            </div>
+                        </div>
+                    </div>
                     <Button
                         type="submit"
                         disabled={isLoading}
-                        variant="primary"
+                        variant="default"
                         className="w-full"
                     >
                         {isLoading ? "Sending Link..." : "Send Reset Link"}

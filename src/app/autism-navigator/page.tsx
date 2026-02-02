@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { Download, RotateCcw, FileText, FileCheck, Sparkles, Map, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateRoadmapPDF } from '@/features/autism-navigator/lib/pdfGenerator';
+import { generateRoadmapPDF } from '@/features/autism-navigator/utils/pdfGenerator';
 import {
   DropdownMenu,
   DropdownMenuContent,

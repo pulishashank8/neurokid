@@ -56,17 +56,19 @@ export async function GET(request: Request) {
       });
 
       return NextResponse.json({
-        requests: requests.map((r) => ({
-          id: r.id,
-          message: r.message,
-          createdAt: r.createdAt,
-          sender: {
-            id: r.sender.id,
-            username: r.sender.profile?.username,
-            displayName: r.sender.profile?.displayName,
-            avatarUrl: r.sender.profile?.avatarUrl,
-          },
-        })),
+        requests: requests
+          .filter((r) => r.sender)
+          .map((r) => ({
+            id: r.id,
+            message: r.message,
+            createdAt: r.createdAt,
+            sender: {
+              id: r.sender!.id,
+              username: r.sender!.profile?.username,
+              displayName: r.sender!.profile?.displayName,
+              avatarUrl: r.sender!.profile?.avatarUrl,
+            },
+          })),
       });
     }
 
@@ -88,17 +90,19 @@ export async function GET(request: Request) {
       });
 
       return NextResponse.json({
-        requests: requests.map((r) => ({
-          id: r.id,
-          message: r.message,
-          createdAt: r.createdAt,
-          receiver: {
-            id: r.receiver.id,
-            username: r.receiver.profile?.username,
-            displayName: r.receiver.profile?.displayName,
-            avatarUrl: r.receiver.profile?.avatarUrl,
-          },
-        })),
+        requests: requests
+          .filter((r) => r.receiver)
+          .map((r) => ({
+            id: r.id,
+            message: r.message,
+            createdAt: r.createdAt,
+            receiver: {
+              id: r.receiver!.id,
+              username: r.receiver!.profile?.username,
+              displayName: r.receiver!.profile?.displayName,
+              avatarUrl: r.receiver!.profile?.avatarUrl,
+            },
+          })),
       });
     }
 
@@ -118,20 +122,22 @@ export async function GET(request: Request) {
         take: LIMIT,
       });
 
-      const connections = acceptedRequests.map((r) => {
-        const otherUser = r.senderId === userId ? r.receiver : r.sender;
-        return {
-          id: r.id,
-          // Use updated at if available or created at
-          connectedAt: r.createdAt,
-          user: {
-            id: otherUser.id,
-            username: otherUser.profile?.username,
-            displayName: otherUser.profile?.displayName,
-            avatarUrl: otherUser.profile?.avatarUrl,
-          },
-        };
-      });
+      const connections = acceptedRequests
+        .filter((r) => r.sender && r.receiver)
+        .map((r) => {
+          const otherUser = r.senderId === userId ? r.receiver! : r.sender!;
+          return {
+            id: r.id,
+            // Use updated at if available or created at
+            connectedAt: r.createdAt,
+            user: {
+              id: otherUser.id,
+              username: otherUser.profile?.username,
+              displayName: otherUser.profile?.displayName,
+              avatarUrl: otherUser.profile?.avatarUrl,
+            },
+          };
+        });
 
       return NextResponse.json({ connections });
     }
