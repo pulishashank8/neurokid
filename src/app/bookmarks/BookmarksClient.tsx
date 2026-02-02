@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
-import { PostCard } from "@/components/community/PostCard";
-import { PostCardSkeleton } from "@/components/community/LoadingSkeletons";
-import { EmptyState } from "@/components/community/EmptyState";
+import { Button } from "@/components/ui/button";
+import { PostCard } from "@/features/community/PostCard";
+import { PostCardSkeleton } from "@/features/community/LoadingSkeletons";
+import { EmptyState } from "@/features/community/EmptyState";
 import { useQuery } from "@tanstack/react-query";
 
 interface Post {

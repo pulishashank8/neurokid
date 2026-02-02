@@ -1,7 +1,7 @@
 /**
  * Data Lineage Tracking System
  *
- * Automatically tracks data flow through the NeuroKind application:
+ * Automatically tracks data flow through the NeuroKid application:
  * - Source: Database tables
  * - Process: API endpoints, transformations
  * - Store: Caches, derived tables
@@ -52,7 +52,7 @@ export interface LineageEdge {
 // ============================================================================
 
 /**
- * Static lineage definitions for NeuroKind data flows
+ * Static lineage definitions for NeuroKid data flows
  * This maps the expected data flow through the system
  */
 export const LINEAGE_DEFINITIONS = {

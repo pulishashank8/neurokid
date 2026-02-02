@@ -126,7 +126,7 @@ export default function TrustCenterPage() {
                                         Trust <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Center</span>
                                     </h1>
                                     <p className="text-slate-500 text-sm font-medium">
-                                        NeuroKind Healthcare Data Governance
+                                        NeuroKid Healthcare Data Governance
                                     </p>
                                 </div>
                             </div>
@@ -158,7 +158,7 @@ export default function TrustCenterPage() {
                                 <div>
                                     <h2 className="text-2xl font-bold text-white mb-2">Data Trust Score</h2>
                                     <p className="text-slate-400 text-sm max-w-md">
-                                        Composite score measuring data quality, privacy compliance, and governance maturity across the NeuroKind platform.
+                                        Composite score measuring data quality, privacy compliance, and governance maturity across the NeuroKid platform.
                                     </p>
                                 </div>
                                 <div className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest ${
@@ -393,7 +393,7 @@ export default function TrustCenterPage() {
                 {/* Footer */}
                 <footer className="mt-16 pt-8 border-t border-white/5 text-center">
                     <p className="text-slate-600 text-xs">
-                        NeuroKind Trust Center | HIPAA Compliant | Last Updated: {new Date().toLocaleString()}
+                        NeuroKid Trust Center | HIPAA Compliant | Last Updated: {new Date().toLocaleString()}
                     </p>
                 </footer>
             </div>

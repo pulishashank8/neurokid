@@ -40,9 +40,9 @@ describe('Mailer', () => {
 
             expect(mockSend).toHaveBeenCalledTimes(1);
             expect(mockSend).toHaveBeenCalledWith(expect.objectContaining({
-                from: 'NeuroKind <test@example.com>',
+                from: 'NeuroKid <test@example.com>',
                 to: 'user@example.com',
-                subject: 'Welcome to NeuroKind! Please verify your email',
+                subject: 'Welcome to NeuroKid! Please verify your email',
                 html: expect.stringMatching(/http:\/\/localhost:3000\/verify-email\?token=token123/),
             }));
         });
@@ -77,9 +77,9 @@ describe('Mailer', () => {
 
             expect(mockSend).toHaveBeenCalledTimes(1);
             expect(mockSend).toHaveBeenCalledWith(expect.objectContaining({
-                from: 'NeuroKind <test@example.com>',
+                from: 'NeuroKid <test@example.com>',
                 to: 'forgot@example.com',
-                subject: 'Reset your NeuroKind password',
+                subject: 'Reset your NeuroKid password',
                 html: expect.stringMatching(/http:\/\/localhost:3000\/reset-password\?token=resetToken456/),
             }));
         });

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { Sparkles, User, AtSign, ArrowRight, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -34,7 +34,7 @@ export default function OnboardingPage() {
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("Welcome to NeuroKind!");
+        toast.success("Welcome to NeuroKid!");
         // Update session to reflect completed profile
         await update();
         router.push("/dashboard");

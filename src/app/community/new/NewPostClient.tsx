@@ -2,9 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
-import { PostEditor } from "@/components/community/PostEditor";
-import { LoadingSpinner } from "@/components/community/LoadingSkeletons";
+import { Button } from "@/components/ui/button";
+import { PostEditor } from "@/features/community/PostEditor";
+import { LoadingSpinner } from "@/features/community/LoadingSkeletons";
 import { useQuery } from "@tanstack/react-query";
 
 interface Category {

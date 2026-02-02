@@ -1,5 +1,5 @@
 """
-Machine Learning Models Service for NeuroKind.
+Machine Learning Models Service for NeuroKid.
 
 Provides:
 1. Text Classification for content moderation
@@ -43,7 +43,7 @@ class ContentModerationModel:
     Uses TF-IDF + Naive Bayes for text classification.
 
     Purpose: Automatically flag potentially harmful, off-topic, or spam content
-    to protect the NeuroKind community of autistic children and their parents.
+    to protect the NeuroKid community of autistic children and their parents.
     """
 
     CATEGORIES = ['safe', 'needs_review', 'spam', 'harmful']

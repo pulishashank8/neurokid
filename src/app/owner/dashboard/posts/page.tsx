@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { Eye, MessageSquare, ThumbsUp, Clock } from 'lucide-react';
-import PostModeration from '@/components/owner/PostModeration';
+import PostModeration from '@/features/owner/PostModeration';
 
 async function getPosts(page: number = 1, search: string = '') {
   const pageSize = 20;

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-NeuroKind Great Expectations Data Validation Suite.
+NeuroKid Great Expectations Data Validation Suite.
 
 This script demonstrates industry-standard data validation using Great Expectations,
 complementing our custom Quarantine Engine for comprehensive data quality coverage.
@@ -12,7 +12,7 @@ Architecture Decision:
 Usage:
     python run_standard_checks.py [--table User] [--verbose]
 
-Author: NeuroKind Data Engineering Team
+Author: NeuroKid Data Engineering Team
 """
 
 import os
@@ -481,7 +481,7 @@ Examples:
     args = parser.parse_args()
 
     print("=" * 60)
-    print("  NeuroKind Great Expectations Validation Suite")
+    print("  NeuroKid Great Expectations Validation Suite")
     print("=" * 60)
 
     if not GX_AVAILABLE:

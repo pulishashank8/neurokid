@@ -31,7 +31,7 @@ ALLOWED_ORIGINS = [
 ]
 
 if REPLIT_DOMAIN:
-    ALLOWED_ORIGINS.append(f"https://{REPLIT_DOMAIN}")
+    ALLOWED_ORIGINS.append(f"https:_DOMAIN}")
 
 app = FastAPI(
     title="NeuroKid Python Backend",
@@ -47,7 +47,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
-    allow_origin_regex=r"https://.*\.replit\.dev" if IS_PRODUCTION else None,
+    allow_origin_regex=r"https:\.dev" if IS_PRODUCTION else None,
 )
 
 

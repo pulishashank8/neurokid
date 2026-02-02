@@ -7,7 +7,7 @@ import { useEffect, useState, useRef } from "react";
 import {
   Users, Stethoscope, Brain, ClipboardCheck, ArrowRight,
   Heart, Wind, ClipboardList, Sparkles, Quote, ShoppingBag, Mail, Star, Gamepad2,
-  MessageSquare, Volume2
+  MessageSquare, Volume2, Map
 } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -214,6 +214,7 @@ export default function DashboardPage() {
 
   const supportTools = [
     { href: "/calm", icon: Wind, label: "Breathe & Calm", gradient: "from-emerald-500 to-teal-500", glow: "emerald" },
+    { href: "/autism-navigator", icon: Map, label: "Support Navigator", gradient: "from-blue-500 to-cyan-500", glow: "blue" },
     { href: "/therapy-log", icon: ClipboardList, label: "Therapy Log", gradient: "from-purple-500 to-violet-500", glow: "purple" },
     { href: "/daily-wins", icon: Star, label: "Daily Wins", gradient: "from-amber-500 to-orange-500", glow: "amber" },
   ];

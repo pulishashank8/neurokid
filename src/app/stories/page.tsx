@@ -1,6 +1,6 @@
 "use client";
 
-import { StoryAssistant } from "@/components/stories/StoryAssistant";
+import { StoryAssistant } from "@/features/stories/StoryAssistant";
 
 export default function StoriesPage() {
     return (

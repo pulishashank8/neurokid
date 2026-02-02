@@ -17,7 +17,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   console.log('╔════════════════════════════════════════════════════════════╗');
-  console.log('║    NEUROKIND DATA GOVERNANCE FRAMEWORK SETUP               ║');
+  console.log('║    NeuroKid DATA GOVERNANCE FRAMEWORK SETUP               ║');
   console.log('║    Enterprise Data Governance for Autism Healthcare        ║');
   console.log('╚════════════════════════════════════════════════════════════╝\n');
 
@@ -138,3 +138,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

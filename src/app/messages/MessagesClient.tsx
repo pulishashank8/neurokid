@@ -10,7 +10,7 @@ import {
   Paperclip, FileUp
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { ActionMenu } from "@/components/community/ActionMenu";
+import { ActionMenu } from "@/features/community/ActionMenu";
 import { formatDistanceToNow } from "date-fns";
 
 type TabType = "search" | "pending" | "conversations";

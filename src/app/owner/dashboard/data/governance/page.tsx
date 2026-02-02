@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { ShieldAlert, FileText, Lock } from 'lucide-react';
 import { format } from 'date-fns';
-import AuditDataForm from '@/components/owner/AuditDataForm';
+import AuditDataForm from '@/features/owner/AuditDataForm';
 
 async function getStats() {
     const [accessLogs, consentCounts] = await Promise.all([

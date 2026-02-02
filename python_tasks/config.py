@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     SNOWFLAKE_USER: Optional[str] = None
     SNOWFLAKE_PASSWORD: Optional[str] = None
     SNOWFLAKE_WAREHOUSE: str = "COMPUTE_WH"
-    SNOWFLAKE_DATABASE: str = "NEUROKIND_DW"
+    SNOWFLAKE_DATABASE: str = "NeuroKid_DW"
     SNOWFLAKE_SCHEMA: str = "PUBLIC"
 
     # Integration Settings
@@ -23,3 +23,4 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
 settings = Settings()
+

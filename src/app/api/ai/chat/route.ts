@@ -94,7 +94,7 @@ export const POST = withApiHandler(async (req: NextRequest) => {
   }
 
   // Determine system prompt: Use client's if provided (as first message), otherwise use default NeuroAI
-  let systemPromptContent = `You are NeuroAI, a compassionate AI assistant for NeuroKind... (default prompt content)`;
+  let systemPromptContent = `You are NeuroAI, a compassionate AI assistant for NeuroKid... (default prompt content)`;
 
   if (messages.length > 0 && messages[0].role === 'system') {
     // Client provided a specific system prompt (e.g., for Story Mode)
@@ -103,7 +103,7 @@ export const POST = withApiHandler(async (req: NextRequest) => {
     // Prepend default system prompt
     const defaultSystemPrompt = {
       role: "system",
-      content: `You are NeuroAI, a compassionate AI assistant for NeuroKind - supporting autistic children and their families.
+      content: `You are NeuroAI, a compassionate AI assistant for NeuroKid - supporting autistic children and their families.
 
 Your purpose:
 - Provide supportive, understanding responses about autism and neurodiversity

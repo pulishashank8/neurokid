@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Minimize2, X } from "lucide-react";
 import Link from "next/link";
-import { AACBoard } from "@/components/aac/AACBoard";
-import { useBiometricGuard } from "@/components/aac/hooks/useBiometricGuard";
+import { AACBoard } from "@/features/aac/AACBoard";
+import { useBiometricGuard } from "@/features/aac/hooks/useBiometricGuard";
 
 export default function AACPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);

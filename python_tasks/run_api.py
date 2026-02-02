@@ -5,6 +5,13 @@ Run the FastAPI backend server
 
 import os
 import sys
+from dotenv import load_dotenv
+
+# Try to load .env.local first, then .env
+if os.path.exists('.env.local'):
+    load_dotenv('.env.local')
+else:
+    load_dotenv()
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 

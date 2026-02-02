@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard | NeuroKind",
-  description: "Enterprise admin console for NeuroKind data platform",
+  title: "Admin Dashboard | NeuroKid",
+  description: "Enterprise admin console for NeuroKid data platform",
 };
 
 export default function AdminDashboardPage() {

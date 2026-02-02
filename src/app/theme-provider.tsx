@@ -24,7 +24,7 @@ export function ThemeProvider({ children }: Readonly<{ children: ReactNode }>) {
       root.classList.remove("dark");
     }
     
-    localStorage.setItem("neurokind-theme", newTheme);
+    localStorage.setItem("neurokid-theme", newTheme);
   }, []);
 
   const toggleTheme = useCallback(() => {
@@ -36,7 +36,7 @@ export function ThemeProvider({ children }: Readonly<{ children: ReactNode }>) {
   // Initialize theme on mount (client-side only)
   useEffect(() => {
     // Check localStorage first
-    const savedTheme = localStorage.getItem("neurokind-theme") as Theme | null;
+    const savedTheme = localStorage.getItem("neurokid-theme") as Theme | null;
     
     // Check system preference
     const prefersDark = globalThis.matchMedia("(prefers-color-scheme: dark)").matches;

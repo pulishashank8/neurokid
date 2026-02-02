@@ -1,9 +1,17 @@
-
 import logging
 import threading
 import time
 import schedule
 import asyncio
+import os
+from dotenv import load_dotenv
+
+# Try to load .env.local first, then .env
+if os.path.exists('.env.local'):
+    load_dotenv('.env.local')
+else:
+    load_dotenv()
+
 from fastapi import FastAPI, BackgroundTasks
 from contextlib import asynccontextmanager
 import uvicorn
@@ -125,7 +133,7 @@ async def analyze_content(request: TextAnalysisRequest):
     return {
         "status": "success",
         "analysis": result,
-        "purpose": "Protect NeuroKind community by flagging harmful or spam content"
+        "purpose": "Protect NeuroKid community by flagging harmful or spam content"
     }
 
 
@@ -229,4 +237,6 @@ def ml_status():
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    import os
+    port = int(os.environ.get("PYTHON_API_PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)

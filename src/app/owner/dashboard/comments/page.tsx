@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { Clock, ThumbsUp } from 'lucide-react';
-import CommentModeration from '@/components/owner/CommentModeration';
+import CommentModeration from '@/features/owner/CommentModeration';
 
 async function getComments(page: number = 1, search: string = '') {
   const pageSize = 20;

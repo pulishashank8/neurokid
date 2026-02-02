@@ -463,11 +463,11 @@ async function main() {
   // Step 1: Create Data Owners (teams)
   console.log('📋 Creating Data Owners...');
   const owners = [
-    { teamName: 'Data Engineering', contactEmail: 'data-eng@neurokind.help', slackChannel: '#data-engineering' },
-    { teamName: 'Platform Team', contactEmail: 'platform@neurokind.help', slackChannel: '#platform' },
-    { teamName: 'Healthcare Operations', contactEmail: 'health-ops@neurokind.help', slackChannel: '#healthcare' },
-    { teamName: 'Community Team', contactEmail: 'community@neurokind.help', slackChannel: '#community' },
-    { teamName: 'Security & Compliance', contactEmail: 'security@neurokind.help', slackChannel: '#security' },
+    { teamName: 'Data Engineering', contactEmail: 'data-eng@neurokid.help', slackChannel: '#data-engineering' },
+    { teamName: 'Platform Team', contactEmail: 'platform@neurokid.help', slackChannel: '#platform' },
+    { teamName: 'Healthcare Operations', contactEmail: 'health-ops@neurokid.help', slackChannel: '#healthcare' },
+    { teamName: 'Community Team', contactEmail: 'community@neurokid.help', slackChannel: '#community' },
+    { teamName: 'Security & Compliance', contactEmail: 'security@neurokid.help', slackChannel: '#security' },
   ];
 
   for (const owner of owners) {

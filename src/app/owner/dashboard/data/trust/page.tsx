@@ -169,7 +169,7 @@ export default function DataTrustCenter() {
                             Trust <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Center</span>
                         </h1>
                         <p className="text-slate-400 text-lg font-medium leading-relaxed max-w-2xl">
-                            Monitoring data integrity, privacy compliance, and metadata quality across the NeuroKind pediatric autism support ecosystem.
+                            Monitoring data integrity, privacy compliance, and metadata quality across the NeuroKid pediatric autism support ecosystem.
                         </p>
                     </div>
 

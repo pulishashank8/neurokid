@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
-import DashboardShell from '@/components/owner/DashboardShell';
+import DashboardShell from '@/features/owner/DashboardShell';
 
 export default async function OwnerDashboardLayout({
   children,

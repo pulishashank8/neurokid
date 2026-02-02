@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import toast from "react-hot-toast";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 type Tab = "profile" | "security" | "subscription" | "help";
 

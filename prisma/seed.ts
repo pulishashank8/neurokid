@@ -1,5 +1,5 @@
 /**
- * Prisma Seed Script for NeuroKind
+ * Prisma Seed Script for NeuroKid
  * 
  * This script initializes the database with seed data for development and testing.
  * It creates:
@@ -14,7 +14,7 @@ import * as bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting NeuroKind database seed...');
+  console.log('🌱 Starting NeuroKid database seed...');
 
   try {
     // ============================================================================
@@ -173,16 +173,16 @@ async function main() {
     const adminPassword = await bcrypt.hash('admin123', 10);
     
     const adminUser = await prisma.user.upsert({
-      where: { email: 'admin@neurokind.local' },
+      where: { email: 'admin@neurokid.local' },
       update: {},
       create: {
-        email: 'admin@neurokind.local',
+        email: 'admin@neurokid.local',
         hashedPassword: adminPassword,
         profile: {
           create: {
             username: 'admin',
             displayName: 'Admin User',
-            bio: 'NeuroKind Administrator',
+            bio: 'NeuroKid Administrator',
             avatarUrl: 'https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff',
             verifiedTherapist: false,
             notificationPrefs: {
@@ -213,10 +213,10 @@ async function main() {
     const modPassword = await bcrypt.hash('moderator123', 10);
 
     const modUser = await prisma.user.upsert({
-      where: { email: 'moderator@neurokind.local' },
+      where: { email: 'moderator@neurokid.local' },
       update: {},
       create: {
-        email: 'moderator@neurokind.local',
+        email: 'moderator@neurokid.local',
         hashedPassword: modPassword,
         profile: {
           create: {
@@ -251,10 +251,10 @@ async function main() {
     const parentPassword = await bcrypt.hash('parent123', 10);
 
     const parentUser = await prisma.user.upsert({
-      where: { email: 'parent@neurokind.local' },
+      where: { email: 'parent@neurokid.local' },
       update: {},
       create: {
-        email: 'parent@neurokind.local',
+        email: 'parent@neurokid.local',
         hashedPassword: parentPassword,
         profile: {
           create: {
@@ -291,10 +291,10 @@ async function main() {
     const therapistPassword = await bcrypt.hash('therapist123', 10);
 
     const therapistUser = await prisma.user.upsert({
-      where: { email: 'therapist@neurokind.local' },
+      where: { email: 'therapist@neurokid.local' },
       update: {},
       create: {
-        email: 'therapist@neurokind.local',
+        email: 'therapist@neurokid.local',
         hashedPassword: therapistPassword,
         profile: {
           create: {
@@ -539,7 +539,7 @@ What strategies have worked for your family? Would love to hear what you've trie
         update: {},
         create: {
           teamName: 'Engineering',
-          contactEmail: 'engineering@neurokind.internal',
+          contactEmail: 'engineering@neurokid.internal',
           slackChannel: 'eng-data',
         },
       }),
@@ -548,7 +548,7 @@ What strategies have worked for your family? Would love to hear what you've trie
         update: {},
         create: {
           teamName: 'Product',
-          contactEmail: 'product@neurokind.internal',
+          contactEmail: 'product@neurokid.internal',
           slackChannel: 'product',
         },
       }),
@@ -557,7 +557,7 @@ What strategies have worked for your family? Would love to hear what you've trie
         update: {},
         create: {
           teamName: 'Clinical',
-          contactEmail: 'clinical@neurokind.internal',
+          contactEmail: 'clinical@neurokid.internal',
           slackChannel: 'clinical',
         },
       }),
@@ -566,7 +566,7 @@ What strategies have worked for your family? Would love to hear what you've trie
         update: {},
         create: {
           teamName: 'Compliance',
-          contactEmail: 'compliance@neurokind.internal',
+          contactEmail: 'compliance@neurokid.internal',
           slackChannel: 'compliance',
         },
       }),
@@ -872,10 +872,10 @@ What strategies have worked for your family? Would love to hear what you've trie
     console.log(`   - ${glossaryTerms.length} glossary terms created`);
     console.log('   - 7 catalog datasets created');
     console.log('\n💡 Test login credentials:');
-    console.log('   Admin: admin@neurokind.local / admin123');
-    console.log('   Moderator: moderator@neurokind.local / moderator123');
-    console.log('   Parent: parent@neurokind.local / parent123');
-    console.log('   Therapist: therapist@neurokind.local / therapist123');
+    console.log('   Admin: admin@neurokid.local / admin123');
+    console.log('   Moderator: moderator@neurokid.local / moderator123');
+    console.log('   Parent: parent@neurokid.local / parent123');
+    console.log('   Therapist: therapist@neurokid.local / therapist123');
 
   } catch (error) {
     console.error('❌ Error during seed:', error);

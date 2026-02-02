@@ -6,9 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { LoginSchema } from "@/lib/validators";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { AnimatedMascot, MascotState } from "@/components/ui/AnimatedMascot";
 import { Eye, EyeOff } from "lucide-react";
 

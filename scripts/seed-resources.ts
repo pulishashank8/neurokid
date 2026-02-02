@@ -7,7 +7,7 @@ async function main() {
 
     // First, get or create an admin user
     let adminUser = await prisma.user.findUnique({
-        where: { email: 'admin@neurokind.local' },
+        where: { email: 'admin@neurokid.local' },
     });
 
     if (!adminUser) {
@@ -17,13 +17,13 @@ async function main() {
 
         adminUser = await prisma.user.create({
             data: {
-                email: 'admin@neurokind.local',
+                email: 'admin@neurokid.local',
                 hashedPassword: adminPassword,
                 profile: {
                     create: {
                         username: 'admin',
                         displayName: 'Admin User',
-                        bio: 'NeuroKind Administrator',
+                        bio: 'NeuroKid Administrator',
                         avatarUrl: 'https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff',
                         verifiedTherapist: false,
                         notificationPrefs: {

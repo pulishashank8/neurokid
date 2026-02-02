@@ -1,11 +1,11 @@
-import ConditionalNavBar from "@/components/ConditionalNavBar";
+import ConditionalNavBar from "@/components/layout/ConditionalNavBar";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { SessionProvider } from "@/app/providers";
-import { ProfileGuard } from "@/components/ProfileGuard";
-import SessionTracker from "@/components/SessionTracker";
+import { ProfileGuard } from "@/components/shared/ProfileGuard";
+import SessionTracker from "@/components/shared/SessionTracker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

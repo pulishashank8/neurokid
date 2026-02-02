@@ -5,14 +5,14 @@ import Link from "next/link";
 import { User } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { formatDistanceToNow } from "date-fns";
-import { Button } from "@/components/ui/Button";
-import { VoteButtons } from "@/components/community/VoteButtons";
-import { BookmarkButton } from "@/components/community/BookmarkButton";
-import { ReportButton } from "@/components/community/ReportButton";
-import { CommentComposer } from "@/components/community/CommentComposer";
-import { CommentThreadList } from "@/components/community/CommentThread";
-import { CommentSkeleton, LoadingSpinner } from "@/components/community/LoadingSkeletons";
-import { EmptyState } from "@/components/community/EmptyState";
+import { Button } from "@/components/ui/button";
+import { VoteButtons } from "@/features/community/VoteButtons";
+import { BookmarkButton } from "@/features/community/BookmarkButton";
+import { ReportButton } from "@/features/community/ReportButton";
+import { CommentComposer } from "@/features/community/CommentComposer";
+import { CommentThreadList } from "@/features/community/CommentThread";
+import { CommentSkeleton, LoadingSpinner } from "@/features/community/LoadingSkeletons";
+import { EmptyState } from "@/features/community/EmptyState";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface Post {

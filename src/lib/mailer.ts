@@ -18,16 +18,16 @@ export async function sendVerificationEmail(email: string, token: string): Promi
   try {
     console.log(`Attempting to send verification email to: ${email} from: ${emailFrom}`);
     const { data, error } = await resend.emails.send({
-      from: `NeuroKind <${emailFrom}>`,
+      from: `NeuroKid <${emailFrom}>`,
       to: email,
-      subject: 'Welcome to NeuroKind! Please verify your email',
+      subject: 'Welcome to NeuroKid! Please verify your email',
       html: `
         <!DOCTYPE html>
         <html>
           <head>
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-            <title>Verify your NeuroKind email</title>
+            <title>Verify your NeuroKid email</title>
             <style>
               body {
                 background-color: #f9fafb;
@@ -106,14 +106,14 @@ export async function sendVerificationEmail(email: string, token: string): Promi
           <body>
             <div class="container">
               <div class="logo">
-                <a href="${appUrl}" class="logo-text">NeuroKind</a>
+                <a href="${appUrl}" class="logo-text">NeuroKid</a>
               </div>
               <h1 class="heading">Verify your email address</h1>
               <p class="text">
                 Hi there,
               </p>
               <p class="text">
-                Welcome to NeuroKind! We're excited to have you join our community of parents supporting each other.
+                Welcome to NeuroKid! We're excited to have you join our community of parents supporting each other.
               </p>
               <p class="text">
                 To get started, please verify your email address by clicking the button below. This helps us keep our community secure and trusted.
@@ -129,8 +129,8 @@ export async function sendVerificationEmail(email: string, token: string): Promi
                 This link will expire in 60 minutes.
               </p>
               <div class="footer">
-                <p>If you didn't create an account with NeuroKind, you can safely ignore this email.</p>
-                <p>© ${new Date().getFullYear()} NeuroKind. All rights reserved.</p>
+                <p>If you didn't create an account with NeuroKid, you can safely ignore this email.</p>
+                <p>© ${new Date().getFullYear()} NeuroKid. All rights reserved.</p>
               </div>
             </div>
           </body>
@@ -163,16 +163,16 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
   try {
     console.log(`Attempting to send password reset email to: ${email} from: ${emailFrom}`);
     const { data, error } = await resend.emails.send({
-      from: `NeuroKind <${emailFrom}>`,
+      from: `NeuroKid <${emailFrom}>`,
       to: email,
-      subject: 'Reset your NeuroKind password',
+      subject: 'Reset your NeuroKid password',
       html: `
         <!DOCTYPE html>
         <html>
           <head>
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-            <title>Reset your NeuroKind password</title>
+            <title>Reset your NeuroKid password</title>
             <style>
               body {
                 background-color: #f9fafb;
@@ -248,14 +248,14 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
           <body>
             <div class="container">
               <div class="logo">
-                <a href="${appUrl}" class="logo-text">NeuroKind</a>
+                <a href="${appUrl}" class="logo-text">NeuroKid</a>
               </div>
               <h1 class="heading">Reset your password</h1>
               <p class="text">
                 Hi there,
               </p>
               <p class="text">
-                Someone requested a password reset for your NeuroKind account. If this was you, please click the button below to reset your password.
+                Someone requested a password reset for your NeuroKid account. If this was you, please click the button below to reset your password.
               </p>
               <div class="button-container">
                 <a href="${resetUrl}" class="button" target="_blank">Reset Password</a>
@@ -271,7 +271,7 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
                 If you didn't request a password reset, you can safely ignore this email. Your password will not change.
               </p>
               <div class="footer">
-                <p>© ${new Date().getFullYear()} NeuroKind. All rights reserved.</p>
+                <p>© ${new Date().getFullYear()} NeuroKid. All rights reserved.</p>
               </div>
             </div>
           </body>

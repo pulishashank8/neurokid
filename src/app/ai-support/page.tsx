@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Brain, Sparkles, Send, Bot, User, Info, AlertTriangle } from "lucide-react";
-import { StoryAssistant } from "@/components/stories/StoryAssistant";
+import { StoryAssistant } from "@/features/stories/StoryAssistant";
 
 interface Message {
   role: "user" | "assistant";
