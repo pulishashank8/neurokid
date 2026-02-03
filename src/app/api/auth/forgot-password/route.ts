@@ -5,6 +5,7 @@ import { sendPasswordResetEmail } from "@/lib/mailer";
 import { withApiHandler, getRequestId } from "@/lib/apiHandler";
 import { RATE_LIMITERS, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { createLogger } from "@/lib/logger";
+import { verifyCaptcha } from "@/lib/captcha";
 
 export const POST = withApiHandler(async (request: NextRequest) => {
     const requestId = getRequestId(request);
@@ -15,6 +16,23 @@ export const POST = withApiHandler(async (request: NextRequest) => {
         body = await request.json();
     } catch (e) {
         return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+
+    // Verify CAPTCHA
+    if (body.captchaToken) {
+        const captchaResult = await verifyCaptcha(body.captchaToken);
+        if (!captchaResult.success) {
+            logger.warn({ errorCodes: captchaResult.errorCodes }, 'CAPTCHA verification failed');
+            return NextResponse.json(
+                { error: "CAPTCHA verification failed" },
+                { status: 400 }
+            );
+        }
+    } else if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+            { error: "CAPTCHA verification required" },
+            { status: 400 }
+        );
     }
 
     const { email } = body;

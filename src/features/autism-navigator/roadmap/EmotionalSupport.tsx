@@ -8,12 +8,12 @@ interface EmotionalSupportProps {
 
 export function EmotionalSupport({ message, onJoinCommunity }: EmotionalSupportProps) {
   return (
-    <div className="flex items-start gap-3 p-4 rounded-lg bg-primary/5 border border-primary/20">
-      <Heart className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+    <div className="flex items-start gap-3 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+      <Heart className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
       <div className="space-y-2">
-        <p className="text-sm">{message}</p>
+        <p className="text-sm text-slate-300">{message}</p>
         {onJoinCommunity && (
-          <Button variant="link" className="h-auto p-0 text-primary" onClick={onJoinCommunity}>
+          <Button variant="link" className="h-auto p-0 text-emerald-400 hover:text-emerald-300" onClick={onJoinCommunity}>
             Connect with other parents in our community →
           </Button>
         )}

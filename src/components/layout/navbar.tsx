@@ -48,11 +48,11 @@ import {
 type SubItem = { href: string; label: string; icon: any; description: string };
 type NavGroup = { label: string; items: SubItem[] };
 
-const NAV_GROUPS: NavGroup[] = [
+const getNavGroups = (isLoggedIn: boolean): NavGroup[] => [
   {
     label: "Community",
     items: [
-      { href: "/community", label: "Forums", icon: Users, description: "Safe space to share stories" },
+      { href: isLoggedIn ? "/community/discussions" : "/community", label: "Discussions", icon: Users, description: "Safe space to share stories" },
       { href: "/messages", label: "Messages", icon: MessageCircle, description: "Private conversations" },
       { href: "/community?saved=1", label: "Saved Posts", icon: Heart, description: "Posts you've bookmarked" },
     ]
@@ -68,7 +68,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Support",
     items: [
-      { href: "/aac", label: "AAC Communicator", icon: MessageSquare, description: "Voice communication board" },
+      { href: isLoggedIn ? "/aac/app" : "/aac", label: "AAC Communicator", icon: MessageSquare, description: "Voice communication board" },
       { href: "/therapy-log", label: "Therapy Log", icon: ClipboardList, description: "Track therapy sessions" },
       { href: "/daily-wins", label: "Daily Wins", icon: Star, description: "Celebrate what worked today" },
     ]
@@ -212,7 +212,7 @@ export default function NavBar() {
                 )}
               </Link>
 
-              {NAV_GROUPS.map((group) => {
+              {getNavGroups(!!session?.user).map((group) => {
                 const isCommunityGroup = group.label === "Community";
                 const hasGroupNotification = isCommunityGroup && notifications.totalUnread > 0;
                 return (
@@ -435,7 +435,7 @@ export default function NavBar() {
                 Home
               </Link>
 
-              {NAV_GROUPS.map((group) => {
+              {getNavGroups(!!session?.user).map((group) => {
                 const isCommunityGroup = group.label === "Community";
                 const hasGroupNotification = isCommunityGroup && notifications.totalUnread > 0;
                 return (

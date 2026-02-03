@@ -462,6 +462,28 @@ model AIMessage {
   @@index([createdAt])
 }
 
+/// Async AI job queue for non-blocking chat processing
+model AIJob {
+  id             String    @id @default(cuid())
+  userId         String
+  conversationId String
+  /// ENCRYPTED: Contains conversation messages
+  messages       String    @db.Text
+  status         String    // pending, processing, completed, failed
+  /// ENCRYPTED: Contains AI response
+  result         String?   @db.Text
+  error          String?
+  retryCount     Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  startedAt      DateTime?
+  completedAt    DateTime?
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
 model RateLimitLog {
   id         String   @id @default(cuid())
   userId     String
@@ -610,9 +632,12 @@ model TherapySession {
   therapyType   TherapyType
   sessionDate   DateTime
   duration      Int         @default(60)
-  notes         String?
-  wentWell      String?
-  toWorkOn      String?
+  /// ENCRYPTED: Contains sensitive PHI - decrypt with FieldEncryption.decrypt()
+  notes         String?     @db.Text
+  /// ENCRYPTED: Contains sensitive PHI - decrypt with FieldEncryption.decrypt()
+  wentWell      String?     @db.Text
+  /// ENCRYPTED: Contains sensitive PHI - decrypt with FieldEncryption.decrypt()
+  toWorkOn      String?     @db.Text
   mood          Int?        @db.SmallInt
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -629,18 +654,24 @@ model EmergencyCard {
   childName              String   @db.VarChar(100)
   childAge               Int?
   diagnosis              String?  @db.VarChar(255)
-  triggers               String?
-  calmingStrategies      String?
-  communication          String?
-  medications            String?
-  allergies              String?
+  /// ENCRYPTED: Contains sensitive PHI - decrypt with FieldEncryption.decrypt()
+  triggers               String?  @db.Text
+  /// ENCRYPTED: Contains sensitive PHI - decrypt with FieldEncryption.decrypt()
+  calmingStrategies      String?  @db.Text
+  /// ENCRYPTED: Contains sensitive PHI - decrypt with FieldEncryption.decrypt()
+  communication          String?  @db.Text
+  /// ENCRYPTED: Contains sensitive PHI - decrypt with FieldEncryption.decrypt()
+  medications            String?  @db.Text
+  /// ENCRYPTED: Contains sensitive PHI - decrypt with FieldEncryption.decrypt()
+  allergies              String?  @db.Text
   emergencyContact1Name  String?  @db.VarChar(100)
   emergencyContact1Phone String?  @db.VarChar(20)
   emergencyContact2Name  String?  @db.VarChar(100)
   emergencyContact2Phone String?  @db.VarChar(20)
   doctorName             String?  @db.VarChar(100)
   doctorPhone            String?  @db.VarChar(20)
-  additionalNotes        String?
+  /// ENCRYPTED: Contains sensitive PHI - decrypt with FieldEncryption.decrypt()
+  additionalNotes        String?  @db.Text
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 

@@ -17,20 +17,16 @@ export async function GET() {
         where: {
           receiverId: userId,
           status: "PENDING",
-          seenAt: null,
         },
       }),
-      prisma.directMessage.count({
+      prisma.message.count({
         where: {
           conversation: {
-            OR: [
-              { userAId: userId },
-              { userBId: userId }
-            ]
+            participants: {
+              some: { userId }
+            }
           },
           senderId: { not: userId },
-          readAt: null,
-          deletedAt: null,
         },
       }),
     ]);

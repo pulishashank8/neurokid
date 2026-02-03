@@ -110,6 +110,7 @@ export class RateLimiter {
 
   /**
    * Redis-based rate limiting
+   * FAILS CLOSED - denies requests when Redis is unavailable
    */
   private async checkLimitRedis(redis: any, key: string): Promise<boolean> {
     try {
@@ -123,8 +124,8 @@ export class RateLimiter {
       return current <= this.maxTokens;
     } catch (error) {
       console.error("Redis rate limit check failed:", error);
-      // Fail open - allow request if Redis fails
-      return true;
+      // FAIL CLOSED: Deny request if Redis fails to prevent rate limit bypass
+      return false;
     }
   }
 

@@ -9,11 +9,11 @@ interface PlainLanguageToggleProps {
 
 export function PlainLanguageToggle({ enabled, onToggle }: PlainLanguageToggleProps) {
   return (
-    <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/50 border border-border/50 hover:bg-muted/70 transition-colors">
-      <Languages className="w-4 h-4 text-primary shrink-0" />
+    <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800/70 transition-colors">
+      <Languages className="w-4 h-4 text-emerald-400 shrink-0" />
       <Label 
         htmlFor="plain-language" 
-        className="text-sm font-medium cursor-pointer text-foreground/80 whitespace-nowrap"
+        className="text-sm font-medium cursor-pointer text-slate-300 whitespace-nowrap"
       >
         Simple Mode
       </Label>
@@ -21,7 +21,7 @@ export function PlainLanguageToggle({ enabled, onToggle }: PlainLanguageTogglePr
         id="plain-language"
         checked={enabled}
         onCheckedChange={onToggle}
-        className="scale-90"
+        className="scale-90 data-[state=checked]:bg-emerald-500"
       />
     </div>
   );

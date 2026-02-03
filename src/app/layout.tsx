@@ -1,53 +1,55 @@
+import ConditionalNavBar from "@/components/layout/ConditionalNavBar";
 import type { Metadata } from "next";
-import { Nunito, Quicksand } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { SessionProvider } from "@/app/providers";
 import { ProfileGuard } from "@/components/shared/ProfileGuard";
 import SessionTracker from "@/components/shared/SessionTracker";
-import PremiumNavbar from "@/components/layout/PremiumNavbar";
+import { OrganizationSchema, SoftwareAppSchema } from "@/components/seo/SchemaMarkup";
 
-const nunito = Nunito({
-  variable: "--font-nunito",
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
-const quicksand = Quicksand({
-  variable: "--font-quicksand",
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
 });
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://neurokid.help'
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://neurokid.help';
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: "NeuroKid - Support Platform for Neurodivergent Families",
-    template: "%s | NeuroKid",
+    default: "Neuro Kid: AAC App & Autism Support Tools for Families",
+    template: "%s | Neuro Kid",
   },
-  description: "NeuroKid is a community platform connecting neurodivergent individuals and their families with resources, screening tools, verified providers, and peer support.",
+  description: "Help your child communicate and thrive. Neuro Kid offers AAC tools, therapy tracking, and parent support—designed specifically for autistic children and their families.",
   keywords: [
-    "autism",
-    "neurodivergent",
-    "ADHD",
-    "autism screening",
-    "neurodiversity",
-    "autism support",
-    "autism community",
+    "AAC app for autism",
+    "autism communication app",
+    "autism support app",
+    "apps for nonverbal autistic child",
+    "autism therapy tracker",
+    "visual schedule app autism",
+    "autism parent support",
+    "social stories app",
     "autism resources",
-    "developmental screening",
-    "autism families",
-    "autism parents",
-    "special needs",
+    "ABA therapy tracking",
+    "autism screening tools",
+    "special needs communication",
+    "autism family support",
+    "neurodivergent tools",
+    "autism daily routine app",
   ],
-  authors: [{ name: "NeuroKid" }],
-  creator: "NeuroKid",
-  publisher: "NeuroKid",
+  authors: [{ name: "Neuro Kid" }],
+  creator: "Neuro Kid",
+  publisher: "Neuro Kid",
   robots: {
     index: true,
     follow: true,
@@ -63,27 +65,52 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: baseUrl,
-    siteName: "NeuroKid",
-    title: "NeuroKid - Support Platform for Neurodivergent Families",
-    description: "Connect with resources, screening tools, verified providers, and a supportive community for neurodivergent individuals and their families.",
+    siteName: "Neuro Kid",
+    title: "Neuro Kid: AAC App & Autism Support Tools for Families",
+    description: "Help your child communicate and thrive. AAC tools, therapy tracking, and parent support—designed specifically for autistic children and their families.",
     images: [
       {
-        url: "/logo.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "NeuroKid - Support for Neurodivergent Families",
+        alt: "Neuro Kid - AAC and Autism Support App for Families",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "NeuroKid - Support Platform for Neurodivergent Families",
-    description: "Connect with resources, screening tools, verified providers, and a supportive community for neurodivergent individuals and their families.",
-    images: ["/logo.png"],
+    title: "Neuro Kid: AAC App & Autism Support Tools for Families",
+    description: "Help your child communicate and thrive. AAC tools, therapy tracking, and parent support—designed specifically for autistic children.",
+    images: ["/og-image.png"],
+  },
+  verification: {
+    // Add your Google Search Console verification code here
+    // google: "your-google-verification-code",
   },
   alternates: {
     canonical: baseUrl,
   },
+  category: "Health & Fitness",
+  applicationName: "Neuro Kid",
+  appleWebApp: {
+    capable: true,
+    title: "Neuro Kid",
+    statusBarStyle: "default",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
@@ -93,14 +120,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
+      <head>
+        <OrganizationSchema />
+        <SoftwareAppSchema 
+          name="Neuro Kid"
+          description="AAC and autism support app for children and parents"
+        />
+      </head>
       <body
-        className={`${nunito.variable} ${quicksand.variable} font-sans antialiased transition-colors duration-300`}
-        style={{ fontFamily: 'var(--font-nunito), var(--font-quicksand), system-ui, sans-serif' }}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[var(--background)] transition-colors duration-300`}
       >
         <SessionProvider>
           <SessionTracker />
           <ProfileGuard>
-            <PremiumNavbar />
+            <ConditionalNavBar />
             <main className="min-h-screen">
               {children}
             </main>

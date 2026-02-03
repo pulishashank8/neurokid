@@ -11,12 +11,31 @@ import { withApiHandler, getRequestId } from "@/lib/apiHandler";
 import { createLogger } from "@/lib/logger";
 import crypto from "crypto";
 import { sendVerificationEmail } from "@/lib/mailer";
+import { verifyCaptcha } from "@/lib/captcha";
 
 export const POST = withApiHandler(async (request: NextRequest) => {
   const requestId = getRequestId(request);
   const logger = createLogger({ requestId });
 
   const body = await request.json();
+
+  // Verify CAPTCHA
+  if (body.captchaToken) {
+    const captchaResult = await verifyCaptcha(body.captchaToken);
+    if (!captchaResult.success) {
+      logger.warn({ errorCodes: captchaResult.errorCodes }, 'CAPTCHA verification failed');
+      return NextResponse.json(
+        { error: "CAPTCHA verification failed" },
+        { status: 400 }
+      );
+    }
+  } else if (process.env.NODE_ENV === 'production') {
+    // Require CAPTCHA in production
+    return NextResponse.json(
+      { error: "CAPTCHA verification required" },
+      { status: 400 }
+    );
+  }
 
   // Validate input first (don't count invalid requests against rate limit)
   const parsed = RegisterSchemaWithConfirm.safeParse(body);

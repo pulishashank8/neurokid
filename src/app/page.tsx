@@ -8,7 +8,8 @@ import { useTheme } from "@/app/theme-provider";
 import { PlayfulBackground } from "@/components/animations/PlayfulBackground";
 import {
   ArrowRight, Users, Stethoscope, Brain,
-  ClipboardCheck, Volume2, Shield, Heart, Globe, Sun, Moon, Quote
+  ClipboardCheck, Volume2, Shield, Heart, Globe, Sun, Moon, Quote,
+  Calendar, BookOpen, Sparkles, Gamepad2
 } from "lucide-react";
 
 // 3D Tilt Effect Hook
@@ -78,7 +79,7 @@ function Premium3DCard({ children, className = "", delay = 0, enableTilt = true 
 // Parenting & Neurodiversity Quotes
 const QUOTATIONS = [
   "Your child is not a problem to be solved, but a mystery to be unfolded.",
-  "If they can’t learn the way we teach, we teach the way they learn.",
+  "If they can't learn the way we teach, we teach the way they learn.",
   "Different, not less.",
   "Every milestone is a victory worth celebrating.",
   "Behavior is just communication that hasn't found its words yet.",
@@ -163,6 +164,7 @@ export default function Home() {
       gradient: "from-emerald-500 via-emerald-400 to-teal-500",
       glowColor: "rgba(16, 185, 129, 0.4)",
       bgGlow: "bg-emerald-500/10",
+      href: "/community",
     },
     {
       title: "Providers",
@@ -171,6 +173,7 @@ export default function Home() {
       gradient: "from-rose-500 via-pink-500 to-rose-400",
       glowColor: "rgba(244, 63, 94, 0.4)",
       bgGlow: "bg-rose-500/10",
+      href: "/providers",
     },
     {
       title: "AI Support",
@@ -179,6 +182,7 @@ export default function Home() {
       gradient: "from-purple-500 via-violet-500 to-purple-400",
       glowColor: "rgba(139, 92, 246, 0.4)",
       bgGlow: "bg-purple-500/10",
+      href: "/ai-support",
     },
     {
       title: "Screening",
@@ -187,6 +191,7 @@ export default function Home() {
       gradient: "from-blue-500 via-cyan-500 to-blue-400",
       glowColor: "rgba(59, 130, 246, 0.4)",
       bgGlow: "bg-blue-500/10",
+      href: "/screening",
     },
     {
       title: "AAC Voice",
@@ -195,6 +200,7 @@ export default function Home() {
       gradient: "from-amber-500 via-orange-500 to-amber-400",
       glowColor: "rgba(251, 146, 60, 0.5)",
       bgGlow: "bg-amber-500/10",
+      href: "/aac",
       isPremium: true,
     }
   ];
@@ -215,8 +221,8 @@ export default function Home() {
 
       <div className="relative z-10 text-left">
 
-        {/* HERO SECTION - REFINED & COMPACT */}
-        <section className="pt-8 sm:pt-12 pb-8 px-4 sm:px-8">
+        {/* HERO SECTION - SEO OPTIMIZED */}
+        <section className="pt-8 sm:pt-12 pb-8 px-4 sm:px-8" aria-label="Introduction">
           <div className="max-w-6xl mx-auto text-center">
 
             {/* Top Logo Section - TIGHT MARGINS */}
@@ -231,7 +237,7 @@ export default function Home() {
                     <div className="absolute inset-0 -translate-x-[150%] group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent skew-x-[-20deg]"></div>
                     <img
                       src="/logo-icon.png"
-                      alt="NeuroKid"
+                      alt="Neuro Kid AAC App Logo"
                       className="w-full h-full object-contain filter drop-shadow-sm relative z-10"
                     />
                   </div>
@@ -239,17 +245,16 @@ export default function Home() {
               </Premium3DCard>
 
               {/* Product Name Below Logo */}
-              {/* Product Name Below Logo */}
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
                 <span
                   className="bg-gradient-to-r from-emerald-600 via-teal-500 to-blue-600 bg-clip-text text-transparent"
                   style={{ WebkitTextFillColor: 'transparent' }}
                 >
-                  NeuroKid
+                  Neuro Kid
                 </span>
               </h2>
 
-              {/* ROTATING QUOTATION - Fills the gap tightly with minimal margin */}
+              {/* ROTATING QUOTATION */}
               <div className="min-h-[1.5rem] mb-1 flex items-center justify-center w-full px-4">
                 <p
                   className={`
@@ -263,25 +268,24 @@ export default function Home() {
                   <Quote className="w-3 h-3 text-emerald-500/50" />
                 </p>
               </div>
-
             </div>
 
-            {/* Single Line Headline */}
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tighter mb-6 text-slate-900 dark:text-white animate-reveal reveal-delay-1 whitespace-nowrap overflow-hidden text-ellipsis">
-              Everything you need to support your child.
+            {/* H1: Main SEO Headline - Targeting AAC and Autism Support keywords */}
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tighter mb-6 text-slate-900 dark:text-white animate-reveal reveal-delay-1">
+              The All-in-One Autism Support App for Kids and Parents
             </h1>
 
-            {/* Refined Sub-headline */}
+            {/* SEO-Optimized Subheadline */}
             <p className="max-w-3xl mx-auto text-base sm:text-lg text-slate-600 dark:text-slate-400 leading-relaxed mb-6 animate-reveal reveal-delay-2 font-medium px-4">
-              NeuroKid brings verified providers, community support, and interactive tools like educational games into one simple platform.
+              Help your autistic child communicate with our <strong>AAC app</strong>, track therapy progress, and connect with a supportive parent community. Neuro Kid brings verified providers, daily routines, and calming tools into one simple platform.
             </p>
 
-            {/* Bold Tagline - "Never navigate alone" */}
+            {/* Bold Tagline */}
             <p className="text-lg sm:text-xl font-bold text-slate-800 dark:text-white mb-10 animate-reveal reveal-delay-2 tracking-wide font-serif italic opacity-90">
               Never navigate the unknown alone.
             </p>
 
-            {/* Side-by-Side CTA Buttons - Premium & Elegant */}
+            {/* CTA Buttons */}
             <div className="flex flex-row items-center justify-center gap-4 animate-reveal reveal-delay-3 mb-10 w-full sm:w-auto mx-auto">
               <Link href="/register" className="w-auto">
                 <button className="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-lg shadow-lg shadow-emerald-500/30 active:scale-95 transition-all hover:-translate-y-1 ring-1 ring-white/20">
@@ -296,7 +300,7 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Elegant Social Proof */}
+            {/* Social Proof */}
             <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest animate-fade-up delay-300">
               <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
                 <Shield className="w-4 h-4" /> Secure & Private
@@ -313,12 +317,10 @@ export default function Home() {
           </div>
         </section>
 
-
-        {/* OUR PURPOSE SECTION - COMPACT */}
-        <section className="py-10 bg-slate-50/50 dark:bg-white/[0.02] border-y border-slate-100 dark:border-white/5">
+        {/* H2: Built for Communication - AAC Section */}
+        <section className="py-10 bg-slate-50/50 dark:bg-white/[0.02] border-y border-slate-100 dark:border-white/5" aria-label="AAC Communication Features">
           <div className="max-w-3xl mx-auto px-6 text-center">
-
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 text-slate-900 dark:text-white animate-fade-up">Our Purpose</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 text-slate-900 dark:text-white animate-fade-up">Built for How Your Child Communicates</h2>
             <div className="w-10 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 mx-auto rounded-full mb-6"></div>
 
             <p className="text-lg sm:text-xl leading-relaxed text-slate-700 dark:text-slate-300 font-serif italic mb-6">
@@ -326,20 +328,19 @@ export default function Home() {
             </p>
 
             <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-              We built NeuroKid to be that roadmap. A village in your pocket where you can find answers, track progress, and connect with people who actually understand.
+              We built Neuro Kid to be that roadmap. Our <strong>AAC communication tools</strong> give nonverbal and minimally verbal children a voice. Picture boards, text-to-speech, and customizable visual supports—designed specifically for <strong>autistic communication</strong> needs.
             </p>
           </div>
         </section>
 
-
-        {/* ECOSYSTEM / FEATURES SECTION - Consistent */}
-        <section className="py-16 px-4 sm:px-6">
+        {/* H2: Track Progress - Therapy Section */}
+        <section className="py-16 px-4 sm:px-6" aria-label="Therapy Tracking Features">
           <div className="max-w-[1400px] mx-auto">
             <div className="text-center mb-10">
               <span className="text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-widest text-xs mb-3 block">What's Inside</span>
-              <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4">A Complete Ecosystem</h2>
+              <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4">Track Progress, Celebrate Growth</h2>
               <p className="text-slate-500 dark:text-slate-400 text-base max-w-2xl mx-auto">
-                Everything you need to navigate your child's journey, in one beautiful place.
+                Everything you need to navigate your child's journey, in one beautiful place. From <strong>therapy logs</strong> to <strong>daily routines</strong> and milestone tracking.
               </p>
             </div>
 
@@ -351,53 +352,131 @@ export default function Home() {
                   enableTilt={false}
                   className="h-full"
                 >
-                  <div className={`
-                    relative h-full w-full rounded-2xl glass-premium
-                    p-6
-                    shadow-luxury hover:shadow-luxury-hover
-                    transition-all duration-300 ease-out
-                    border-glow card-shine overflow-hidden
-                    hover:-translate-y-2 hover:scale-[1.02]
-                    flex flex-col items-center justify-start text-center
-                    bg-white/50 dark:bg-[#0d1117]/50
-                    ${pillar.isPremium ? 'ring-2 ring-amber-500/30' : ''}
-                  `}>
-                    <div className={`absolute inset-0 ${pillar.bgGlow} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                    <div
-                      className={`
-                        relative z-10
-                        w-12 h-12
-                        rounded-xl bg-gradient-to-br ${pillar.gradient}
-                        text-white flex items-center justify-center
-                        shadow-lg transition-transform duration-300
-                        group-hover:scale-110
-                        btn-3d icon-container-luxury
-                        mb-4
-                      `}
-                      style={{ boxShadow: `0 8px 30px ${pillar.glowColor}` }}
-                    >
-                      {pillar.icon}
-                    </div>
-                    <h3 className="relative z-10 text-lg font-bold text-slate-900 dark:text-white mb-2">
-                      {pillar.title}
-                    </h3>
-                    <p className="relative z-10 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                      {pillar.desc}
-                    </p>
-                    {pillar.isPremium && (
-                      <div className="absolute top-3 right-3">
-                        <span className="flex h-2 w-2">
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                        </span>
+                  <Link href={pillar.href} className="block h-full">
+                    <div className={`
+                      relative h-full w-full rounded-2xl glass-premium
+                      p-6
+                      shadow-luxury hover:shadow-luxury-hover
+                      transition-all duration-300 ease-out
+                      border-glow card-shine overflow-hidden
+                      hover:-translate-y-2 hover:scale-[1.02]
+                      flex flex-col items-center justify-start text-center
+                      bg-white/50 dark:bg-[#0d1117]/50
+                      ${pillar.isPremium ? 'ring-2 ring-amber-500/30' : ''}
+                    `}>
+                      <div className={`absolute inset-0 ${pillar.bgGlow} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                      <div
+                        className={`
+                          relative z-10
+                          w-12 h-12
+                          rounded-xl bg-gradient-to-br ${pillar.gradient}
+                          text-white flex items-center justify-center
+                          shadow-lg transition-transform duration-300
+                          group-hover:scale-110
+                          btn-3d icon-container-luxury
+                          mb-4
+                        `}
+                        style={{ boxShadow: `0 8px 30px ${pillar.glowColor}` }}
+                      >
+                        {pillar.icon}
                       </div>
-                    )}
-                  </div>
+                      <h3 className="relative z-10 text-lg font-bold text-slate-900 dark:text-white mb-2">
+                        {pillar.title}
+                      </h3>
+                      <p className="relative z-10 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                        {pillar.desc}
+                      </p>
+                      {pillar.isPremium && (
+                        <div className="absolute top-3 right-3">
+                          <span className="flex h-2 w-2">
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
                 </Premium3DCard>
               ))}
             </div>
           </div>
         </section>
 
+        {/* H2: You're Not Alone - Community Section */}
+        <section className="py-16 bg-gradient-to-b from-slate-50 to-white dark:from-white/[0.02] dark:to-transparent" aria-label="Parent Community">
+          <div className="max-w-4xl mx-auto px-6 text-center">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-6">
+              You're Not Alone—Connect with Other Parents
+            </h2>
+            <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 mb-8 max-w-2xl mx-auto">
+              Join thousands of parents who understand. Our <strong>autism parent community</strong> is a judgment-free space to ask questions, share experiences, and find support from those walking the same path.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link href="/community">
+                <button className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-all hover:-translate-y-0.5 shadow-lg shadow-emerald-500/25">
+                  Join the Community
+                </button>
+              </Link>
+              <Link href="/providers">
+                <button className="px-6 py-3 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 font-semibold transition-all hover:bg-slate-50 dark:hover:bg-white/10">
+                  Find Providers
+                </button>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* H2: Calming Tools Section */}
+        <section className="py-16 px-4 sm:px-6" aria-label="Calming Tools and Games">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-4">
+                Calming Tools for Challenging Moments
+              </h2>
+              <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                Sensory-friendly games, breathing exercises, and visual stories to help your child self-regulate during difficult transitions or meltdowns.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { icon: <Gamepad2 className="w-6 h-6" />, title: "Sensory Games", desc: "Calming interactive games", href: "/games", color: "from-purple-500 to-pink-500" },
+                { icon: <Sparkles className="w-6 h-6" />, title: "AI Stories", desc: "Personalized social stories", href: "/stories", color: "from-amber-500 to-orange-500" },
+                { icon: <Calendar className="w-6 h-6" />, title: "Visual Schedules", desc: "Daily routine trackers", href: "/daily-wins", color: "from-blue-500 to-cyan-500" },
+                { icon: <BookOpen className="w-6 h-6" />, title: "Resources", desc: "Expert guides & tips", href: "/resources", color: "from-emerald-500 to-teal-500" },
+              ].map((item, index) => (
+                <Link key={index} href={item.href}>
+                  <div className="group p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-emerald-500/50 transition-all hover:-translate-y-1 hover:shadow-lg">
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform`}>
+                      {item.icon}
+                    </div>
+                    <h3 className="font-bold text-slate-900 dark:text-white mb-1">{item.title}</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">{item.desc}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* H2: Ready to Get Started CTA */}
+        <section className="py-16 px-4 sm:px-6" aria-label="Call to Action">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white mb-4">
+              Ready to Support Your Child's Journey?
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-xl mx-auto">
+              Join thousands of families using Neuro Kid's AAC app, therapy tracking, and parent community to help their autistic children thrive.
+            </p>
+            <Link href="/register">
+              <button className="px-10 py-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-lg shadow-xl shadow-emerald-500/30 active:scale-95 transition-all hover:-translate-y-1">
+                Get Started Free →
+              </button>
+            </Link>
+            <p className="mt-4 text-sm text-slate-500 dark:text-slate-500">
+              No credit card required. Free forever for basic features.
+            </p>
+          </div>
+        </section>
 
         {/* FOOTER */}
         <footer className="py-8 border-t border-slate-200 dark:border-white/5 px-6">

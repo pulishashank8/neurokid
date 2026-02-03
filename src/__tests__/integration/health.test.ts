@@ -91,5 +91,16 @@ describe('Health Check API Integration Tests', () => {
                 expect(response.status).toBe(200);
             });
         });
+
+        it('should include email configuration status', async () => {
+            const request = createMockRequest('GET', '/api/health');
+            const response = await GET(request);
+            const data = await parseResponse(response);
+
+            expect(response.status).toBe(200);
+            expect(data.email).toBeDefined();
+            expect(typeof data.email.configured).toBe('boolean');
+            expect(data.email.from).toBeDefined();
+        });
     });
 });

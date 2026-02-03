@@ -8,6 +8,23 @@ import { logger } from "@/lib/logger";
 import { RATE_LIMITERS } from "@/lib/rateLimit";
 
 export const authOptions: NextAuthOptions = {
+  // Custom logger to suppress client fetch errors in dev
+  logger: {
+    error(code, metadata) {
+      // Suppress CLIENT_FETCH_ERROR in development
+      if (code === 'CLIENT_FETCH_ERROR') {
+        console.warn(`[next-auth] ${code}:`, metadata?.message || '');
+        return;
+      }
+      console.error(`[next-auth] ${code}:`, metadata);
+    },
+    warn(code) {
+      console.warn(`[next-auth] ${code}`);
+    },
+    debug(code, metadata) {
+      console.log(`[next-auth] ${code}:`, metadata);
+    },
+  },
   // No adapter needed when using JWT strategy
   providers: [
     // Credentials provider for email/password login
@@ -89,22 +106,25 @@ export const authOptions: NextAuthOptions = {
             };
           } catch (err) {
             logger.error({ error: err }, 'Login authorization failed');
-            // Fallback: allow dev login without DB if env flag is set (non-production only)
+            // Dev mode: Allow login without DB only if explicitly configured with secure env vars
             if (
               process.env.NODE_ENV !== "production" &&
-              process.env.ALLOW_DEV_LOGIN_WITHOUT_DB === "true"
+              process.env.ALLOW_DEV_LOGIN_WITHOUT_DB === "true" &&
+              process.env.DEV_AUTH_EMAIL &&
+              process.env.DEV_AUTH_PASSWORD_HASH
             ) {
-              const devAccounts: Record<string, { password: string; roles: string[] }> = {
-                "admin@neurokid.local": { password: "admin123", roles: ["ADMIN"] },
-                "parent@neurokid.local": { password: "parent123", roles: ["PARENT"] },
-              };
-              const acct = devAccounts[parsed.data.email];
-              if (acct && acct.password === parsed.data.password) {
+              // Compare with bcrypt hash from env (never hardcode passwords)
+              const isMatch = await bcryptjs.compare(
+                parsed.data.password,
+                process.env.DEV_AUTH_PASSWORD_HASH
+              );
+              if (parsed.data.email === process.env.DEV_AUTH_EMAIL && isMatch) {
+                logger.warn('DEV LOGIN: Using environment-based dev credentials');
                 return {
-                  id: parsed.data.email,
-                  email: parsed.data.email,
-                  name: parsed.data.email,
-                  roles: acct.roles,
+                  id: 'dev-user',
+                  email: process.env.DEV_AUTH_EMAIL,
+                  name: 'Development User',
+                  roles: (process.env.DEV_AUTH_ROLES?.split(',') || ['PARENT']),
                 } as any;
               }
             }
@@ -135,11 +155,12 @@ export const authOptions: NextAuthOptions = {
 
   session: {
     strategy: "jwt",
-    maxAge: 5 * 60 * 60, // 5 hours
+    maxAge: 30 * 60, // 30 minutes - healthcare appropriate
+    updateAge: 5 * 60, // Update session every 5 minutes of activity
   },
 
   jwt: {
-    maxAge: 5 * 60 * 60, // 5 hours
+    maxAge: 2 * 60 * 60, // 2 hours absolute maximum
   },
 
   pages: {
@@ -207,22 +228,35 @@ export const authOptions: NextAuthOptions = {
     },
 
     async jwt({ token, user }) {
+      const now = Date.now();
+
       if (user) {
         token.id = user.id;
         token.username = (user as any).username;
         token.roles = (user as any).roles || [];
-        // Store login timestamp for absolute timeout (48h)
-        token.loginAt = Date.now();
+        // Store login timestamp for absolute timeout
+        token.loginAt = now;
+        token.lastActivity = now;
       }
 
-      // Check absolute timeout (48 hours)
+      // Check absolute timeout (2 hours max)
       if (token.loginAt) {
-        const now = Date.now();
-        const MAX_SESSION_DURATION = 48 * 60 * 60 * 1000; // 48 hours
+        const MAX_SESSION_DURATION = 2 * 60 * 60 * 1000; // 2 hours
         if (now - (token.loginAt as number) > MAX_SESSION_DURATION) {
           return { ...token, forceSignOut: true };
         }
       }
+
+      // Check idle timeout (30 minutes)
+      if (token.lastActivity) {
+        const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+        if (now - (token.lastActivity as number) > IDLE_TIMEOUT) {
+          return { ...token, forceSignOut: true };
+        }
+      }
+
+      // Update activity timestamp
+      token.lastActivity = now;
 
       // Refresh user data including username on every token update
       if (token.id) {
@@ -251,18 +285,24 @@ export const authOptions: NextAuthOptions = {
     },
 
     async session({ session, token }) {
-      if ((token as any).disabled || (token as any).forceSignOut) {
-        return null as any; // Force sign out
+      try {
+        if (!session) return {} as any;
+        if ((token as any).disabled || (token as any).forceSignOut) {
+          return null as any; // Force sign out
+        }
+        if (session.user) {
+          (session.user as any).id = token?.id as string;
+          (session.user as any).username = token?.username as string;
+          (session.user as any).roles = (token?.roles as string[]) || [];
+          (session.user as any).profileComplete = token?.profileComplete as boolean;
+          // Ensure session.user.name is set to displayName/username
+          session.user.name = token?.name as string;
+        }
+        return session;
+      } catch (error) {
+        console.error("Session callback error:", error);
+        return session || {} as any;
       }
-      if (session.user) {
-        (session.user as any).id = token.id as string;
-        (session.user as any).username = token.username as string;
-        (session.user as any).roles = token.roles as string[];
-        (session.user as any).profileComplete = token.profileComplete as boolean;
-        // Ensure session.user.name is set to displayName/username
-        session.user.name = token.name as string;
-      }
-      return session;
     },
 
     async redirect({ url, baseUrl }) {

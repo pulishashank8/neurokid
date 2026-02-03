@@ -20,6 +20,7 @@ const {
   mockAIConversations,
   mockAIMessages,
   mockProviders,
+  mockUserFinders,
   mockPrisma
 } = vi.hoisted(() => {
   const tokens: any[] = [];
@@ -39,6 +40,7 @@ const {
   const aiConversations: any[] = [];
   const aiMessages: any[] = [];
   const providers: any[] = [];
+  const userFinders: any[] = [];
 
   const prismaMock: any = {
     category: {
@@ -717,6 +719,22 @@ const {
         return Promise.resolve({ count: 1 });
       }),
     },
+    userFinder: {
+      upsert: vi.fn().mockImplementation((args: any) => {
+        const existingIndex = userFinders.findIndex((uf: any) => uf.userId === args.where.userId);
+        const data = existingIndex >= 0 ? args.update : args.create;
+        const uf = { id: existingIndex >= 0 ? userFinders[existingIndex].id : `uf_${userFinders.length + 1}`, ...data };
+        if (existingIndex >= 0) {
+          userFinders[existingIndex] = uf;
+        } else {
+          userFinders.push(uf);
+        }
+        return Promise.resolve(uf);
+      }),
+      findMany: vi.fn().mockImplementation(() => Promise.resolve(userFinders)),
+      findUnique: vi.fn().mockImplementation((args: any) => Promise.resolve(userFinders.find((uf: any) => uf.userId === args.where.userId) || null)),
+      deleteMany: vi.fn().mockImplementation(() => { userFinders.length = 0; return Promise.resolve({ count: 1 }); }),
+    },
     vote: {
       findMany: vi.fn().mockImplementation((args: any) => {
         let list = votes;
@@ -802,6 +820,7 @@ const {
     mockAIConversations: aiConversations,
     mockAIMessages: aiMessages,
     mockProviders: providers,
+    mockUserFinders: userFinders,
     mockPrisma: prismaMock
   };
 });
@@ -894,6 +913,7 @@ export const resetMockData = () => {
   mockAIConversations.length = 0;
   mockAIMessages.length = 0;
   mockProviders.length = 0;
+  mockUserFinders.length = 0;
 
   // Repopulate default data
   mockCategories.push(

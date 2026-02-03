@@ -32,6 +32,20 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "File size limit is 2MB" }, { status: 400 });
         }
 
+        // Validate file type (security: prevent upload of executable files)
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        if (!allowedTypes.includes(file.type)) {
+            return NextResponse.json({ error: "Invalid file type. Only images are allowed." }, { status: 400 });
+        }
+
+        // Additional security: validate file extension
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+        const fileName = file.name.toLowerCase();
+        const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+        if (!hasValidExtension) {
+            return NextResponse.json({ error: "Invalid file extension" }, { status: 400 });
+        }
+
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
 

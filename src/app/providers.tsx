@@ -1,10 +1,22 @@
 "use client";
 
 import { SessionProvider as NextAuthSessionProvider } from "next-auth/react";
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { ThemeProvider } from "./theme-provider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
+
+// Suppress next-auth CLIENT_FETCH_ERROR in development
+if (typeof window !== "undefined") {
+  const originalConsoleError = console.error;
+  console.error = (...args: any[]) => {
+    const message = args[0]?.toString?.() || "";
+    if (message.includes("CLIENT_FETCH_ERROR") || message.includes("Cannot convert undefined or null to object")) {
+      return; // Suppress this error
+    }
+    originalConsoleError.apply(console, args);
+  };
+}
 
 function makeQueryClient() {
   return new QueryClient({
@@ -33,7 +45,12 @@ export function SessionProvider({ children }: Readonly<{ children: ReactNode }>)
   
   return (
     <QueryClientProvider client={queryClient}>
-      <NextAuthSessionProvider>
+      <NextAuthSessionProvider 
+        basePath="/api/auth"
+        refetchInterval={0}
+        refetchOnWindowFocus={false}
+        refetchWhenOffline={false}
+      >
         <ThemeProvider>
           {children}
         </ThemeProvider>

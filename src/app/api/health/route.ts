@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getEnv, isRedisAvailable, isAIEnabled, isProduction } from "@/lib/env";
+import { getEnv, isRedisAvailable, isAIEnabled, isProduction, getEmailConfigStatus } from "@/lib/env";
 
 /**
  * Enhanced health check endpoint for production monitoring
@@ -68,6 +68,17 @@ export async function GET(request: NextRequest) {
 
     // 4. Check AI features (optional)
     result.aiFeatures = isAIEnabled() ? "enabled" : "disabled";
+
+    // 5. Check Email configuration
+    const emailStatus = getEmailConfigStatus();
+    result.email = {
+      configured: emailStatus.configured,
+      from: emailStatus.fromAddress,
+    };
+    if (!emailStatus.configured && isProduction()) {
+      result.status = "degraded";
+      result.email.warning = "Email service not configured";
+    }
 
     // 5. Memory usage
     if (typeof process !== "undefined" && process.memoryUsage) {

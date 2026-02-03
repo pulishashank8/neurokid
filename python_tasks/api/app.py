@@ -31,7 +31,7 @@ ALLOWED_ORIGINS = [
 ]
 
 if REPLIT_DOMAIN:
-    ALLOWED_ORIGINS.append(f"https:_DOMAIN}")
+    ALLOWED_ORIGINS.append(f"https://{REPLIT_DOMAIN}")
 
 app = FastAPI(
     title="NeuroKid Python Backend",
