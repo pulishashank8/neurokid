@@ -1,20 +1,22 @@
-import ConditionalNavBar from "@/components/layout/ConditionalNavBar";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Nunito, Quicksand } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import { SessionProvider } from "@/app/providers";
 import { ProfileGuard } from "@/components/shared/ProfileGuard";
 import SessionTracker from "@/components/shared/SessionTracker";
+import PremiumNavbar from "@/components/layout/PremiumNavbar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const quicksand = Quicksand({
+  variable: "--font-quicksand",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const dynamic = 'force-dynamic';
@@ -79,10 +81,6 @@ export const metadata: Metadata = {
     description: "Connect with resources, screening tools, verified providers, and a supportive community for neurodivergent individuals and their families.",
     images: ["/logo.png"],
   },
-  verification: {
-    // Add your Google Search Console verification code here
-    // google: "your-google-verification-code",
-  },
   alternates: {
     canonical: baseUrl,
   },
@@ -96,12 +94,13 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[var(--background)] transition-colors duration-300`}
+        className={`${nunito.variable} ${quicksand.variable} font-sans antialiased transition-colors duration-300`}
+        style={{ fontFamily: 'var(--font-nunito), var(--font-quicksand), system-ui, sans-serif' }}
       >
         <SessionProvider>
           <SessionTracker />
           <ProfileGuard>
-            <ConditionalNavBar />
+            <PremiumNavbar />
             <main className="min-h-screen">
               {children}
             </main>

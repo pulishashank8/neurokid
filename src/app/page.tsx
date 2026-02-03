@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { useTheme } from "@/app/theme-provider";
+import { PlayfulBackground } from "@/components/animations/PlayfulBackground";
 import {
   ArrowRight, Users, Stethoscope, Brain,
   ClipboardCheck, Volume2, Shield, Heart, Globe, Sun, Moon, Quote
@@ -199,17 +200,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#05070a] text-slate-900 dark:text-white transition-colors duration-500 selection:bg-emerald-500/30 font-sans relative overflow-x-hidden">
-
-      {/* 
-        ATMOSPHERIC BACKGROUND (Dark Mode Only) 
-        Keeps light mode clean and white.
-      */}
-      <div className="fixed inset-0 pointer-events-none hidden dark:block">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/10 rounded-full blur-[120px] orb-1 opacity-50"></div>
-        <div className="absolute bottom-[10%] right-[-5%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px] orb-2 opacity-50"></div>
-        <div className="fixed inset-0 bg-[url('/noise.png')] opacity-[0.02]"></div>
-      </div>
+    <PlayfulBackground>
 
       {/* Manual Theme Toggle - Fixed Top Right */}
       <div className="absolute top-6 right-6 z-50 animate-fade-in">
@@ -422,6 +413,6 @@ export default function Home() {
         </footer>
 
       </div>
-    </div>
+    </PlayfulBackground>
   );
 }

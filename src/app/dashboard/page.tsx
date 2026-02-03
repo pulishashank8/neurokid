@@ -10,6 +10,7 @@ import {
   MessageSquare, Volume2, Map
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { PlayfulBackground } from "@/components/animations/PlayfulBackground";
 
 
 
@@ -220,18 +221,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#05070a] relative overflow-hidden transition-colors duration-500">
-      {/* Premium Atmospheric Background (Dark Mode only) */}
-      <div className="fixed inset-0 pointer-events-none hidden dark:block">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/10 rounded-full blur-[150px] orb-1"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px] orb-2"></div>
-        <div className="absolute top-[30%] right-[20%] w-[15%] h-[15%] bg-purple-500/5 rounded-full blur-[100px] orb-3"></div>
-
-        {/* Slow particles */}
-        <div className="particle opacity-30"></div>
-        <div className="particle opacity-20"></div>
-        <div className="particle opacity-30"></div>
-      </div>
+    <PlayfulBackground>
 
       {/* Hero Header */}
       <div className="relative pt-32 pb-20">
@@ -548,6 +538,6 @@ export default function DashboardPage() {
           </p>
         </div>
       </footer>
-    </div >
+    </PlayfulBackground>
   );
 }

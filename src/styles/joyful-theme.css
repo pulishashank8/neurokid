@@ -1,0 +1,587 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================
+   NEUROKID JOYFUL DESIGN SYSTEM
+   Human-made, warm, playful, and premium
+   Inspired by hand-drawn aesthetics & playful illustrations
+   ============================================ */
+
+@theme {
+  /* Core Colors - Warm, joyful palette */
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+  
+  /* Primary - Warm, inviting */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-light: var(--primary-light);
+  --color-primary-fg: var(--primary-foreground);
+  
+  /* Accent Colors - Playful & Joyful */
+  --color-sunny: var(--sunny);
+  --color-coral: var(--coral);
+  --color-sky: var(--sky);
+  --color-lavender: var(--lavender);
+  --color-mint: var(--mint);
+  --color-cream: var(--cream);
+  --color-sand: var(--sand);
+  
+  /* Shadcn Compatibility */
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius: var(--radius);
+}
+
+:root {
+  /* ============================================
+     JOYFUL COLOR PALETTE
+     Warm, human, playful colors
+     ============================================ */
+  
+  /* Primary - Warm Coral/Orange (Energy, Joy, Warmth) */
+  --primary: #F97316;
+  --primary-hover: #EA580C;
+  --primary-light: #FFF7ED;
+  --primary-foreground: #FFFFFF;
+  
+  /* Secondary - Soft Teal (Calm, Trust, Growth) */
+  --secondary: #14B8A6;
+  --secondary-hover: #0D9488;
+  --secondary-light: #F0FDFA;
+  --secondary-foreground: #FFFFFF;
+  
+  /* Accent Colors */
+  --sunny: #FBBF24;        /* Warm yellow - Happiness */
+  --coral: #F87171;        /* Soft red - Love, Energy */
+  --sky: #38BDF8;          /* Bright blue - Openness */
+  --lavender: #A78BFA;     /* Purple - Creativity */
+  --mint: #34D399;         /* Fresh green - Growth */
+  --cream: #FEF3C7;        /* Warm cream - Comfort */
+  --sand: #F5F5DC;         /* Soft sand - Natural */
+  
+  /* Background Colors - Warm & Inviting */
+  --background: #FFFBF5;   /* Warm off-white */
+  --surface: #FFFFFF;
+  --surface-elevated: #FFF8F0;
+  --surface-warm: #FDF6E3;
+  
+  /* Text Colors */
+  --text: #2D2A26;         /* Warm dark - not pure black */
+  --text-muted: #6B6560;   /* Warm gray */
+  --text-light: #9C9590;
+  
+  /* Border & Dividers */
+  --border: #E8E0D5;
+  --border-warm: #F0E6D8;
+  
+  /* Focus Ring */
+  --focus-ring: rgba(249, 115, 22, 0.4);
+  --ring: var(--focus-ring);
+  
+  /* Status Colors - Softer */
+  --success: #34D399;
+  --success-bg: #D1FAE5;
+  --warning: #FBBF24;
+  --warning-bg: #FEF3C7;
+  --error: #F87171;
+  --error-bg: #FEE2E2;
+  --info: #38BDF8;
+  --info-bg: #E0F2FE;
+  
+  /* ============================================
+     SPACING SYSTEM - Generous, breathable
+     ============================================ */
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+  
+  /* ============================================
+     BORDER RADIUS - Extra rounded, friendly
+     ============================================ */
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 2rem;
+  --radius-2xl: 2.5rem;
+  --radius-full: 9999px;
+  
+  /* ============================================
+     SHADOWS - Soft, warm, premium
+     ============================================ */
+  --shadow-sm: 0 2px 4px rgba(45, 42, 38, 0.04);
+  --shadow-md: 0 4px 12px rgba(45, 42, 38, 0.08);
+  --shadow-lg: 0 8px 24px rgba(45, 42, 38, 0.12);
+  --shadow-xl: 0 16px 48px rgba(45, 42, 38, 0.16);
+  --shadow-warm: 0 4px 20px rgba(249, 115, 22, 0.15);
+  
+  /* ============================================
+     TRANSITIONS - Smooth, natural
+     ============================================ */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 500ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  /* Shadcn Mappings */
+  --card: var(--surface);
+  --card-foreground: var(--text);
+  --popover: var(--surface);
+  --popover-foreground: var(--text);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--surface-warm);
+  --accent-foreground: var(--text);
+  --destructive: var(--error);
+  --destructive-foreground: #FFFFFF;
+  --input: var(--border);
+  --radius: var(--radius-lg);
+  
+  /* Charts */
+  --chart-1: 25 95% 53%;   /* Orange */
+  --chart-2: 168 76% 42%;  /* Teal */
+  --chart-3: 45 93% 55%;   /* Yellow */
+  --chart-4: 258 90% 66%;  /* Purple */
+  --chart-5: 142 71% 52%;  /* Green */
+}
+
+/* ============================================
+   DARK MODE - Cozy, warm dark theme
+   ============================================ */
+html.dark {
+  --background: #1A1814;
+  --surface: #24201C;
+  --surface-elevated: #2D2824;
+  --surface-warm: #36302A;
+  
+  --text: #FAF6F1;
+  --text-muted: #B8B0A8;
+  --text-light: #8A827A;
+  
+  --border: #3D3630;
+  --border-warm: #4A423A;
+  
+  --primary: #FB923C;
+  --primary-hover: #FDBA74;
+  --primary-light: rgba(251, 146, 60, 0.15);
+  
+  --focus-ring: rgba(251, 146, 60, 0.5);
+  
+  /* Adjusted accent colors for dark mode */
+  --sunny: #FCD34D;
+  --coral: #FCA5A5;
+  --sky: #7DD3FC;
+  --lavender: #C4B5FD;
+  --mint: #6EE7B7;
+  --cream: rgba(254, 243, 199, 0.1);
+  --sand: rgba(245, 245, 220, 0.1);
+  
+  /* Darker shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
+  --shadow-warm: 0 4px 20px rgba(251, 146, 60, 0.25);
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  font-family: var(--font-nunito, 'Nunito', system-ui, -apple-system, sans-serif);
+  line-height: 1.7;
+  min-height: 100vh;
+  transition: background var(--transition-slow), color var(--transition-slow);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================
+   TYPOGRAPHY - Warm, friendly, readable
+   ============================================ */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text);
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: var(--space-md);
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+}
+
+h2 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+h3 {
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
+}
+
+h4 {
+  font-size: 1.25rem;
+}
+
+p {
+  color: var(--text-muted);
+  line-height: 1.8;
+  margin-bottom: var(--space-md);
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+a:hover {
+  color: var(--primary-hover);
+}
+
+/* ============================================
+   FOCUS STYLES - Accessible & Visible
+   ============================================ */
+:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-md);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  box-shadow: 0 0 0 4px var(--focus-ring);
+}
+
+/* ============================================
+   JOYFUL BUTTONS - Playful, bouncy, warm
+   ============================================ */
+.btn-joyful {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: var(--radius-xl);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-bounce);
+  overflow: hidden;
+  transform-origin: center;
+}
+
+.btn-joyful:hover {
+  transform: translateY(-3px) scale(1.02);
+}
+
+.btn-joyful:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+.btn-joyful-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+  color: white;
+  box-shadow: 
+    0 4px 14px rgba(249, 115, 22, 0.4),
+    0 2px 4px rgba(249, 115, 22, 0.2);
+}
+
+.btn-joyful-primary:hover {
+  box-shadow: 
+    0 8px 25px rgba(249, 115, 22, 0.5),
+    0 4px 8px rgba(249, 115, 22, 0.3);
+}
+
+.btn-joyful-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 2px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-joyful-secondary:hover {
+  background: var(--surface-elevated);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================
+   JOYFUL CARDS - Rounded, soft, playful
+   ============================================ */
+.card-joyful {
+  background: var(--surface);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-joyful:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-xl);
+}
+
+.card-joyful::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--sunny), var(--secondary));
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.card-joyful:hover::before {
+  opacity: 1;
+}
+
+/* Colorful card variants */
+.card-joyful-coral { border-top: 4px solid var(--coral); }
+.card-joyful-sky { border-top: 4px solid var(--sky); }
+.card-joyful-mint { border-top: 4px solid var(--mint); }
+.card-joyful-lavender { border-top: 4px solid var(--lavender); }
+.card-joyful-sunny { border-top: 4px solid var(--sunny); }
+
+/* ============================================
+   DECORATIVE ELEMENTS - Playful accents
+   ============================================ */
+
+/* Blob shapes for backgrounds */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.blob-coral { background: var(--coral); }
+.blob-sky { background: var(--sky); }
+.blob-sunny { background: var(--sunny); }
+.blob-mint { background: var(--mint); }
+.blob-lavender { background: var(--lavender); }
+
+/* Decorative dots pattern */
+.dots-pattern {
+  background-image: radial-gradient(var(--border) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+}
+
+/* Hand-drawn style border */
+.hand-drawn-border {
+  border: 3px solid var(--text);
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+
+/* ============================================
+   ANIMATIONS - Playful, bouncy
+   ============================================ */
+
+/* Float animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(2deg); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 4s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+/* Gentle bounce */
+@keyframes gentle-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-gentle-bounce {
+  animation: gentle-bounce 2s ease-in-out infinite;
+}
+
+/* Wiggle */
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+.animate-wiggle {
+  animation: wiggle 3s ease-in-out infinite;
+}
+
+/* Pulse soft */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 3s ease-in-out infinite;
+}
+
+/* Spin slow */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+/* Fade up entrance */
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s ease-out forwards;
+}
+
+/* Stagger children */
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-up 0.5s ease-out forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+
+/* ============================================
+   SCROLLBAR - Warm, friendly
+   ============================================ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-elevated);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 5px;
+  border: 2px solid var(--surface-elevated);
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary), var(--sunny), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass effect */
+.glass-joyful {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+html.dark .glass-joyful {
+  background: rgba(36, 32, 28, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Section padding */
+.section-padding {
+  padding: var(--space-3xl) var(--space-lg);
+}
+
+@media (min-width: 768px) {
+  .section-padding {
+    padding: var(--space-3xl) var(--space-xl);
+  }
+}
+
+/* Container */
+.container-joyful {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+}
+
+@media (min-width: 768px) {
+  .container-joyful {
+    padding: 0 var(--space-xl);
+  }
+}
