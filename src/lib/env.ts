@@ -13,6 +13,18 @@ const envSchema = z.object({
   NEXTAUTH_SECRET: z.string().min(32).describe("NextAuth secret (min 32 chars)"),
   NEXTAUTH_URL: z.string().url().describe("NextAuth callback URL"),
 
+  // Email (Required for production)
+  RESEND_API_KEY: z
+    .string()
+    .min(1)
+    .optional()
+    .describe("Resend API key for email service"),
+  EMAIL_FROM: z
+    .string()
+    .email()
+    .default("onboarding@resend.dev")
+    .describe("Default sender email address"),
+
   // Optional (with sensible defaults)
   REDIS_URL: z
     .string()
@@ -49,6 +61,78 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
+
+  // Security: PHI Encryption (required for production)
+  ENCRYPTION_KEY: z
+    .string()
+    .length(64)
+    .optional()
+    .describe("64-char hex key for PHI encryption (AES-256-GCM)"),
+
+  // Security: CAPTCHA (optional)
+  CAPTCHA_PROVIDER: z
+    .enum(["hcaptcha", "recaptcha"])
+    .optional()
+    .describe("CAPTCHA provider for form protection"),
+  CAPTCHA_SECRET_KEY: z
+    .string()
+    .optional()
+    .describe("CAPTCHA secret key for server-side verification"),
+  NEXT_PUBLIC_CAPTCHA_SITE_KEY: z
+    .string()
+    .optional()
+    .describe("CAPTCHA site key for client-side widget"),
+  CAPTCHA_MIN_SCORE: z
+    .string()
+    .default("0.5")
+    .describe("Minimum score for reCAPTCHA v3"),
+
+  // Security: MFA (optional)
+  MFA_ISSUER_NAME: z
+    .string()
+    .default("NeuroKid")
+    .describe("MFA issuer name shown in authenticator apps"),
+
+  // Security: Sentry (optional)
+  SENTRY_DSN: z
+    .string()
+    .url()
+    .optional()
+    .describe("Sentry DSN for error tracking"),
+  SENTRY_ENVIRONMENT: z
+    .string()
+    .default("production")
+    .describe("Sentry environment tag"),
+  SENTRY_TRACES_SAMPLE_RATE: z
+    .string()
+    .default("0.1")
+    .describe("Sentry performance tracing sample rate"),
+
+  // Security: Webhook (optional)
+  SECURITY_WEBHOOK_URL: z
+    .string()
+    .url()
+    .optional()
+    .describe("Security events webhook URL for SIEM integration"),
+
+  // Security: Dev Login (development only)
+  ALLOW_DEV_LOGIN_WITHOUT_DB: z
+    .enum(["true", "false"])
+    .default("false")
+    .describe("Allow development login without database"),
+  DEV_AUTH_EMAIL: z
+    .string()
+    .email()
+    .optional()
+    .describe("Development login email"),
+  DEV_AUTH_PASSWORD_HASH: z
+    .string()
+    .optional()
+    .describe("Bcrypt hash of development login password"),
+  DEV_AUTH_ROLES: z
+    .string()
+    .default("PARENT")
+    .describe("Comma-separated roles for dev login"),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -155,6 +239,43 @@ export function isGoogleOAuthEnabled(): boolean {
  */
 export function isProduction(): boolean {
   return process.env.NODE_ENV === "production";
+}
+
+/**
+ * Check if email service is configured
+ */
+export function isEmailConfigured(): boolean {
+  try {
+    const env = getEnv();
+    return !!env.RESEND_API_KEY && env.RESEND_API_KEY.startsWith('re_');
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Get email configuration status for health checks
+ */
+export function getEmailConfigStatus(): { 
+  configured: boolean; 
+  fromAddress: string;
+  apiKeyPrefix: string | null;
+} {
+  try {
+    const env = getEnv();
+    const apiKey = env.RESEND_API_KEY;
+    return {
+      configured: !!apiKey && apiKey.startsWith('re_'),
+      fromAddress: env.EMAIL_FROM,
+      apiKeyPrefix: apiKey ? `${apiKey.substring(0, 7)}...` : null,
+    };
+  } catch {
+    return {
+      configured: false,
+      fromAddress: 'not-configured',
+      apiKeyPrefix: null,
+    };
+  }
 }
 
 /**
