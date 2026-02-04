@@ -21,12 +21,20 @@ export default function AnimalSoundsPage() {
   const [showResult, setShowResult] = useState(false);
 
   const setupRound = () => {
-    const shuffled = [...animals].sort(() => Math.random() - 0.5);
-    const correct = shuffled[0];
-    const wrongOptions = shuffled.slice(1, 3);
+    // Pick a random animal as the correct answer
+    const correctIndex = Math.floor(Math.random() * animals.length);
+    const correct = animals[correctIndex];
+
+    // Get two different wrong options
+    const wrongOptions = animals
+      .filter(a => a.name !== correct.name)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 2);
+
+    // Combine and shuffle all options
     const allOptions = [correct, ...wrongOptions].sort(() => Math.random() - 0.5);
 
-    setCurrentAnimal(animals.findIndex(a => a.name === correct.name));
+    setCurrentAnimal(correctIndex);
     setOptions(allOptions);
     setSelected(null);
     setShowResult(false);
@@ -114,15 +122,14 @@ export default function AnimalSoundsPage() {
               key={animal.name}
               onClick={() => handleSelect(animal.name)}
               disabled={showResult}
-              className={`p-4 rounded-2xl flex flex-col items-center gap-2 transition-all ${
-                showResult
+              className={`p-4 rounded-2xl flex flex-col items-center gap-2 transition-all ${showResult
                   ? animal.name === animals[currentAnimal].name
                     ? "bg-green-100 dark:bg-green-900/30 border-2 border-green-500"
                     : selected === animal.name
                       ? "bg-red-100 dark:bg-red-900/30 border-2 border-red-500"
                       : "bg-white dark:bg-white/5 border-2 border-gray-200 dark:border-gray-800"
                   : "bg-white dark:bg-white/10 border-2 border-green-200 dark:border-green-800/30 hover:border-green-400 hover:scale-105"
-              }`}
+                }`}
             >
               <span className="text-5xl">{animal.emoji}</span>
               <span className="font-bold text-[var(--text)]">{animal.name}</span>
