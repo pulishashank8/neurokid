@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { 
-  ClipboardList, 
-  TrendingUp, 
-  Users, 
-  Shield, 
-  Calendar, 
-  Smile, 
+import {
+  ClipboardList,
+  TrendingUp,
+  Users,
+  Shield,
+  Calendar,
+  Smile,
   Target,
   ArrowRight,
   Check,
@@ -20,7 +20,7 @@ export function TherapyLogLandingContent() {
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 to-white dark:from-blue-950/20 dark:to-[var(--background)] pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-        
+
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -40,7 +40,7 @@ export function TherapyLogLandingContent() {
 
               {/* Description */}
               <p className="text-lg text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
-                Track ABA, speech, occupational, and behavioral therapy sessions all in one place. 
+                Track ABA, speech, occupational, and behavioral therapy sessions all in one place.
                 Monitor progress, spot patterns, and share insights with your child's care team.
               </p>
 
@@ -117,7 +117,7 @@ export function TherapyLogLandingContent() {
               { name: "Physical Therapy", color: "bg-orange-500", icon: "🏃" },
               { name: "Other", color: "bg-slate-500", icon: "📋" },
             ].map((therapy, index) => (
-              <div 
+              <div
                 key={index}
                 className="p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-center hover:border-blue-500/50 transition-all"
               >
@@ -190,23 +190,23 @@ export function TherapyLogLandingContent() {
               <h3 className="font-bold text-slate-900 dark:text-white mb-4">Recent Sessions</h3>
               <div className="space-y-4">
                 {[
-                  { 
-                    type: "ABA Therapy", 
-                    date: "Today", 
+                  {
+                    type: "ABA Therapy",
+                    date: "Today",
                     duration: "60 min",
                     mood: "😊",
                     highlight: "Great progress with communication tokens"
                   },
-                  { 
-                    type: "Speech Therapy", 
-                    date: "Yesterday", 
+                  {
+                    type: "Speech Therapy",
+                    date: "Yesterday",
                     duration: "45 min",
                     mood: "🙂",
                     highlight: "Practiced 5 new words"
                   },
-                  { 
-                    type: "Occupational Therapy", 
-                    date: "Jan 28", 
+                  {
+                    type: "Occupational Therapy",
+                    date: "Jan 28",
                     duration: "60 min",
                     mood: "😐",
                     highlight: "Worked on fine motor skills"
@@ -236,7 +236,7 @@ export function TherapyLogLandingContent() {
           <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-12">
             Why Parents Love Our Therapy Tracker
           </h2>
-          
+
           <div className="grid sm:grid-cols-3 gap-8">
             {[
               {
@@ -310,7 +310,7 @@ export function TherapyLogLandingContent() {
             Start Tracking Your Child's Progress Today
           </h2>
           <p className="text-lg text-slate-600 dark:text-slate-400 mb-8 max-w-xl mx-auto">
-            Join thousands of parents who use Neuro Kid to stay organized and 
+            Join thousands of parents who use Neuro Kid to stay organized and
             advocate effectively for their children's therapy needs.
           </p>
           <Link href="/register">

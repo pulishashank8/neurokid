@@ -2,20 +2,31 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { 
-  Gamepad2, 
-  Puzzle, 
-  Palette, 
-  Shapes, 
-  Grid3X3, 
-  Smile, 
-  Star, 
-  Music, 
-  ListOrdered, 
+import {
+  Gamepad2,
+  Puzzle,
+  Palette,
+  Shapes,
+  Grid3X3,
+  Smile,
+  Star,
+  Music,
+  ListOrdered,
   Search,
   Circle,
   ArrowLeft,
-  Sparkles
+  Sparkles,
+  Type,
+  SortAsc,
+  Wind,
+  Pencil,
+  Cat,
+  Clock,
+  User,
+  MessageCircle,
+  Paintbrush,
+  Trees,
+  LayoutDashboard
 } from "lucide-react";
 
 const games = [
@@ -119,6 +130,136 @@ const games = [
     borderColor: "border-sky-200 dark:border-sky-700/50",
     skills: ["Calm", "Focus"],
   },
+  {
+    id: "alphabet-match",
+    name: "Alphabet Match",
+    description: "Match uppercase with lowercase",
+    icon: Type,
+    color: "from-blue-400 to-indigo-500",
+    bgColor: "bg-blue-50 dark:bg-slate-800",
+    borderColor: "border-blue-200 dark:border-blue-700/50",
+    skills: ["Letters", "Reading"],
+  },
+  {
+    id: "number-order",
+    name: "Number Order",
+    description: "Count from 1 to 6 in order",
+    icon: SortAsc,
+    color: "from-purple-400 to-violet-500",
+    bgColor: "bg-purple-50 dark:bg-slate-800",
+    borderColor: "border-purple-200 dark:border-purple-700/50",
+    skills: ["Numbers", "Sequencing"],
+  },
+  {
+    id: "breathing-exercise",
+    name: "Breathing Exercise",
+    description: "Follow the circle to calm down",
+    icon: Wind,
+    color: "from-cyan-400 to-blue-500",
+    bgColor: "bg-cyan-50 dark:bg-slate-800",
+    borderColor: "border-cyan-200 dark:border-cyan-700/50",
+    skills: ["Calm", "Mindfulness"],
+  },
+  {
+    id: "tracing-letters",
+    name: "Tracing Letters",
+    description: "Follow the path to write letters",
+    icon: Pencil,
+    color: "from-orange-400 to-amber-500",
+    bgColor: "bg-orange-50 dark:bg-slate-800",
+    borderColor: "border-orange-200 dark:border-orange-700/50",
+    skills: ["Writing", "Motor"],
+  },
+  {
+    id: "animal-sounds",
+    name: "Animal Sounds",
+    description: "Which animal makes this sound?",
+    icon: Cat,
+    color: "from-green-400 to-emerald-500",
+    bgColor: "bg-green-50 dark:bg-slate-800",
+    borderColor: "border-green-200 dark:border-green-700/50",
+    skills: ["Animals", "Learning"],
+  },
+  {
+    id: "telling-time",
+    name: "Telling Time",
+    description: "What time does the clock show?",
+    icon: Clock,
+    color: "from-cyan-400 to-sky-500",
+    bgColor: "bg-cyan-50 dark:bg-slate-800",
+    borderColor: "border-cyan-200 dark:border-cyan-700/50",
+    skills: ["Time", "Numbers"],
+  },
+  {
+    id: "body-parts",
+    name: "Body Parts",
+    description: "Learn about your body",
+    icon: User,
+    color: "from-rose-400 to-pink-500",
+    bgColor: "bg-rose-50 dark:bg-slate-800",
+    borderColor: "border-rose-200 dark:border-rose-700/50",
+    skills: ["Body", "Learning"],
+  },
+  {
+    id: "conversation-practice",
+    name: "Conversation Practice",
+    description: "Learn what to say",
+    icon: MessageCircle,
+    color: "from-indigo-400 to-purple-500",
+    bgColor: "bg-indigo-50 dark:bg-slate-800",
+    borderColor: "border-indigo-200 dark:border-indigo-700/50",
+    skills: ["Social", "Communication"],
+  },
+  {
+    id: "color-names",
+    name: "Color Names",
+    description: "What color is this?",
+    icon: Paintbrush,
+    color: "from-fuchsia-400 to-pink-500",
+    bgColor: "bg-fuchsia-50 dark:bg-slate-800",
+    borderColor: "border-fuchsia-200 dark:border-fuchsia-700/50",
+    skills: ["Colors", "Words"],
+  },
+  {
+    id: "zen-garden",
+    name: "Zen Garden",
+    description: "Draw in the sand to relax",
+    icon: Trees,
+    color: "from-amber-400 to-stone-500",
+    bgColor: "bg-amber-50 dark:bg-slate-800",
+    borderColor: "border-amber-200 dark:border-amber-700/50",
+    skills: ["Calm", "Creative"],
+  },
+  {
+    id: "sliding-puzzle",
+    name: "Sliding Puzzle",
+    description: "Slide tiles to solve",
+    icon: LayoutDashboard,
+    color: "from-teal-400 to-cyan-500",
+    bgColor: "bg-teal-50 dark:bg-slate-800",
+    borderColor: "border-teal-200 dark:border-teal-700/50",
+    skills: ["Logic", "Problem Solving"],
+  },
+  {
+    id: "tic-tac-toe",
+    name: "Tic Tac Toe",
+    description: "Classic X and O game",
+    icon: Grid3X3,
+    color: "from-indigo-400 to-purple-500",
+    bgColor: "bg-indigo-50 dark:bg-slate-800",
+    borderColor: "border-indigo-200 dark:border-indigo-700/50",
+    skills: ["Strategy", "Turn-taking"],
+  },
+  {
+    id: "snake",
+    name: "Snake Game",
+    description: "Eat apples to grow!",
+    icon: Gamepad2,
+    color: "from-green-400 to-emerald-500",
+    bgColor: "bg-green-50 dark:bg-slate-800",
+    borderColor: "border-green-200 dark:border-green-700/50",
+    skills: ["Coordination", "Focus"],
+  },
 ];
 
 export default function GamesPage() {
@@ -127,14 +268,14 @@ export default function GamesPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link 
-            href="/dashboard" 
+          <Link
+            href="/dashboard"
             className="inline-flex items-center gap-2 text-[var(--muted)] hover:text-[var(--text)] transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Link>
-          
+
           <div className="flex items-center gap-4 mb-3">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-lg shadow-violet-200 dark:shadow-violet-900/30">
               <Gamepad2 className="w-7 h-7 text-white" />
@@ -144,7 +285,7 @@ export default function GamesPage() {
               <p className="text-gray-600 dark:text-gray-300 text-sm sm:text-base">Simple, calming games designed for focus and fun</p>
             </div>
           </div>
-          
+
           {/* Info banner */}
           <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-violet-50 to-purple-50 dark:from-slate-800 dark:to-slate-800 border border-violet-100 dark:border-violet-700/50">
             <div className="flex items-start gap-3">
@@ -169,18 +310,18 @@ export default function GamesPage() {
             >
               {/* Soft ambient glow */}
               <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${game.color} opacity-20 rounded-full blur-2xl`} />
-              
+
               {/* Icon */}
               <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${game.color} flex items-center justify-center shadow-md mb-4 group-hover:scale-110 transition-transform duration-300`}>
                 <game.icon className="w-6 h-6 text-white" />
               </div>
-              
+
               {/* Content */}
               <h3 className="font-bold text-gray-900 dark:text-white mb-1 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
                 {game.name}
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">{game.description}</p>
-              
+
               {/* Skill tags */}
               <div className="flex flex-wrap gap-1.5">
                 {game.skills.map((skill) => (
@@ -195,7 +336,7 @@ export default function GamesPage() {
             </Link>
           ))}
         </div>
-        
+
         {/* Footer note */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">

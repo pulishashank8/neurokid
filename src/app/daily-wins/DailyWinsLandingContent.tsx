@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { 
-  Calendar, 
-  Clock, 
-  Image, 
+import {
+  Calendar,
+  Clock,
+  Image,
   Sun,
   Moon,
   Check,
@@ -19,7 +19,7 @@ export function DailyWinsLandingContent() {
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-amber-50 to-white dark:from-amber-950/20 dark:to-[var(--background)] pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-        
+
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -39,8 +39,8 @@ export function DailyWinsLandingContent() {
 
               {/* Description */}
               <p className="text-lg text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
-                Reduce anxiety and transitions with customizable <strong>visual schedules</strong>. 
-                Create daily routines that help your autistic child feel secure, 
+                Reduce anxiety and transitions with customizable <strong>visual schedules</strong>.
+                Create daily routines that help your autistic child feel secure,
                 in control, and prepared for what comes next.
               </p>
 
@@ -77,8 +77,8 @@ export function DailyWinsLandingContent() {
                     { time: "8:15 AM", activity: "Get Dressed", done: false, icon: "👕" },
                     { time: "8:30 AM", activity: "School Bus", done: false, icon: "🚌" },
                   ].map((item, i) => (
-                    <div 
-                      key={i} 
+                    <div
+                      key={i}
                       className={`flex items-center gap-4 p-3 rounded-xl ${item.current ? 'bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30' : 'bg-slate-50 dark:bg-white/5'}`}
                     >
                       <span className="text-xl">{item.icon}</span>
@@ -132,7 +132,7 @@ export function DailyWinsLandingContent() {
                 color: "from-purple-500 to-violet-500",
               },
             ].map((feature, index) => (
-              <div 
+              <div
                 key={index}
                 className="group p-8 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:border-amber-500/50 transition-all hover:-translate-y-1 hover:shadow-xl"
               >
@@ -196,7 +196,7 @@ export function DailyWinsLandingContent() {
                 description: "Children can mark tasks complete, building independence and confidence.",
               },
             ].map((feature, index) => (
-              <div 
+              <div
                 key={index}
                 className="p-6 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:shadow-lg transition-all"
               >
@@ -274,8 +274,8 @@ export function DailyWinsLandingContent() {
           <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-3xl p-8 sm:p-12 border border-amber-500/20">
             <blockquote className="text-center">
               <p className="text-xl sm:text-2xl text-slate-800 dark:text-slate-200 font-serif italic mb-6 leading-relaxed">
-                "Mornings used to be a battle every single day. Since we started using Neuro Kid's 
-                visual schedule, my daughter knows exactly what to expect. The meltdowns have 
+                "Mornings used to be a battle every single day. Since we started using Neuro Kid's
+                visual schedule, my daughter knows exactly what to expect. The meltdowns have
                 decreased by 90%. It's been life-changing for our whole family."
               </p>
               <footer className="flex items-center justify-center gap-4">
@@ -341,7 +341,7 @@ export function DailyWinsLandingContent() {
             Bring Calm to Your Child's Day
           </h2>
           <p className="text-lg text-slate-600 dark:text-slate-400 mb-8 max-w-xl mx-auto">
-            Join thousands of families using Neuro Kid's visual schedule app to reduce 
+            Join thousands of families using Neuro Kid's visual schedule app to reduce
             anxiety and make daily routines smoother.
           </p>
           <Link href="/register">

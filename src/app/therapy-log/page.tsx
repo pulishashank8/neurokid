@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { TherapyLogLandingContent } from "./TherapyLogLandingContent";
+import { TherapyLogApp } from "./TherapyLogApp";
 import { SoftwareAppSchema, FAQSchema, WebPageSchema } from "@/components/seo/SchemaMarkup";
 
 export const metadata: Metadata = {
@@ -50,7 +53,13 @@ const faqQuestions = [
   },
 ];
 
-export default function TherapyLogPage() {
+export default async function TherapyLogPage() {
+  const session = await getServerSession(authOptions);
+
+  if (session) {
+    return <TherapyLogApp />;
+  }
+
   return (
     <>
       <SoftwareAppSchema
