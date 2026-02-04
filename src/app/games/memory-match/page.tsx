@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { ArrowLeft, RotateCcw, Star, Grid3X3 } from "lucide-react";
+import { RotateCcw, Star, Grid3X3 } from "lucide-react";
+import { BackButton } from "@/components/ui/BackButton";
 
 const emojis = ["🌈", "🌸", "🦋", "🌻", "🐢", "🌙", "⭐", "🍀"];
 
@@ -54,7 +54,7 @@ export default function MemoryMatchPage() {
     if (newFlipped.length === 2) {
       setIsChecking(true);
       const [first, second] = newFlipped;
-      
+
       if (cards[first].emoji === cards[second].emoji) {
         setTimeout(() => {
           const matchedCards = [...cards];
@@ -64,7 +64,7 @@ export default function MemoryMatchPage() {
           setFlippedCards([]);
           setMatches(m => m + 1);
           setIsChecking(false);
-          
+
           if (matches + 1 === emojis.length) {
             setIsComplete(true);
           }
@@ -83,18 +83,14 @@ export default function MemoryMatchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-rose-50 dark:from-pink-950/20 dark:to-rose-950/20 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-rose-50 dark:from-pink-950/20 dark:to-rose-950/20 pt-24 pb-8 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <Link 
-            href="/games" 
-            className="inline-flex items-center gap-2 text-[var(--muted)] hover:text-[var(--text)] transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Games
-          </Link>
-          
+          <div className="mb-4">
+            <BackButton fallbackPath="/games" label="Back" />
+          </div>
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-400 to-rose-400 flex items-center justify-center shadow-lg">
@@ -105,7 +101,7 @@ export default function MemoryMatchPage() {
                 <p className="text-sm text-[var(--muted)]">Find all the matching pairs</p>
               </div>
             </div>
-            
+
             <button
               onClick={initializeGame}
               className="p-3 rounded-xl bg-white dark:bg-white/10 border border-pink-200 dark:border-pink-800/30 text-[var(--muted)] hover:text-pink-500 transition-colors"
@@ -131,11 +127,10 @@ export default function MemoryMatchPage() {
               key={card.id}
               onClick={() => handleCardClick(card.id)}
               disabled={card.isMatched || isChecking}
-              className={`aspect-square rounded-xl text-4xl flex items-center justify-center transition-all duration-300 transform ${
-                card.isFlipped || card.isMatched
+              className={`aspect-square rounded-xl text-4xl flex items-center justify-center transition-all duration-300 transform ${card.isFlipped || card.isMatched
                   ? "bg-white dark:bg-white/10 border-2 border-pink-300 dark:border-pink-700 scale-100"
                   : "bg-gradient-to-br from-pink-400 to-rose-400 cursor-pointer hover:scale-105 active:scale-95"
-              } ${card.isMatched ? "opacity-60" : ""}`}
+                } ${card.isMatched ? "opacity-60" : ""}`}
             >
               {(card.isFlipped || card.isMatched) ? card.emoji : ""}
             </button>
@@ -156,7 +151,7 @@ export default function MemoryMatchPage() {
             </button>
           </div>
         )}
-        
+
         {/* Tips */}
         <div className="mt-6 p-4 rounded-xl bg-white/50 dark:bg-white/5 border border-pink-100 dark:border-pink-900/30">
           <p className="text-sm text-[var(--muted)] text-center">
@@ -167,3 +162,4 @@ export default function MemoryMatchPage() {
     </div>
   );
 }
+

@@ -18,6 +18,7 @@ import {
   Clock,
   ChevronRight
 } from "lucide-react";
+import { BackButton } from "@/components/ui/BackButton";
 
 type Resource = {
   id: string;
@@ -150,6 +151,9 @@ function ResourcesContent() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] pt-32 pb-20">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 mb-4">
+        <BackButton fallbackPath="/care-compass" />
+      </div>
       <div className="relative overflow-hidden border-b border-[var(--border)] bg-[var(--surface)] py-8 sm:py-12 mb-6 sm:mb-8">
         <div className="absolute top-0 right-0 w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] bg-gradient-to-br from-[var(--primary)]/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
         <div className="mx-auto max-w-7xl px-4 md:px-6 relative z-10">

@@ -5,6 +5,7 @@ import { StoriesLandingContent } from "./StoriesLandingContent";
 import { StoryAssistant } from "@/features/stories/StoryAssistant";
 import { Home, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { BackButton } from "@/components/ui/BackButton";
 
 export function StoriesPageContent() {
   const { data: session, status } = useSession();
@@ -12,7 +13,7 @@ export function StoriesPageContent() {
   // Show loading state
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-purple-950/20 dark:to-[var(--background)] flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-purple-950/20 dark:to-[var(--background)] flex items-center justify-center pt-16">
         <div className="text-center">
           <div className="relative w-16 h-16 mx-auto mb-4">
             <div className="absolute inset-0 rounded-full border-4 border-purple-500/20"></div>
@@ -31,22 +32,18 @@ export function StoriesPageContent() {
 
   // If logged in, show the full stories & rhymes interface
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-purple-950/20 dark:to-[var(--background)]">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/10">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-purple-950/20 dark:to-[var(--background)] pt-24">
+      {/* Header - positioned below main navbar */}
+      <header className="sticky top-20 z-30 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Left: Logo & Title */}
+            {/* Left: Back button & Title */}
             <div className="flex items-center gap-4">
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-              >
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
-                <span className="hidden sm:inline font-semibold">NeuroKid</span>
-              </Link>
+              <BackButton fallbackPath="/dashboard" showLabel={false} />
+
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
 
               <div className="h-6 w-px bg-slate-200 dark:bg-white/10 hidden sm:block"></div>
 

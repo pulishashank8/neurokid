@@ -12,6 +12,7 @@ import {
 import toast from "react-hot-toast";
 import { ActionMenu } from "@/features/community/ActionMenu";
 import { formatDistanceToNow } from "date-fns";
+import { BackButton } from "@/components/ui/BackButton";
 
 type TabType = "search" | "pending" | "conversations";
 
@@ -382,6 +383,28 @@ function MessagesContent() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Auto-poll for new messages every 5 seconds when conversation is selected
+  useEffect(() => {
+    if (!selectedConversation) return;
+
+    const pollInterval = setInterval(() => {
+      fetchMessages(selectedConversation);
+    }, 5000);
+
+    return () => clearInterval(pollInterval);
+  }, [selectedConversation]);
+
+  // Auto-refresh conversations list every 30 seconds
+  useEffect(() => {
+    if (status !== "authenticated") return;
+
+    const refreshInterval = setInterval(() => {
+      fetchConversations();
+    }, 30000);
+
+    return () => clearInterval(refreshInterval);
+  }, [status]);
+
   // Clean up preview URL on unmount or change
   useEffect(() => {
     return () => {
@@ -627,6 +650,11 @@ function MessagesContent() {
       <FloatingOrbs />
 
       <div className="container max-w-7xl mx-auto px-4 py-8 pt-24 relative z-10">
+        {/* Back Button */}
+        <div className="mb-6">
+          <BackButton fallbackPath="/dashboard" />
+        </div>
+
         {/* Premium Header */}
         <div className="flex items-center gap-5 mb-10">
           <div className="relative group">

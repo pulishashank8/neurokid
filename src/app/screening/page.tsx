@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import ScreeningDisclaimer from "./disclaimer";
+import { BackButton } from "@/components/ui/BackButton";
 
 export default function ScreeningIntroPage() {
   const router = useRouter();
@@ -56,7 +57,10 @@ export default function ScreeningIntroPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] pt-16">
+    <div className="min-h-screen bg-[var(--background)] pt-24">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4">
+        <BackButton fallbackPath="/care-compass" />
+      </div>
       <section className="border-b border-[var(--border)] bg-[var(--surface)] py-8 sm:py-12">
         <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8 text-center">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--text)]">Autism Screening</h1>

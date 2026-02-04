@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { ArrowLeft, RotateCcw, Star, Shapes } from "lucide-react";
+import { RotateCcw, Star, Shapes } from "lucide-react";
+import { BackButton } from "@/components/ui/BackButton";
 
 const shapes = [
   { id: "circle", name: "Circle", emoji: "🔴", outline: "○" },
@@ -52,17 +52,13 @@ export default function ShapePuzzlePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 pt-24 pb-8 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <Link 
-            href="/games" 
-            className="inline-flex items-center gap-2 text-[var(--muted)] hover:text-[var(--text)] transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Games
-          </Link>
+          <div className="mb-4">
+            <BackButton fallbackPath="/games" label="Back" />
+          </div>
           
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -158,3 +154,4 @@ export default function ShapePuzzlePage() {
     </div>
   );
 }
+

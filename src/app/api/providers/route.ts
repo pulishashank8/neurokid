@@ -70,7 +70,11 @@ export async function GET(request: NextRequest) {
       rating: p.rating ? Number(p.rating) : null,
     }));
 
-    return NextResponse.json({ providers: serializedProviders });
+    return NextResponse.json({ providers: serializedProviders }, {
+      headers: {
+        "Cache-Control": "public, s-maxage=600, stale-while-revalidate=1200",
+      },
+    });
   } catch (error) {
     console.error("Error fetching providers:", error);
     return NextResponse.json(

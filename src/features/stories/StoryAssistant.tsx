@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
     BookOpen,
     Sparkles,
@@ -23,6 +23,7 @@ import {
     ChevronLeft,
     ChevronRight
 } from "lucide-react";
+import { toast } from "sonner";
 import { useSpeechSynthesis } from "@/features/aac/hooks/useSpeechSynthesis";
 
 interface Rhyme {
@@ -95,6 +96,24 @@ const POPULAR_RHYMES: Rhyme[] = [
     { id: "chhuk-chhuk", title: "Chhuk Chhuk Gadi (Gujarati)", text: "Chhuk chhuk gadi...", icon: "🚂", youtubeId: "aQgLDVrPsk4" },
 ];
 
+// AWS Polly Voice options for TTS
+const VOICE_OPTIONS = [
+    // Child voices (US)
+    { id: "Ivy", label: "Ivy", description: "Child Girl (US)", emoji: "👧", previewText: "Hi there! I'm Ivy, a friendly kid just like you! Let's have an adventure together!", useBrowser: false },
+    { id: "Justin", label: "Justin", description: "Child Boy (US)", emoji: "👦", previewText: "Hey! I'm Justin! I love reading stories about dragons and superheroes!", useBrowser: false },
+    { id: "Kevin", label: "Kevin", description: "Child Boy (US)", emoji: "🧒", previewText: "Hello! I'm Kevin! Want to hear an amazing story? Let's go!", useBrowser: false },
+    // Indian voices
+    { id: "Kajal", label: "Kajal", description: "Hindi (India)", emoji: "🇮🇳", previewText: "नमस्ते! मैं काजल हूं। आज मैं आपको एक मज़ेदार कहानी सुनाऊंगी!", useBrowser: false },
+    { id: "Kajal-en", label: "Kajal", description: "Indian English", emoji: "🇮🇳", previewText: "Hello! I'm Kajal. I speak English with an Indian accent. Let me tell you a wonderful story!", useBrowser: false },
+    { id: "Telugu", label: "Telugu", description: "Telugu (Browser)", emoji: "🇮🇳", previewText: "నమస్కారం! నేను మీకు ఒక అద్భుతమైన కథ చెప్తాను!", useBrowser: true, langCode: "te-IN" },
+    // Adult voices (US)
+    { id: "Joanna", label: "Joanna", description: "Friendly Female (US)", emoji: "👩", previewText: "Hello! I'm Joanna. I'll read you a wonderful bedtime story tonight.", useBrowser: false },
+    { id: "Matthew", label: "Matthew", description: "Warm Male (US)", emoji: "👨", previewText: "Hey there! I'm Matthew. Get cozy and let me tell you an amazing tale.", useBrowser: false },
+    { id: "Salli", label: "Salli", description: "Gentle Female (US)", emoji: "👩‍🦰", previewText: "Hi sweetie! I'm Salli. Let's explore magical worlds together!", useBrowser: false },
+] as const;
+
+type VoiceId = typeof VOICE_OPTIONS[number]["id"];
+
 const RANDOM_STORY_TOPICS = [
     "a brave space explorer on Mars",
     "a magical forest where animals talk",
@@ -116,6 +135,16 @@ export function StoryAssistant() {
     const [autoPlay, setAutoPlay] = useState(false);
     const [showRhymeGallery, setShowRhymeGallery] = useState(false);
     const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
+    const [selectedVoice, setSelectedVoice] = useState<string>("Ivy");
+    const [showVoiceMenu, setShowVoiceMenu] = useState(false);
+    const [previewingVoice, setPreviewingVoice] = useState<string | null>(null);
+    const voiceMenuRef = useRef<HTMLDivElement>(null);
+    const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+
+    // AWS Polly State
+    const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+    const pollyAudioRef = useRef<HTMLAudioElement | null>(null);
+
 
     const { speak, cancel, isSpeaking, currentWordIndex } = useSpeechSynthesis({
         volume,
@@ -128,9 +157,113 @@ export function StoryAssistant() {
         if (activeVideoId) cancel();
     }, [activeVideoId, cancel]);
 
+    // Close voice menu on click outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (voiceMenuRef.current && !voiceMenuRef.current.contains(event.target as Node)) {
+                setShowVoiceMenu(false);
+            }
+        };
+        if (showVoiceMenu) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showVoiceMenu]);
+
     useEffect(() => {
         if (isSpeaking) setActiveVideoId(null);
     }, [isSpeaking]);
+
+    // Preview voice function using AWS Polly or Browser Speech
+    const previewVoice = async (voiceId: VoiceId) => {
+        // Stop any current preview or story playback
+        if (previewAudioRef.current) {
+            previewAudioRef.current.pause();
+            previewAudioRef.current = null;
+        }
+        if (typeof window !== "undefined") {
+            window.speechSynthesis.cancel();
+        }
+        cancel();
+
+        setPreviewingVoice(voiceId);
+
+        const voice = VOICE_OPTIONS.find(v => v.id === voiceId);
+        if (!voice) {
+            setPreviewingVoice(null);
+            return;
+        }
+
+        // Use browser speech synthesis for Telugu
+        if (voice.useBrowser && typeof window !== "undefined") {
+            const utterance = new SpeechSynthesisUtterance(voice.previewText);
+            utterance.lang = voice.langCode || "te-IN";
+            utterance.rate = 0.85;
+            utterance.volume = volume;
+
+            const voices = window.speechSynthesis.getVoices();
+            const teluguVoice = voices.find(v =>
+                v.lang.startsWith("te") || v.name.toLowerCase().includes("telugu")
+            );
+            if (teluguVoice) {
+                utterance.voice = teluguVoice;
+            }
+
+            utterance.onend = () => setPreviewingVoice(null);
+            utterance.onerror = () => setPreviewingVoice(null);
+
+            window.speechSynthesis.speak(utterance);
+            return;
+        }
+
+        // Use AWS Polly for other voices
+        try {
+            const response = await fetch("/api/tts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    text: voice.previewText,
+                    voice: voiceId,
+                }),
+            });
+
+            if (response.ok) {
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = new Audio(audioUrl);
+                previewAudioRef.current = audio;
+                audio.volume = volume;
+
+                audio.onended = () => {
+                    setPreviewingVoice(null);
+                    URL.revokeObjectURL(audioUrl);
+                    previewAudioRef.current = null;
+                };
+
+                audio.onerror = () => {
+                    setPreviewingVoice(null);
+                    URL.revokeObjectURL(audioUrl);
+                    previewAudioRef.current = null;
+                };
+
+                await audio.play();
+            } else {
+                setPreviewingVoice(null);
+            }
+        } catch (error) {
+            console.error("Voice preview failed:", error);
+            setPreviewingVoice(null);
+        }
+    };
+
+    // Stop preview when menu closes
+    useEffect(() => {
+        if (!showVoiceMenu && previewAudioRef.current) {
+            previewAudioRef.current.pause();
+            previewAudioRef.current = null;
+            setPreviewingVoice(null);
+        }
+    }, [showVoiceMenu]);
 
     const words = useMemo(() => {
         if (!story) return [];
@@ -145,6 +278,10 @@ export function StoryAssistant() {
         setStory("");
         setActiveVideoId(null);
         cancel();
+        if (pollyAudioRef.current) {
+            pollyAudioRef.current.pause();
+            pollyAudioRef.current = null;
+        }
 
         try {
             const res = await fetch("/api/ai/chat", {
@@ -154,26 +291,35 @@ export function StoryAssistant() {
                     messages: [
                         {
                             role: "system",
-                            content: `You are "StoryWeaver", a world-renowned children's book author and master storyteller.
+                            content: `You are "StoryWeaver", a world-renowned children's book author and master storyteller who is fluent in English, Hindi, and Telugu.
 
 **YOUR GOAL:** Write a rich, immersive, and wildly entertaining story based on the user's topic.
 
+**LANGUAGE RULES (VERY IMPORTANT):**
+- If the user mentions "Hindi", "हिंदी", or asks for a Hindi story → Write the ENTIRE story in Hindi (Devanagari script)
+- If the user mentions "Telugu", "తెలుగు", or asks for a Telugu story → Write the ENTIRE story in Telugu script
+- If the user mentions "in Hindi" or "Hindi me" or "Hindi mein" → Write in Hindi
+- If the user mentions "in Telugu" or "Telugu lo" → Write in Telugu
+- Otherwise, write in English by default
+- For Hindi stories, start with "एक समय की बात है..." (Once upon a time)
+- For Telugu stories, start with "అనగనగా ఒక రోజు..." (Once upon a time)
+
 **STORYTELLING RULES (STRICT):**
-1.  **Length & Depth:** The story MUST be substantial (approx. 1200+ words) to provide a solid 5-minute reading/listening experience. Use dialogue and descriptive world-building to ensure it is long and detailed.
+1.  **Length & Depth:** The story MUST be substantial (approx. 800-1000 words) to provide a solid 4-5 minute reading/listening experience. Use dialogue and descriptive world-building.
 2.  **Expertise (Mythology & Faith):** You are an expert in **Hindu Mythology** (Ramayana, Mahabharatam) and **Christian Stories** (Bible stories for kids, the life of Jesus, Christmas Story, Noah's Ark). If the user asks for figures like **Ram, Laxman, Jesus, or David**, tell their legends with great respect and magical detail.
 3.  **Kids Version Only:** Every story—especially mythological or religious ones—MUST be a **version for kids**. Focus on wonder, kindness, and positive messages.
-3.  **Structure:** 
-    *   **The Hook:** Start with "Once upon a time..." or an exciting action scene.
+4.  **Structure:**
+    *   **The Hook:** Start with "Once upon a time..." (or equivalent in Hindi/Telugu)
     *   **The Journey:** The main character must face obstacles and meet interesting friends.
     *   **The Climax:** A moment of excitement or big decision.
     *   **The Resolution:** A warm, happy ending with a clear moral about kindness, courage, or friendship.
-4.  **Style:** Use sensory details (sights, sounds, smells). Be funny, whimsical, and heartwarming.
-5.  **Classic & Epic Tales:** If the user asks for a known story (e.g., "Cinderella") or an epic (e.g., "Ramayana"), retell it faithfully but with your own magical descriptive flair.
-6.  **New Stories:** If the user gives a simple topic (e.g., "Dog"), invent a specific character (e.g., "Barnaby the Dog who wanted to be a Cat") and write that specific adventure.
+5.  **Style:** Use sensory details (sights, sounds, smells). Be funny, whimsical, and heartwarming.
+6.  **Classic & Epic Tales:** If the user asks for a known story (e.g., "Cinderella") or an epic (e.g., "Ramayana"), retell it faithfully but with your own magical descriptive flair.
+7.  **New Stories:** If the user gives a simple topic (e.g., "Dog"), invent a specific character and write that specific adventure.
 
 **FORMATTING:**
 *   Use short paragraphs (easier to read).
-*   Use **bold** for emphasis on sound effects (e.g., **BOOM!**, **Swish**).
+*   Use **bold** for emphasis on sound effects.
 
 **TONE:** Enthusiastic, gentle, and child-safe.
 
@@ -200,9 +346,97 @@ export function StoryAssistant() {
         }
     };
 
+    const playStoryAudio = async (storyText: string) => {
+        if (!storyText) return;
+
+        // Stop any existing audio
+        cancel();
+        if (pollyAudioRef.current) {
+            pollyAudioRef.current.pause();
+            pollyAudioRef.current = null;
+        }
+        if (previewAudioRef.current) {
+            previewAudioRef.current.pause();
+            previewAudioRef.current = null;
+        }
+        if (typeof window !== "undefined") {
+            window.speechSynthesis.cancel();
+        }
+
+        setIsLoadingAudio(true);
+
+        // Check if selected voice uses browser speech synthesis (e.g., Telugu)
+        const voiceOption = VOICE_OPTIONS.find(v => v.id === selectedVoice);
+        if (voiceOption?.useBrowser && typeof window !== "undefined") {
+            try {
+                const utterance = new SpeechSynthesisUtterance(storyText);
+                utterance.lang = voiceOption.langCode || "te-IN";
+                utterance.rate = 0.85;
+                utterance.volume = volume;
+
+                // Try to find a matching voice
+                const voices = window.speechSynthesis.getVoices();
+                const teluguVoice = voices.find(v =>
+                    v.lang.startsWith("te") || v.name.toLowerCase().includes("telugu")
+                );
+                if (teluguVoice) {
+                    utterance.voice = teluguVoice;
+                }
+
+                utterance.onend = () => setIsLoadingAudio(false);
+                utterance.onerror = () => {
+                    setIsLoadingAudio(false);
+                    toast.error("Browser voice not available. Try a different voice.");
+                };
+
+                window.speechSynthesis.speak(utterance);
+                setIsLoadingAudio(false);
+            } catch (err) {
+                console.error("Browser TTS error:", err);
+                toast.error("Couldn't play Telugu voice. Please try another voice.");
+                setIsLoadingAudio(false);
+            }
+            return;
+        }
+
+        // Use AWS Polly for other voices
+        try {
+            const res = await fetch("/api/tts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: storyText, voice: selectedVoice }),
+            });
+
+            if (!res.ok) {
+                const errText = await res.text();
+                console.error("TTS API ERROR RESPONSE:", errText);
+                throw new Error(errText);
+            }
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const audio = new Audio(url);
+
+            pollyAudioRef.current = audio;
+            audio.onended = () => setIsLoadingAudio(false);
+            audio.onerror = () => setIsLoadingAudio(false);
+
+            await audio.play();
+        } catch (err) {
+            console.error("Polly playback error:", err);
+            toast.error("Oops! Couldn't generate the voice. Please try again.");
+        } finally {
+            setIsLoadingAudio(false);
+        }
+    };
+
     const playRhyme = (rhyme: Rhyme) => {
         // setShowRhymeGallery(false); // Keep gallery open behind video
         cancel(); // Stop any TTS
+        if (pollyAudioRef.current) {
+            pollyAudioRef.current.pause();
+            pollyAudioRef.current = null;
+        }
         if (rhyme.youtubeId) {
             setActiveVideoId(rhyme.youtubeId);
         } else {
@@ -362,7 +596,7 @@ export function StoryAssistant() {
                             type="text"
                             value={topic}
                             onChange={(e) => setTopic(e.target.value)}
-                            placeholder="Topic e.g. King, Astronaut..."
+                            placeholder="e.g. King, Hindi me Ramayana, Telugu lo elephant..."
                             className="flex-1 px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-medium"
                             onKeyPress={(e) => e.key === "Enter" && generateStory()}
                         />
@@ -425,26 +659,114 @@ export function StoryAssistant() {
                     />
                 </div>
 
-                <div className="flex items-center justify-center gap-4 w-full md:w-auto">
+                <div className="flex items-center justify-center gap-4 w-full md:w-auto flex-wrap">
                     {story && !activeVideoId && (
                         <div className="flex items-center gap-2">
                             <button
-                                onClick={() => speak(story)}
-                                disabled={isSpeaking}
-                                className="p-3 bg-emerald-600 text-white rounded-full shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
-                                title="Play Story"
+                                onClick={() => playStoryAudio(story)}
+                                disabled={isLoadingAudio || isSpeaking}
+                                className="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-full shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
+                                title="Read Story (Natural Voice)"
                             >
-                                <Play className="w-5 h-5 fill-current" />
+                                {isLoadingAudio ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <Volume2 className="w-5 h-5" />
+                                )}
+                                <span className="font-bold text-sm">
+                                    {isLoadingAudio ? "Generating voice..." : "Read Story"}
+                                </span>
                             </button>
                             <button
-                                onClick={cancel}
+                                onClick={() => {
+                                    cancel();
+                                    if (pollyAudioRef.current) {
+                                        pollyAudioRef.current.pause();
+                                    }
+                                }}
                                 className="p-3 bg-red-500 text-white rounded-full shadow-lg hover:scale-105 active:scale-95 transition-all"
-                                title="Pause/Stop"
+                                title="Stop"
                             >
                                 <Pause className="w-5 h-5 fill-current" />
                             </button>
                         </div>
                     )}
+
+                    <div className="h-8 w-[1px] bg-[var(--border)] hidden md:block" />
+
+                    {/* Voice Selector */}
+                    <div className="relative" ref={voiceMenuRef}>
+                        <button
+                            onClick={() => setShowVoiceMenu(!showVoiceMenu)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--surface2)] hover:bg-[var(--surface)] border border-[var(--border)] transition-all"
+                            title="Select Voice"
+                        >
+                            <span className="text-lg">
+                                {VOICE_OPTIONS.find(v => v.id === selectedVoice)?.emoji || "💻"}
+                            </span>
+                            <span className="text-xs font-bold text-[var(--text)] truncate max-w-[100px]">
+                                {VOICE_OPTIONS.find(v => v.id === selectedVoice)?.label || "Select Voice"}
+                            </span>
+                            <svg className={`w-3 h-3 text-[var(--muted)] transition-transform ${showVoiceMenu ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        {showVoiceMenu && (
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden z-50 max-h-[400px] overflow-y-auto">
+                                <div className="p-2 border-b border-[var(--border)] bg-[var(--surface2)] sticky top-0">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)] text-center">Choose a Voice</p>
+                                </div>
+                                <div className="p-2 space-y-1">
+                                    {VOICE_OPTIONS.map((voice) => (
+                                        <div
+                                            key={voice.id}
+                                            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all ${selectedVoice === voice.id
+                                                ? "bg-purple-100 dark:bg-purple-900/30 border-2 border-purple-500"
+                                                : "hover:bg-[var(--surface2)] border-2 border-transparent"
+                                                }`}
+                                        >
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedVoice(voice.id);
+                                                    setShowVoiceMenu(false);
+                                                }}
+                                                className="flex items-center gap-3 flex-1 text-left"
+                                            >
+                                                <span className="text-2xl">{voice.emoji}</span>
+                                                <div>
+                                                    <p className={`font-bold text-sm ${selectedVoice === voice.id ? "text-purple-600 dark:text-purple-400" : "text-[var(--text)]"}`}>
+                                                        {voice.label}
+                                                    </p>
+                                                    <p className="text-[10px] text-[var(--muted)]">{voice.description}</p>
+                                                </div>
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    previewVoice(voice.id as any);
+                                                }}
+                                                disabled={previewingVoice === voice.id}
+                                                className={`p-2 rounded-lg transition-all flex-shrink-0 ${previewingVoice === voice.id
+                                                    ? "bg-purple-500 text-white animate-pulse"
+                                                    : "bg-[var(--surface2)] hover:bg-purple-100 dark:hover:bg-purple-900/30 text-[var(--muted)] hover:text-purple-500"
+                                                    }`}
+                                            >
+                                                {previewingVoice === voice.id ? <Volume2 className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                                            </button>
+                                            {selectedVoice === voice.id && <span className="text-purple-500 flex-shrink-0">✓</span>}
+                                        </div>
+                                    ))}
+
+                                </div>
+                                <div className="p-2 border-t border-[var(--border)] bg-[var(--surface2)]">
+                                    <p className="text-[9px] text-[var(--muted)] text-center">
+                                        Click play to preview each voice
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     <div className="h-8 w-[1px] bg-[var(--border)] hidden md:block" />
 

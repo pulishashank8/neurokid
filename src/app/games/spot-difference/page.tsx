@@ -104,7 +104,7 @@ export default function SpotDifferencePage() {
   const puzzle = shuffledPuzzles[currentPuzzle];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-rose-50 to-pink-50 dark:from-rose-950/20 dark:to-pink-950/20 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-rose-50 to-pink-50 dark:from-rose-950/20 dark:to-pink-950/20 pt-24 pb-8 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -230,3 +230,4 @@ export default function SpotDifferencePage() {
     </div>
   );
 }
+

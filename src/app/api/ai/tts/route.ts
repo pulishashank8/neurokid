@@ -74,7 +74,13 @@ export async function POST(req: NextRequest) {
       headers: {
         "Content-Type": "audio/mpeg",
         "Content-Length": audioBuffer.byteLength.toString(),
-        "Cache-Control": "public, max-age=3600", // Cache for 1 hour
+        // Prevent caching to ensure voice changes are respected
+        // Each unique text+voice combination should generate fresh audio
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0",
+        // Include voice in response for debugging
+        "X-Voice-Used": selectedVoice,
       },
     });
 

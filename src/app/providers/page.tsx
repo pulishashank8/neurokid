@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Search, MapPin, Phone, Navigation, Building2, Stethoscope, AlertTriangle } from "lucide-react";
+import { BackButton } from "@/components/ui/BackButton";
 
 import { searchNPIRegistry, type NPIProvider } from "@/lib/actions/npiRegistry";
 import { AUTISM_SPECIALTIES } from "@/lib/constants/specialties";
@@ -71,6 +72,9 @@ export default function ProvidersPage() {
 
   return (
     <div className="min-h-screen bg-[var(--background)] pt-32">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 mb-4">
+        <BackButton fallbackPath="/care-compass" />
+      </div>
       <div className="relative overflow-hidden bg-gradient-to-b from-[var(--surface)] to-[var(--background)] border-b border-[var(--border)] pt-8 pb-12">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-tr from-[var(--primary)]/10 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 pointer-events-none" />
@@ -102,8 +106,8 @@ export default function ProvidersPage() {
                     placeholder="Enter ZIP code"
                     maxLength={5}
                     className={`w-full px-4 py-3.5 pl-12 bg-[var(--surface2)] border-2 rounded-xl text-[var(--text)] placeholder-[var(--muted)] transition-all duration-300 text-sm ${searchFocused
-                        ? "border-[var(--primary)] shadow-lg shadow-[var(--primary)]/10"
-                        : "border-[var(--border)] hover:border-[var(--primary)]/30"
+                      ? "border-[var(--primary)] shadow-lg shadow-[var(--primary)]/10"
+                      : "border-[var(--border)] hover:border-[var(--primary)]/30"
                       }`}
                   />
                   <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${searchFocused ? "text-[var(--primary)]" : "text-[var(--muted)]"

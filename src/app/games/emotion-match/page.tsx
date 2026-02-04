@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { ArrowLeft, RotateCcw, Star, Smile } from "lucide-react";
+import { RotateCcw, Star, Smile } from "lucide-react";
+import { BackButton } from "@/components/ui/BackButton";
 
 const emotions = [
   { face: "😊", name: "Happy", color: "from-yellow-400 to-amber-400" },
@@ -65,17 +65,13 @@ export default function EmotionMatchPage() {
   const emotion = shuffledEmotions[currentEmotion];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 pt-24 pb-8 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <Link 
-            href="/games" 
-            className="inline-flex items-center gap-2 text-[var(--muted)] hover:text-[var(--text)] transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Games
-          </Link>
+          <div className="mb-4">
+            <BackButton fallbackPath="/games" label="Back" />
+          </div>
           
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -173,3 +169,4 @@ export default function EmotionMatchPage() {
     </div>
   );
 }
+

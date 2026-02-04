@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
+import { BackButton } from "@/components/ui/BackButton";
 import {
     Plus,
     Calendar as CalendarIcon,
@@ -13,6 +14,7 @@ import {
     PartyPopper,
     Medal
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -96,12 +98,17 @@ export function DailyWinsApp() {
     };
 
     return (
-        <div className="min-h-screen bg-[var(--background)] px-4 py-8 sm:px-6 lg:px-8 overflow-hidden relative">
+        <div className="min-h-screen bg-[var(--background)] px-4 pt-24 pb-8 sm:px-6 lg:px-8 overflow-hidden relative">
             {/* Vibrant Ambient Backgrounds */}
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-500/20 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] pointer-events-none" />
 
             <div className="max-w-5xl mx-auto relative z-10">
+                {/* Back Button */}
+                <div className="mb-6">
+                    <BackButton fallbackPath="/dashboard" />
+                </div>
+
                 <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}

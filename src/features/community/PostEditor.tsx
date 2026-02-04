@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createPostSchema, CreatePostInput } from "@/lib/validations/community";
 import toast from "react-hot-toast";
@@ -53,6 +54,7 @@ export function PostEditor({
   isEditing = false,
   postId,
 }: PostEditorProps) {
+  const queryClient = useQueryClient();
   const [isAnonymous, setIsAnonymous] = useState(initialData?.isAnonymous || false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>(initialData?.tagIds || []);
@@ -135,6 +137,10 @@ export function PostEditor({
       }
 
       toast.success(isEditing ? "Post updated successfully!" : "Post created successfully!");
+
+      // Invalidate posts query cache to ensure discussions list shows new post
+      await queryClient.invalidateQueries({ queryKey: ["posts"] });
+
       if (!isEditing) {
         reset();
         setSelectedTags([]);

@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { 
-  Plus, 
-  User, 
+import {
+  Plus,
+  User,
   AlertTriangle,
   Heart,
   MessageCircle,
@@ -21,6 +21,7 @@ import {
   ChevronUp,
   Shield
 } from "lucide-react";
+import { BackButton } from "@/components/ui/BackButton";
 
 interface EmergencyCard {
   id: string;
@@ -224,6 +225,11 @@ export default function EmergencyCardPage() {
   return (
     <div className="min-h-screen bg-[var(--background)] pt-16">
       <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Back Button */}
+        <div className="mb-6">
+          <BackButton fallbackPath="/dashboard" />
+        </div>
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 text-sm font-semibold mb-2">
@@ -499,7 +505,7 @@ export default function EmergencyCardPage() {
                 key={card.id}
                 className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] overflow-hidden shadow-premium hover:shadow-lg transition-all"
               >
-                <div 
+                <div
                   className="p-5 cursor-pointer"
                   onClick={() => setExpandedCard(expandedCard === card.id ? null : card.id)}
                 >

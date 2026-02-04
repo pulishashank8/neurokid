@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useMemo } from "react";
 import { ShoppingBag, Star, Filter, Search, ArrowLeft, ExternalLink, Moon, Sun, Shirt, Headphones, Gamepad2, Timer, Scissors, Utensils, Watch, Puzzle, Smile, Zap, Layers, Anchor, Heart, MessageSquare, Clipboard, Bell, Lock, Shield, Mic, LayoutGrid, Speaker, Gift, Coffee, BookOpen, Music, Trees, Ticket } from "lucide-react";
+import { BackButton } from "@/components/ui/BackButton";
 
 // CONFIGURATION: Replace this with your actual Amazon Associate Tag!
 const AMAZON_AFFILIATE_TAG = "neurokid-20";
@@ -1822,15 +1823,13 @@ export default function MarketplacePage() {
     }, [searchTerm, selectedCategory]);
 
     return (
-        <div className="min-h-screen bg-[var(--background)]">
+        <div className="min-h-screen bg-[var(--background)] pt-20">
             {/* Header */}
-            <div className="bg-[var(--surface)] border-b border-[var(--border)] sticky top-0 z-30 shadow-sm">
+            <div className="bg-[var(--surface)] border-b border-[var(--border)] sticky top-20 z-30 shadow-sm">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                            <Link href="/dashboard" className="p-2 rounded-full hover:bg-[var(--surface2)] text-[var(--muted)] hover:text-[var(--text)] transition-colors">
-                                <ArrowLeft className="w-5 h-5" />
-                            </Link>
+                            <BackButton fallbackPath="/dashboard" />
                             <div>
                                 <h1 className="text-xl font-bold text-[var(--text)] flex items-center gap-2">
                                     <ShoppingBag className="w-6 h-6 text-orange-500" />

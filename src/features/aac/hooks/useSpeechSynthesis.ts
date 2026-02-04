@@ -7,6 +7,7 @@ interface SpeechConfig {
   volume: number;
   pitch: number;
   rate: number;
+  openaiVoice?: "alloy" | "echo" | "fable" | "onyx" | "nova" | "shimmer";
 }
 
 interface UseSpeechSynthesisReturn {
@@ -91,13 +92,20 @@ export function useSpeechSynthesis(
       setCurrentWordIndex(0);
 
       // Try OpenAI TTS first for smoother, child-friendly voices
+      const currentVoice = config.openaiVoice || "nova";
       try {
         const response = await fetch("/api/ai/tts", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            // Cache-busting to ensure voice changes are respected
+            "X-Request-Time": Date.now().toString(),
+          },
           body: JSON.stringify({
             text: text.slice(0, 4096), // OpenAI has 4096 char limit
-            voice: "nova", // Nova is warm and friendly - perfect for kids
+            voice: currentVoice, // Use configured voice or default to nova
+            // Add timestamp to prevent any caching issues
+            _t: Date.now(),
           }),
         });
 

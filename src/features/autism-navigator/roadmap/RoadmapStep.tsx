@@ -53,8 +53,8 @@ export function RoadmapStep({
 
   return (
     <Card className={cn(
-      'relative overflow-hidden transition-all duration-500 border border-slate-800 bg-slate-900/90 backdrop-blur-xl shadow-lg hover:shadow-xl hover:shadow-emerald-500/5',
-      status === 'completed' && 'bg-emerald-950/30 border-emerald-500/30',
+      'relative overflow-hidden transition-all duration-500 border border-[var(--border)] bg-[var(--surface)] backdrop-blur-xl shadow-lg hover:shadow-xl',
+      status === 'completed' && 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-500/30',
       status === 'in_progress' && 'ring-1 ring-emerald-500/40 border-emerald-500/40',
       isActive && 'scale-[1.01]'
     )}>
@@ -74,15 +74,15 @@ export function RoadmapStep({
                 <div className={cn(
                   'shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-sm',
                   status === 'completed' && 'bg-emerald-500 text-white scale-95 shadow-lg',
-                  status === 'in_progress' && 'bg-emerald-500/20 text-emerald-400 animate-pulse',
-                  status === 'not_started' && 'bg-slate-800 text-slate-500'
+                  status === 'in_progress' && 'bg-emerald-500/20 text-emerald-500 animate-pulse',
+                  status === 'not_started' && 'bg-gray-100 dark:bg-slate-800 text-[var(--muted)]'
                 )}>
                   <Icon className="w-7 h-7" />
                 </div>
 
                 <div className="space-y-1">
                   <div className="flex items-center gap-3 flex-wrap">
-                    <CardTitle className="text-xl font-extrabold tracking-tight text-slate-100">
+                    <CardTitle className="text-xl font-extrabold tracking-tight text-[var(--text)]">
                       {step.title}
                     </CardTitle>
                     {priorityBadge && status === 'not_started' && (
@@ -92,13 +92,13 @@ export function RoadmapStep({
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm font-medium text-slate-400 leading-relaxed max-w-lg">
+                  <p className="text-sm font-medium text-[var(--muted)] leading-relaxed max-w-lg">
                     {step.description}
                   </p>
                 </div>
               </div>
 
-              <div className="shrink-0 p-2 rounded-full bg-slate-800 text-slate-400 hover:bg-emerald-500/10 hover:text-emerald-400 transition-colors">
+              <div className="shrink-0 p-2 rounded-full bg-gray-100 dark:bg-slate-800 text-[var(--muted)] hover:bg-emerald-500/10 hover:text-emerald-500 transition-colors">
                 <ChevronDown className={cn('w-6 h-6 transition-transform duration-500', isActive && 'rotate-180')} />
               </div>
             </div>
@@ -107,7 +107,7 @@ export function RoadmapStep({
 
         <CollapsibleContent>
           <CardContent className="pt-0 pb-8 space-y-8 px-6">
-            <div className="h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
+            <div className="h-px bg-gradient-to-r from-transparent via-[var(--border)] to-transparent" />
 
             {/* Status Selector */}
             <StepStatusSelector currentStatus={status} onStatusChange={onStatusChange} />
@@ -128,21 +128,21 @@ export function RoadmapStep({
 
               {step.id === 2 && (
                 <>
-                  <Button variant="outline" className="h-auto py-4 px-6 justify-start gap-4 border-2 border-slate-700 hover:border-emerald-500/40 hover:bg-emerald-500/5 rounded-2xl transition-all" asChild>
+                  <Button variant="outline" className="h-auto py-4 px-6 justify-start gap-4 border-2 rounded-2xl transition-all" asChild>
                     <a href={ResourceFinder.getPediatricianLink(location.zipCode)} target="_blank">
-                      <div className="p-2 rounded-xl bg-slate-800 text-slate-400"><MapPin className="w-5 h-5" /></div>
+                      <div className="p-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-[var(--muted)]"><MapPin className="w-5 h-5" /></div>
                       <div className="text-left">
-                        <p className="text-xs font-black uppercase tracking-widest text-slate-500">Search</p>
-                        <p className="text-base font-bold text-slate-200">Local Pediatricians</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-[var(--muted)]">Search</p>
+                        <p className="text-base font-bold text-[var(--text)]">Local Pediatricians</p>
                       </div>
                     </a>
                   </Button>
-                  <Button variant="outline" className="h-auto py-4 px-6 justify-start gap-4 border-2 border-slate-700 hover:border-emerald-500/40 hover:bg-emerald-500/5 rounded-2xl transition-all" asChild>
+                  <Button variant="outline" className="h-auto py-4 px-6 justify-start gap-4 border-2 rounded-2xl transition-all" asChild>
                     <a href={ResourceFinder.getSpecialistLink(location.zipCode)} target="_blank">
-                      <div className="p-2 rounded-xl bg-slate-800 text-slate-400"><Sparkles className="w-5 h-5" /></div>
+                      <div className="p-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-[var(--muted)]"><Sparkles className="w-5 h-5" /></div>
                       <div className="text-left">
-                        <p className="text-xs font-black uppercase tracking-widest text-slate-500">Referral</p>
-                        <p className="text-base font-bold text-slate-200">Find Specialists</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-[var(--muted)]">Referral</p>
+                        <p className="text-base font-bold text-[var(--text)]">Find Specialists</p>
                       </div>
                     </a>
                   </Button>
@@ -163,21 +163,21 @@ export function RoadmapStep({
 
               {step.id === 4 && (
                 <>
-                  <Button variant="outline" className="h-auto py-4 px-6 justify-start gap-4 border-2 border-slate-700 hover:border-emerald-500/40 hover:bg-emerald-500/5 rounded-2xl transition-all" asChild>
+                  <Button variant="outline" className="h-auto py-4 px-6 justify-start gap-4 border-2 rounded-2xl transition-all" asChild>
                     <a href={`https://www.google.com/search?q=ABA+therapy+near+${location.zipCode}`} target="_blank">
-                      <div className="p-2 rounded-xl bg-slate-800 text-slate-400"><Search className="w-5 h-5" /></div>
+                      <div className="p-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-[var(--muted)]"><Search className="w-5 h-5" /></div>
                       <div className="text-left">
-                        <p className="text-xs font-black uppercase tracking-widest text-slate-500">Provider</p>
-                        <p className="text-base font-bold text-slate-200">Find ABA Therapy</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-[var(--muted)]">Provider</p>
+                        <p className="text-base font-bold text-[var(--text)]">Find ABA Therapy</p>
                       </div>
                     </a>
                   </Button>
-                  <Button variant="outline" className="h-auto py-4 px-6 justify-start gap-4 border-2 border-slate-700 hover:border-emerald-500/40 hover:bg-emerald-500/5 rounded-2xl transition-all" asChild>
+                  <Button variant="outline" className="h-auto py-4 px-6 justify-start gap-4 border-2 rounded-2xl transition-all" asChild>
                     <a href={`https://www.google.com/search?q=${location.county}+county+school+district+child+find`} target="_blank">
-                      <div className="p-2 rounded-xl bg-slate-800 text-slate-400"><GraduationCap className="w-5 h-5" /></div>
+                      <div className="p-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-[var(--muted)]"><GraduationCap className="w-5 h-5" /></div>
                       <div className="text-left">
-                        <p className="text-xs font-black uppercase tracking-widest text-slate-500">IEP Support</p>
-                        <p className="text-base font-bold text-slate-200">Local Child Find</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-[var(--muted)]">IEP Support</p>
+                        <p className="text-base font-bold text-[var(--text)]">Local Child Find</p>
                       </div>
                     </a>
                   </Button>
@@ -185,7 +185,7 @@ export function RoadmapStep({
               )}
 
               {step.id === 5 && (
-                <Button onClick={onJoinCommunity} className="h-auto py-5 px-8 justify-center gap-4 bg-white hover:bg-slate-200 text-slate-900 shadow-2xl rounded-2xl w-full group transition-all">
+                <Button onClick={onJoinCommunity} className="h-auto py-5 px-8 justify-center gap-4 shadow-2xl rounded-2xl w-full group transition-all">
                   <Users className="w-6 h-6 group-hover:scale-110 transition-transform" />
                   <span className="text-lg font-bold">Join the NeuroKid Community</span>
                 </Button>
@@ -194,30 +194,30 @@ export function RoadmapStep({
 
             {/* Integrated Doctor Guidance Section */}
             {step.doctorInstructions && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-800/50 p-8 rounded-[2.5rem] border border-slate-700">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 dark:bg-slate-800/50 p-8 rounded-[2.5rem] border border-[var(--border)]">
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3 text-emerald-400">
+                  <div className="flex items-center gap-3 text-emerald-600 dark:text-emerald-400">
                     <Users className="w-5 h-5" />
                     <h4 className="text-sm font-black uppercase tracking-widest">Specialists to Seek</h4>
                   </div>
                   <div className="space-y-3">
                     {step.doctorInstructions.types.map((type, i) => (
-                      <div key={i} className="flex gap-3 text-sm font-medium text-slate-400">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <div key={i} className="flex gap-3 text-sm font-medium text-[var(--muted)]">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                         {type}
                       </div>
                     ))}
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3 text-emerald-400">
+                  <div className="flex items-center gap-3 text-emerald-600 dark:text-emerald-400">
                     <MessageSquareText className="w-5 h-5" />
                     <h4 className="text-sm font-black uppercase tracking-widest">Questions to Ask</h4>
                   </div>
                   <div className="space-y-3">
                     {step.doctorInstructions.questions.map((q, i) => (
-                      <div key={i} className="flex gap-3 text-sm font-medium text-slate-400 italic">
-                        <Badge variant="outline" className="h-5 w-5 rounded-full p-0 flex items-center justify-center shrink-0 border-emerald-500/30 text-emerald-400 text-[10px]">{i + 1}</Badge>
+                      <div key={i} className="flex gap-3 text-sm font-medium text-[var(--muted)] italic">
+                        <Badge variant="outline" className="h-5 w-5 rounded-full p-0 flex items-center justify-center shrink-0 border-emerald-500/30 text-emerald-500 text-[10px]">{i + 1}</Badge>
                         "{q}"
                       </div>
                     ))}
@@ -239,11 +239,11 @@ export function RoadmapStep({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Compassionate Guidance</h4>
+                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-[var(--muted)]">Compassionate Guidance</h4>
                 <EmotionalSupport message={step.emotionalSupport || "One step at a time. You've got this."} onJoinCommunity={onJoinCommunity} />
               </div>
               <div className="space-y-4">
-                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Important Note</h4>
+                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-[var(--muted)]">Important Note</h4>
                 <WhatItDoesNot content={step.whatItDoesNot} />
               </div>
             </div>

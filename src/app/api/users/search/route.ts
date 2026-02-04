@@ -32,12 +32,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ users: [] });
     }
 
-    // Search using UserFinder
+    // Search using UserFinder with case-insensitive matching on multiple fields
     const results = await prisma.userFinder.findMany({
       where: {
-        keywords: {
-          contains: query,
-        },
+        OR: [
+          { keywords: { contains: query, mode: "insensitive" } },
+          { username: { contains: query, mode: "insensitive" } },
+          { displayName: { contains: query, mode: "insensitive" } },
+        ],
+        userId: { not: userId }, // Exclude self from search
         user: {
           blockedUsers: {
             none: {

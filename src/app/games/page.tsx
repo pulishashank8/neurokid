@@ -26,10 +26,33 @@ import {
   MessageCircle,
   Paintbrush,
   Trees,
-  LayoutDashboard
+  LayoutDashboard,
+  PartyPopper,
+  Volume2
 } from "lucide-react";
+import { BackButton } from "@/components/ui/BackButton";
 
 const games = [
+  {
+    id: "silly-sounds",
+    name: "Silly Sounds",
+    description: "Make funny noises!",
+    icon: Volume2,
+    color: "from-orange-400 to-amber-500",
+    bgColor: "bg-orange-50 dark:bg-slate-800",
+    borderColor: "border-orange-200 dark:border-orange-700/50",
+    skills: ["Fun", "Laughs"],
+  },
+  {
+    id: "balloon-pop",
+    name: "Balloon Pop",
+    description: "Pop the balloons!",
+    icon: PartyPopper,
+    color: "from-sky-400 to-pink-500",
+    bgColor: "bg-sky-50 dark:bg-slate-800",
+    borderColor: "border-sky-200 dark:border-sky-700/50",
+    skills: ["Fun", "Action"],
+  },
   {
     id: "memory-match",
     name: "Memory Match",
@@ -264,17 +287,18 @@ const games = [
 
 export default function GamesPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[var(--surface)] to-[var(--background)] py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-[var(--surface)] to-[var(--background)] pt-24 pb-8 px-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 text-[var(--muted)] hover:text-[var(--text)] transition-colors mb-4"
+            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--muted)] hover:text-[var(--text)] transition-colors group"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+            <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
+            <span>Back</span>
           </Link>
+
 
           <div className="flex items-center gap-4 mb-3">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-lg shadow-violet-200 dark:shadow-violet-900/30">
@@ -347,3 +371,4 @@ export default function GamesPage() {
     </div>
   );
 }
+

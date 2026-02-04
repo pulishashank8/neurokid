@@ -89,7 +89,7 @@ export default function SequenceBuilderPage() {
   const isCorrect = showResult && userOrder.every((s, i) => s === sequence?.steps[i]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-teal-50 to-emerald-50 dark:from-teal-950/20 dark:to-emerald-950/20 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-teal-50 to-emerald-50 dark:from-teal-950/20 dark:to-emerald-950/20 pt-24 pb-8 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -233,3 +233,4 @@ export default function SequenceBuilderPage() {
     </div>
   );
 }
+

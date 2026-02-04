@@ -17,6 +17,7 @@
     "test:watch": "dotenv -e .env.test -- vitest watch"
   },
   "dependencies": {
+    "@aws-sdk/client-polly": "^3.982.0",
     "@hookform/resolvers": "^5.2.2",
     "@next-auth/prisma-adapter": "^1.0.0",
     "@prisma/client": "^5.22.0",

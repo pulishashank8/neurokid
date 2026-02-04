@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
+import { BackButton } from "@/components/ui/BackButton";
 import {
     Plus,
     Calendar as CalendarIcon,
@@ -15,6 +16,7 @@ import {
     Activity,
     Sparkles
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -120,12 +122,17 @@ export function TherapyLogApp() {
     };
 
     return (
-        <div className="min-h-screen bg-[var(--background)] px-4 py-8 sm:px-6 lg:px-8 overflow-hidden relative">
+        <div className="min-h-screen bg-[var(--background)] px-4 pt-24 pb-8 sm:px-6 lg:px-8 overflow-hidden relative">
             {/* Ambient backgrounds */}
             <div className="absolute top-20 left-20 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px] pointer-events-none" />
             <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-[100px] pointer-events-none" />
 
             <div className="max-w-6xl mx-auto relative z-10">
+                {/* Back Button */}
+                <div className="mb-6">
+                    <BackButton fallbackPath="/dashboard" />
+                </div>
+
                 <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-12">
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
@@ -221,8 +228,8 @@ export function TherapyLogApp() {
                                                 type="button"
                                                 onClick={() => setFormData({ ...formData, mood: rating })}
                                                 className={`w-12 h-12 rounded-xl flex items-center justify-center border-2 transition-all transform hover:scale-110 ${formData.mood === rating
-                                                        ? 'bg-blue-100 border-blue-500 text-3xl shadow-lg scale-110'
-                                                        : 'bg-transparent border-slate-200 dark:border-slate-700 text-2xl grayscale hover:grayscale-0'
+                                                    ? 'bg-blue-100 border-blue-500 text-3xl shadow-lg scale-110'
+                                                    : 'bg-transparent border-slate-200 dark:border-slate-700 text-2xl grayscale hover:grayscale-0'
                                                     }`}
                                             >
                                                 {rating === 1 ? '😫' : rating === 2 ? '😕' : rating === 3 ? '😐' : rating === 4 ? '🙂' : '😁'}

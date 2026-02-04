@@ -61,14 +61,69 @@ export async function GET(
         content: true,
         createdAt: true,
         voteScore: true,
+        isAnonymous: true,
+        isPinned: true,
+        isLocked: true,
+        status: true,
+        images: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        tags: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        author: {
+          select: {
+            id: true,
+            profile: {
+              select: {
+                username: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
         _count: {
           select: { comments: true },
         },
       },
     });
 
+    // Format posts to match PostCard expectations
+    const formattedPosts = posts.map((post: any) => ({
+      id: post.id,
+      title: post.title,
+      snippet: post.content.substring(0, 200) + (post.content.length > 200 ? "..." : ""),
+      createdAt: post.createdAt,
+      voteScore: post.voteScore,
+      commentCount: post._count.comments,
+      isAnonymous: post.isAnonymous,
+      isPinned: post.isPinned,
+      isLocked: post.isLocked,
+      status: post.status,
+      images: post.images || [],
+      category: post.category,
+      tags: post.tags || [],
+      author: post.isAnonymous || !post.author
+        ? { id: "anonymous", username: "Anonymous", avatarUrl: null }
+        : {
+            id: post.author.id,
+            username: post.author.profile?.username || "Unknown",
+            avatarUrl: post.author.profile?.avatarUrl || null,
+          },
+    }));
+
+    // Order by vote time (most recent first)
     const orderedPosts = postIds
-      .map((id) => posts.find((p) => p.id === id))
+      .map((id) => formattedPosts.find((p: any) => p.id === id))
       .filter(Boolean);
 
     return NextResponse.json({ posts: orderedPosts });

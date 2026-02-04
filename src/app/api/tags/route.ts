@@ -41,7 +41,11 @@ export async function GET() {
     // Cache the response
     await setCached("all", response, { prefix: "tags", ttl: CACHE_TTL.TAGS });
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, {
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+      },
+    });
   } catch (error) {
     console.error("Error fetching tags:", error);
     return NextResponse.json(

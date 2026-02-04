@@ -49,6 +49,36 @@ export async function GET(
             content: true,
             createdAt: true,
             voteScore: true,
+            isAnonymous: true,
+            isPinned: true,
+            isLocked: true,
+            status: true,
+            images: true,
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            tags: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            author: {
+              select: {
+                id: true,
+                profile: {
+                  select: {
+                    username: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+            },
             _count: {
               select: { comments: true },
             },
@@ -57,7 +87,29 @@ export async function GET(
       },
     });
 
-    const posts = bookmarks.map((b) => b.post);
+    // Format posts to match PostCard expectations
+    const posts = bookmarks.map((b: any) => ({
+      id: b.post.id,
+      title: b.post.title,
+      snippet: b.post.content.substring(0, 200) + (b.post.content.length > 200 ? "..." : ""),
+      createdAt: b.post.createdAt,
+      voteScore: b.post.voteScore,
+      commentCount: b.post._count.comments,
+      isAnonymous: b.post.isAnonymous,
+      isPinned: b.post.isPinned,
+      isLocked: b.post.isLocked,
+      status: b.post.status,
+      images: b.post.images || [],
+      category: b.post.category,
+      tags: b.post.tags || [],
+      author: b.post.isAnonymous || !b.post.author
+        ? { id: "anonymous", username: "Anonymous", avatarUrl: null }
+        : {
+            id: b.post.author.id,
+            username: b.post.author.profile?.username || "Unknown",
+            avatarUrl: b.post.author.profile?.avatarUrl || null,
+          },
+    }));
 
     return NextResponse.json({ posts });
   } catch (error) {

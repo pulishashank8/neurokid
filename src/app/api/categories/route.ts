@@ -44,7 +44,11 @@ export async function GET() {
     // Cache the response
     await setCached("all", response, { prefix: "categories", ttl: CACHE_TTL.CATEGORIES });
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, {
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+      },
+    });
   } catch (error: any) {
     console.error("Error fetching categories:", error?.message || error);
     return NextResponse.json(

@@ -71,7 +71,7 @@ export default function CalmingBubblesPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-100 via-blue-50 to-indigo-100 dark:from-sky-950/30 dark:via-blue-950/20 dark:to-indigo-950/30 py-8 px-4 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-sky-100 via-blue-50 to-indigo-100 dark:from-sky-950/30 dark:via-blue-950/20 dark:to-indigo-950/30 pt-24 pb-8 px-4 overflow-hidden">
       <div className="max-w-2xl mx-auto relative">
         {/* Header */}
         <div className="mb-6 relative z-10">
@@ -168,3 +168,4 @@ export default function CalmingBubblesPage() {
     </div>
   );
 }
+

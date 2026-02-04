@@ -6,6 +6,7 @@ import { User } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/ui/BackButton";
 import { VoteButtons } from "@/features/community/VoteButtons";
 import { BookmarkButton } from "@/features/community/BookmarkButton";
 import { ReportButton } from "@/features/community/ReportButton";
@@ -124,12 +125,8 @@ export default function PostDetailPage({
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] pt-20 pb-6 sm:pt-24 sm:pb-12 px-4">
       <div className="max-w-3xl mx-auto">
-        {/* Header Button */}
-        <Link href="/community">
-          <Button variant="ghost" size="sm">
-            ← Back to Community
-          </Button>
-        </Link>
+        {/* Back Button - uses browser history for natural navigation */}
+        <BackButton fallbackPath="/community" label="Back" />
 
         {/* Post */}
         {postLoading ? (

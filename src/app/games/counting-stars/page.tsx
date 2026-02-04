@@ -66,7 +66,7 @@ export default function CountingStarsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 pt-24 pb-8 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -182,3 +182,4 @@ export default function CountingStarsPage() {
     </div>
   );
 }
+
