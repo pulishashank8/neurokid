@@ -30,19 +30,8 @@ import {
   MessageCircle,
   MessageSquare,
   Star,
-  Gamepad2,
-  Grid3X3,
-  Palette,
-  Shapes,
-  Puzzle,
-  Smile,
-  Circle,
-  Music,
-  ListOrdered,
-  Search,
   Sparkles,
-  Map,
-  Compass
+  Map
 } from "lucide-react";
 
 type SubItem = { href: string; label: string; icon: any; description: string };
@@ -80,22 +69,7 @@ const getNavGroups = (isLoggedIn: boolean): NavGroup[] => [
       { href: "/ai-support", label: "AI Companion", icon: Brain, description: "24/7 instant guidance" },
     ]
   },
-  {
-    label: "Games",
-    items: [
-      { href: "/games", label: "All Games", icon: Gamepad2, description: "Fun learning activities" },
-      { href: "/games/memory-match", label: "Memory Match", icon: Grid3X3, description: "Find matching pairs" },
-      { href: "/games/color-sort", label: "Color Sort", icon: Palette, description: "Sort by colors" },
-      { href: "/games/shape-puzzle", label: "Shape Puzzle", icon: Shapes, description: "Match shapes" },
-      { href: "/games/pattern-complete", label: "Patterns", icon: Puzzle, description: "Complete sequences" },
-      { href: "/games/emotion-match", label: "Emotions", icon: Smile, description: "Learn feelings" },
-      { href: "/games/calming-bubbles", label: "Calm Bubbles", icon: Circle, description: "Pop to relax" },
-      { href: "/games/counting-stars", label: "Counting Stars", icon: Star, description: "Count objects" },
-      { href: "/games/sound-match", label: "Sound Match", icon: Music, description: "Match sounds" },
-      { href: "/games/sequence-builder", label: "Sequences", icon: ListOrdered, description: "Order steps" },
-      { href: "/games/spot-difference", label: "Spot Difference", icon: Search, description: "Find what's different" },
-    ]
-  },
+
   {
     label: "Essentials",
     items: [
@@ -164,11 +138,12 @@ export default function NavBar() {
       {/* Floating Island Navbar - Premium Glass Design */}
       <nav
         className={`
-          fixed top-4 sm:top-5 left-1/2 -translate-x-1/2 z-50 
-          w-[92%] sm:w-[90%] md:w-[85%] lg:w-[90%] max-w-7xl
+          fixed top-4 sm:top-5 left-1/2 -translate-x-1/2 z-50
+          w-[92%] sm:w-[90%] md:w-[88%] lg:w-[90%] xl:w-[85%] max-w-7xl
           rounded-2xl border border-white/20 dark:border-white/10
-          shadow-2xl backdrop-blur-xl 
+          shadow-2xl backdrop-blur-xl
           transition-all duration-500 ease-out
+          mt-safe
           ${scrolled
             ? 'bg-white/80 dark:bg-black/80 shadow-luxury-lg scale-[1.00]'
             : 'bg-white/60 dark:bg-black/60 scale-[1.01]'
@@ -409,7 +384,7 @@ export default function NavBar() {
 
           {/* Mobile Menu - Premium Glass Panel */}
           {mobileOpen && (
-            <div className="lg:hidden absolute left-0 right-0 top-full glass-premium border-t border-[var(--border)] py-6 px-4 space-y-4 max-h-[85vh] overflow-y-auto shadow-luxury animate-slide-up">
+            <div className="lg:hidden absolute left-0 right-0 top-full glass-premium border-t border-[var(--border)] py-6 px-4 px-safe space-y-4 max-h-[80vh] max-h-[80dvh] overflow-y-auto shadow-luxury animate-slide-up pb-safe">
               {/* Mobile Get Help Button */}
               <Link
                 href="/crisis"

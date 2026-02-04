@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback } from "react";
 import { AACBoard } from "@/features/aac/AACBoard";
 import { Maximize2, Minimize2, Home, Sparkles, Lock, Unlock } from "lucide-react";
 import Link from "next/link";
+import { BackButton } from "@/components/ui/BackButton";
 
 export default function AACAppPage() {
   const { data: session, status } = useSession();
@@ -103,7 +104,7 @@ export default function AACAppPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white dark:from-emerald-950/20 dark:to-[var(--background)]">
+    <div className="min-h-[100dvh] bg-gradient-to-b from-emerald-50 to-white dark:from-emerald-950/20 dark:to-[var(--background)] pt-20 pt-safe">
       {/* Lock Overlay */}
       {isLocked && (
         <div className="fixed inset-0 z-[200] bg-gradient-to-br from-emerald-900/95 to-teal-900/95 backdrop-blur-sm flex flex-col">
@@ -157,20 +158,12 @@ export default function AACAppPage() {
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/10">
+      <header className="sticky top-20 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Left: Logo & Title */}
             <div className="flex items-center gap-4">
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-              >
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
-                <span className="hidden sm:inline font-semibold">NeuroKid</span>
-              </Link>
+              <BackButton fallbackPath="/dashboard" />
 
               <div className="h-6 w-px bg-slate-200 dark:bg-white/10 hidden sm:block"></div>
 
@@ -190,8 +183,8 @@ export default function AACAppPage() {
               <button
                 onClick={toggleLock}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${isLocked
-                    ? "bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/25"
-                    : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/20"
+                  ? "bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/25"
+                  : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/20"
                   }`}
                 title={isLocked ? "Unlock screen" : "Lock screen"}
               >
@@ -238,7 +231,7 @@ export default function AACAppPage() {
       </header>
 
       {/* AAC Board */}
-      <main className="h-[calc(100vh-64px)] overflow-hidden">
+      <main className="h-[calc(100dvh-144px)] sm:h-[calc(100dvh-160px)] overflow-hidden pb-safe">
         <AACBoard
           onToggleFullscreen={toggleFullscreen}
           isFullscreen={isFullscreen}

@@ -4,34 +4,35 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Play, Pause, RotateCcw, Volume2, VolumeX, Heart, Wind, Waves, Sparkles } from "lucide-react";
+import { BackButton } from "@/components/ui/BackButton";
 
 type BreathingPhase = "inhale" | "hold" | "exhale" | "rest";
 
 const BREATHING_PATTERNS = {
-  calm: { 
-    name: "Box Breathing", 
-    inhale: 4, hold: 4, exhale: 4, rest: 4, 
+  calm: {
+    name: "Box Breathing",
+    inhale: 4, hold: 4, exhale: 4, rest: 4,
     color: "emerald",
     icon: "square",
     description: "Equal 4-second intervals. Best for anxiety, panic, and regaining focus during overwhelming moments."
   },
-  relaxed: { 
-    name: "Deep Relaxation", 
-    inhale: 4, hold: 7, exhale: 8, rest: 0, 
+  relaxed: {
+    name: "Deep Relaxation",
+    inhale: 4, hold: 7, exhale: 8, rest: 0,
     color: "blue",
     icon: "waves",
     description: "Long exhale activates your parasympathetic system. Best for calming down after a meltdown or stressful event."
   },
-  energize: { 
-    name: "Wake Up Breath", 
-    inhale: 2, hold: 0, exhale: 2, rest: 0, 
+  energize: {
+    name: "Wake Up Breath",
+    inhale: 2, hold: 0, exhale: 2, rest: 0,
     color: "amber",
     icon: "sun",
     description: "Quick, rhythmic breathing increases alertness. Best for mornings or when feeling sluggish and unmotivated."
   },
-  grounding: { 
-    name: "Grounding Breath", 
-    inhale: 5, hold: 2, exhale: 7, rest: 3, 
+  grounding: {
+    name: "Grounding Breath",
+    inhale: 5, hold: 2, exhale: 7, rest: 3,
     color: "purple",
     icon: "anchor",
     description: "Slow, extended pattern with long exhale and rest. Best for sensory overload, dissociation, or feeling disconnected."
@@ -64,10 +65,10 @@ export default function CalmClient() {
     const interval = setInterval(() => {
       setTimer((prev) => {
         const newTimer = prev + 1;
-        
+
         let currentPhaseDuration = 0;
         let nextPhase: BreathingPhase = phase;
-        
+
         switch (phase) {
           case "inhale":
             currentPhaseDuration = pattern.inhale;
@@ -154,7 +155,7 @@ export default function CalmClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[var(--background)] via-[var(--surface)] to-[var(--background)] pt-16 overflow-hidden">
+    <div className="min-h-[100dvh] bg-gradient-to-b from-[var(--background)] via-[var(--surface)] to-[var(--background)] pt-24 overflow-hidden pb-safe">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '8s' }} />
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
@@ -162,6 +163,11 @@ export default function CalmClient() {
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 py-8 sm:py-12">
+        {/* Back Button */}
+        <div className="mb-6">
+          <BackButton fallbackPath="/dashboard" />
+        </div>
+
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm font-semibold mb-4">
             <Wind className="w-4 h-4" />
@@ -192,9 +198,8 @@ export default function CalmClient() {
                   setSelectedPattern(key);
                   handleReset();
                 }}
-                className={`p-4 rounded-xl text-left transition-all border-2 ${
-                  colorClasses[p.color as keyof typeof colorClasses]
-                } ${!isSelected ? "bg-[var(--surface)] border-[var(--border)]" : ""}`}
+                className={`p-4 rounded-xl text-left transition-all border-2 ${colorClasses[p.color as keyof typeof colorClasses]
+                  } ${!isSelected ? "bg-[var(--surface)] border-[var(--border)]" : ""}`}
               >
                 <div className="font-semibold text-[var(--text)] text-sm mb-1">{p.name}</div>
                 <div className="text-xs text-[var(--muted)]">
@@ -213,26 +218,26 @@ export default function CalmClient() {
         </div>
 
         <div className="relative flex items-center justify-center mb-8" style={{ height: '320px' }}>
-          <div 
+          <div
             className="absolute rounded-full bg-gradient-to-br from-emerald-400/20 to-teal-500/20 transition-transform duration-1000 ease-in-out"
-            style={{ 
-              width: '280px', 
+            style={{
+              width: '280px',
               height: '280px',
               transform: `scale(${getCircleScale()})`,
             }}
           />
-          <div 
+          <div
             className="absolute rounded-full bg-gradient-to-br from-emerald-400/30 to-teal-500/30 transition-transform duration-1000 ease-in-out"
-            style={{ 
-              width: '220px', 
+            style={{
+              width: '220px',
               height: '220px',
               transform: `scale(${getCircleScale()})`,
             }}
           />
-          <div 
+          <div
             className="relative rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-2xl shadow-emerald-500/30 flex flex-col items-center justify-center transition-transform duration-1000 ease-in-out"
-            style={{ 
-              width: '180px', 
+            style={{
+              width: '180px',
               height: '180px',
               transform: `scale(${getCircleScale()})`,
             }}
@@ -288,11 +293,10 @@ export default function CalmClient() {
           </button>
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className={`w-12 h-12 rounded-full border transition-all flex items-center justify-center ${
-              soundEnabled 
+            className={`w-12 h-12 rounded-full border transition-all flex items-center justify-center ${soundEnabled
                 ? "bg-[var(--primary)]/10 border-[var(--primary)] text-[var(--primary)]"
                 : "bg-[var(--surface)] border-[var(--border)] text-[var(--muted)]"
-            }`}
+              }`}
           >
             {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
           </button>

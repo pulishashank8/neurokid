@@ -121,8 +121,9 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <OrganizationSchema />
-        <SoftwareAppSchema 
+        <SoftwareAppSchema
           name="Neuro Kid"
           description="AAC and autism support app for children and parents"
         />
