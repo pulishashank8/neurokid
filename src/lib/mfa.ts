@@ -26,8 +26,6 @@ const BACKUP_CODE_COUNT = 10;
 /**
  * Generate a new MFA secret
  */
-export { generateTOTPUri };
-
 export function generateMFASecret(): string {
   // Generate 20 random bytes (160 bits) for RFC 4226/6238
   return crypto.randomBytes(20).toString("base64url");
