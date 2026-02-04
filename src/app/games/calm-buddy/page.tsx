@@ -116,9 +116,9 @@ export default function CalmBuddyPage() {
                 </AnimatePresence>
 
                 {/* Main Character */}
-                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur rounded-3xl p-8 shadow-2xl border-4 border-purple-200 dark:border-purple-800 mb-6">
+                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl border-4 border-purple-200 dark:border-purple-800 mb-6">
                     {/* Calm Buddy Character */}
-                    <div className="relative mb-6">
+                    <div className="relative mb-4 sm:mb-6">
                         <motion.div
                             animate={{
                                 scale: isBreathing ? [1, 1.05, 1] : 1,
@@ -128,7 +128,7 @@ export default function CalmBuddyPage() {
                                 repeat: isBreathing ? Infinity : 0,
                                 ease: "easeInOut",
                             }}
-                            className="w-48 h-48 mx-auto relative"
+                            className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 mx-auto relative"
                         >
                             {/* Body */}
                             <div className={`w-full h-full rounded-full transition-colors duration-1000 ${currentEmotion === "happy" ? "bg-gradient-to-br from-yellow-200 to-yellow-300" :
