@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { StoriesLandingContent } from "./StoriesLandingContent";
+import { StoriesPageContent } from "./StoriesPageContent";
 import { SoftwareAppSchema, FAQSchema, WebPageSchema } from "@/components/seo/SchemaMarkup";
 
 export const metadata: Metadata = {
@@ -65,7 +65,7 @@ export default function StoriesPage() {
         url="https://neurokid.help/stories"
       />
       <FAQSchema questions={faqQuestions} />
-      <StoriesLandingContent />
+      <StoriesPageContent />
     </>
   );
 }

@@ -42,18 +42,24 @@ export async function POST(request: NextRequest) {
     if (conversationId) {
       const conversation = await prisma.conversation.findUnique({
         where: { id: conversationId },
-        select: { userAId: true, userBId: true }
+        select: {
+          participants: {
+            select: { userId: true }
+          }
+        }
       });
 
       if (!conversation) {
         return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
       }
 
-      if (conversation.userAId !== userId && conversation.userBId !== userId) {
+      const participantIds = conversation.participants.map(p => p.userId);
+
+      if (!participantIds.includes(userId)) {
         return NextResponse.json({ error: "Access denied" }, { status: 403 });
       }
 
-      if (conversation.userAId !== reportedUserId && conversation.userBId !== reportedUserId) {
+      if (!participantIds.includes(reportedUserId)) {
         return NextResponse.json({ error: "Reported user is not part of this conversation" }, { status: 400 });
       }
     }

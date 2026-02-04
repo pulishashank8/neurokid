@@ -53,6 +53,13 @@ export async function PATCH(
     }
 
     if (action === "accept") {
+      const senderId = connectionRequest.senderId;
+      const receiverId = connectionRequest.receiverId;
+
+      if (!senderId || !receiverId) {
+        return NextResponse.json({ error: "Invalid connection request" }, { status: 400 });
+      }
+
       await prisma.$transaction(async (tx) => {
         await tx.connectionRequest.update({
           where: { id },
@@ -64,7 +71,7 @@ export async function PATCH(
         // Create persistent Connection record
         // Sort IDs to ensure uniqueness constraint works (user_a < user_b usually preferred but unique constraint handles both if ordered)
         // Our constraint is unique([userA, userB]). We should sort.
-        const [userA, userB] = [connectionRequest.senderId, connectionRequest.receiverId].sort();
+        const [userA, userB] = [senderId, receiverId].sort();
 
         // Idempotent creation of Connection
         const existingConnection = await tx.connection.findUnique({
@@ -81,8 +88,8 @@ export async function PATCH(
         const existingConversation = await tx.conversation.findFirst({
           where: {
             AND: [
-              { participants: { some: { userId: connectionRequest.senderId } } },
-              { participants: { some: { userId: connectionRequest.receiverId } } }
+              { participants: { some: { userId: senderId } } },
+              { participants: { some: { userId: receiverId } } }
             ]
           }
         });
@@ -92,8 +99,8 @@ export async function PATCH(
             data: {
               participants: {
                 create: [
-                  { userId: connectionRequest.senderId },
-                  { userId: connectionRequest.receiverId }
+                  { userId: senderId },
+                  { userId: receiverId }
                 ]
               }
             },

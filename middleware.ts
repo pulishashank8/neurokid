@@ -76,7 +76,7 @@ export async function middleware(request: NextRequest) {
   // Content Security Policy with nonce
   // Use nonce for inline scripts in production
   const isDev = process.env.NODE_ENV === "development";
-  
+
   if (isDev) {
     // Development: Allow unsafe-inline for HMR
     const csp = [
@@ -85,7 +85,8 @@ export async function middleware(request: NextRequest) {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https: http:",
-      "connect-src 'self' https://*.supabase.co https://vercel.live https://*.vercel.app wss://*.supabase.co",
+      "connect-src 'self' https://*.supabase.co https://vercel.live https://*.vercel.app wss://*.supabase.co https://api.openai.com https://api.groq.com",
+      "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com",
       "frame-ancestors 'none'",
       "form-action 'self'",
       "base-uri 'self'",
@@ -96,10 +97,11 @@ export async function middleware(request: NextRequest) {
     // Production: Use nonce for inline scripts
     const csp = createCSPHeader(nonce, {
       "script-src": `'self' 'nonce-${nonce}' 'strict-dynamic' https://vercel.live https://*.vercel-scripts.com`,
-      "connect-src": "'self' https://*.supabase.co https://vercel.live https://*.vercel.app wss://*.supabase.co",
+      "connect-src": "'self' https://*.supabase.co https://vercel.live https://*.vercel.app wss://*.supabase.co https://api.openai.com https://api.groq.com",
+      "frame-src": "'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://youtube.com/embed https://www.youtube.com/embed",
     });
     response.headers.set("Content-Security-Policy", csp);
-    
+
     // Store nonce in cookie for server components to access
     response.cookies.set("__Host-csp-nonce", nonce, {
       httpOnly: true,
@@ -108,14 +110,14 @@ export async function middleware(request: NextRequest) {
       path: "/",
       maxAge: 60,
     });
-    
+
     // Also expose via header for client-side usage
     response.headers.set("X-CSP-Nonce", nonce);
   }
 
   // Prevent caching of sensitive data
   if (request.nextUrl.pathname.includes("/api/v1/therapy") ||
-      request.nextUrl.pathname.includes("/api/v1/emergency")) {
+    request.nextUrl.pathname.includes("/api/v1/emergency")) {
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     response.headers.set("Pragma", "no-cache");
     response.headers.set("Expires", "0");

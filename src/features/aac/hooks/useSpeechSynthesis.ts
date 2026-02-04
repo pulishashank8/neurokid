@@ -70,15 +70,97 @@ export function useSpeechSynthesis(
     };
   }, [selectedVoice]);
 
+  // Audio element for OpenAI TTS
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   // Speak a single string of text
   const speak = useCallback(
-    (text: string, onWordBoundary?: (wordIndex: number) => void) => {
-      if (!isSupported || !text) return;
-
-      const synth = window.speechSynthesis;
+    async (text: string, onWordBoundary?: (wordIndex: number) => void) => {
+      if (!text) return;
 
       // Cancel any ongoing speech
-      synth.cancel();
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      setIsSpeaking(true);
+      setCurrentWordIndex(0);
+
+      // Try OpenAI TTS first for smoother, child-friendly voices
+      try {
+        const response = await fetch("/api/ai/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: text.slice(0, 4096), // OpenAI has 4096 char limit
+            voice: "nova", // Nova is warm and friendly - perfect for kids
+          }),
+        });
+
+        if (response.ok) {
+          const contentType = response.headers.get("content-type");
+
+          // Check if we got actual audio back (not a JSON fallback response)
+          if (contentType?.includes("audio/mpeg")) {
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audioRef.current = audio;
+
+            audio.volume = config.volume;
+
+            // Word boundary simulation for karaoke effect
+            const words = text.split(/\s+/);
+            wordsRef.current = words;
+            let wordIndex = 0;
+            const avgWordDuration = (text.length * 60) / (words.length * 1000); // Approximate
+
+            const wordInterval = setInterval(() => {
+              if (wordIndex < words.length) {
+                setCurrentWordIndex(wordIndex);
+                onWordBoundary?.(wordIndex);
+                wordIndex++;
+              } else {
+                clearInterval(wordInterval);
+              }
+            }, avgWordDuration);
+
+            audio.onended = () => {
+              clearInterval(wordInterval);
+              setIsSpeaking(false);
+              setCurrentWordIndex(-1);
+              URL.revokeObjectURL(audioUrl);
+              audioRef.current = null;
+            };
+
+            audio.onerror = () => {
+              clearInterval(wordInterval);
+              setIsSpeaking(false);
+              setCurrentWordIndex(-1);
+              URL.revokeObjectURL(audioUrl);
+              audioRef.current = null;
+            };
+
+            await audio.play();
+            return;
+          }
+        }
+      } catch (error) {
+        console.log("OpenAI TTS unavailable, falling back to browser TTS");
+      }
+
+      // Fallback to browser speech synthesis
+      if (!isSupported) {
+        setIsSpeaking(false);
+        setCurrentWordIndex(-1);
+        return;
+      }
+
+      const synth = window.speechSynthesis;
 
       const utterance = new SpeechSynthesisUtterance(text);
       utteranceRef.current = utterance;
@@ -196,14 +278,21 @@ export function useSpeechSynthesis(
 
   // Cancel speech
   const cancel = useCallback(() => {
-    if (!isSupported) return;
+    // Stop OpenAI TTS audio if playing
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
 
-    const synth = window.speechSynthesis;
-    synth.cancel();
+    // Stop browser speech synthesis
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+
     setIsSpeaking(false);
     setCurrentWordIndex(-1);
     utteranceRef.current = null;
-  }, [isSupported]);
+  }, []);
 
   return {
     speak,

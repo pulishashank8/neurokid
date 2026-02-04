@@ -31,7 +31,7 @@ export async function DELETE(
       }
     });
 
-    if (!message) {
+    if (!message || !message.conversation) {
       return NextResponse.json({ error: "Message not found" }, { status: 404 });
     }
 

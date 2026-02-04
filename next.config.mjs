@@ -1,7 +1,7 @@
-import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   // Enable turbopack to silence webpack warning
   turbopack: {},
   allowedDevOrigins: [
@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
   // Production performance optimizations
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
-  
+
   // Webpack optimizations for code splitting
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -75,10 +75,10 @@ const sentryWebpackPluginOptions = {
 
   // Suppresses source map uploading logs during build
   silent: true,
-  
+
   org: process.env.SENTRY_ORG || undefined,
   project: process.env.SENTRY_PROJECT || undefined,
-  
+
   // Upload source maps
   sourcemaps: {
     assets: "./.next/static/**/*",
@@ -111,6 +111,6 @@ const sentryOptions = {
 };
 
 // Export with Sentry if DSN is configured, otherwise plain config
-export default process.env.SENTRY_DSN 
+export default process.env.SENTRY_DSN
   ? withSentryConfig(nextConfig, sentryWebpackPluginOptions, sentryOptions)
   : nextConfig;

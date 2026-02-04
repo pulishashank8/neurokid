@@ -11,6 +11,8 @@ import {
   Plus,
   ChevronDown,
   ChevronUp,
+  Lock,
+  Unlock,
 } from "lucide-react";
 
 interface AACControlPanelProps {
@@ -18,6 +20,8 @@ interface AACControlPanelProps {
   onToggleSensoryMode: () => void;
   onToggleFullscreen: () => void;
   isFullscreen: boolean;
+  isLocked: boolean;
+  onToggleLock: () => void;
   volume: number;
   onVolumeChange: (volume: number) => void;
   selectedVoice: SpeechSynthesisVoice | null;
@@ -31,6 +35,8 @@ export function AACControlPanel({
   onToggleSensoryMode,
   onToggleFullscreen,
   isFullscreen,
+  isLocked,
+  onToggleLock,
   volume,
   onVolumeChange,
   selectedVoice,
@@ -90,6 +96,31 @@ export function AACControlPanel({
           )}
           <span className="hidden sm:inline">
             {sensoryMode === "muted" ? "Calm" : "Vibrant"}
+          </span>
+        </button>
+
+        {/* Lock Screen Toggle */}
+        <button
+          onClick={onToggleLock}
+          className={`
+            flex items-center gap-1.5 px-3 py-2 rounded-xl
+            text-xs sm:text-sm font-medium
+            transition-all duration-200
+            ${isLocked
+              ? "bg-red-500 text-white animate-pulse"
+              : "bg-red-500/20 text-red-700 dark:text-red-300"
+            }
+            hover:opacity-80
+          `}
+          aria-label={isLocked ? "Unlock screen" : "Lock screen"}
+        >
+          {isLocked ? (
+            <Lock className="w-4 h-4" />
+          ) : (
+            <Unlock className="w-4 h-4" />
+          )}
+          <span className="hidden sm:inline">
+            {isLocked ? "Locked" : "Lock"}
           </span>
         </button>
 
@@ -184,9 +215,9 @@ export function AACControlPanel({
                   focus:outline-none focus:ring-2 focus:ring-emerald-500
                 "
               >
-                {availableVoices.map((voice) => (
+                {availableVoices.map((voice, index) => (
                   <option
-                    key={voice.voiceURI}
+                    key={`${voice.voiceURI}-${index}`}
                     value={voice.voiceURI}
                     className="bg-[var(--background)] text-[var(--text)]"
                   >

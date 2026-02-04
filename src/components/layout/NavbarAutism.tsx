@@ -1,4 +1,7 @@
-import { Link, useLocation } from 'react-router-dom';
+"use client";
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Map, Compass, Sparkles } from 'lucide-react';
 
@@ -8,15 +11,15 @@ const navItems = [
 ];
 
 export function Navbar() {
-  const location = useLocation();
+  const pathname = usePathname();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
       <div className="container max-w-5xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link 
-            to="/roadmap" 
+          <Link
+            href="/roadmap"
             className="flex items-center gap-2 text-foreground font-semibold"
           >
             <div className="p-1.5 rounded-lg bg-primary/10">
@@ -29,16 +32,16 @@ export function Navbar() {
           <div className="flex items-center gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              
+              const isActive = pathname === item.path;
+
               return (
                 <Link
                   key={item.path}
-                  to={item.path}
+                  href={item.path}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                    isActive 
-                      ? "bg-primary/10 text-primary" 
+                    isActive
+                      ? "bg-primary/10 text-primary"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                   )}
                 >

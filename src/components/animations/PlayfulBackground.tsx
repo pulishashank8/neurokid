@@ -1,27 +1,65 @@
 "use client";
 
+// ============================================================================
+// PREVIOUS PROFESSIONAL BACKGROUND (Currently Active)
+// Clean, minimal background - white for light mode, orbs for dark mode
+// ============================================================================
+
+export function PlayfulBackground({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-white dark:bg-[#05070a] relative overflow-hidden transition-colors duration-500">
+      {/* Premium Atmospheric Background (Dark Mode only) */}
+      <div className="fixed inset-0 pointer-events-none hidden dark:block">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/10 rounded-full blur-[150px] orb-1"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px] orb-2"></div>
+        <div className="absolute top-[30%] right-[20%] w-[15%] h-[15%] bg-purple-500/5 rounded-full blur-[100px] orb-3"></div>
+
+        {/* Slow particles */}
+        <div className="particle opacity-30"></div>
+        <div className="particle opacity-20"></div>
+        <div className="particle opacity-30"></div>
+      </div>
+
+      {/* Main content */}
+      <div className="relative z-10">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// Placeholder exports to prevent import errors if other files use these
+export function AnimatedSun() { return null; }
+export function AnimatedMoon() { return null; }
+
+
+// ============================================================================
+// COMMENTED OUT: SKY/BIRDS/CLOUDS ANIMATED BACKGROUND
+// Uncomment this section and comment out the above to restore animated version
+// ============================================================================
+
+/*
 import { motion } from "framer-motion";
-import { useTheme } from "@/app/theme-provider";
 import { useMemo } from "react";
 
 // Animated Sun Component - Rays rotate, face stays stable
-function AnimatedSun() {
+function AnimatedSunAnimated() {
   return (
     <motion.div
       className="absolute top-8 right-8 sm:top-12 sm:right-16 z-20"
-      animate={{ 
+      animate={{
         scale: [1, 1.08, 1],
         y: [0, -5, 0]
       }}
-      transition={{ 
+      transition={{
         scale: { duration: 4, repeat: Infinity, ease: "easeInOut" },
         y: { duration: 6, repeat: Infinity, ease: "easeInOut" }
       }}
     >
       <svg width="120" height="120" viewBox="0 0 120 120" fill="none" className="w-20 h-20 sm:w-28 sm:h-28">
-        {/* Sun rays - rotating independently */}
-        <motion.g 
-          animate={{ rotate: 360 }} 
+        {/* Sun rays - rotating independently *}
+        <motion.g
+          animate={{ rotate: 360 }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           style={{ transformOrigin: "60px 60px" }}
         >
@@ -36,44 +74,43 @@ function AnimatedSun() {
               strokeWidth="5"
               strokeLinecap="round"
               transform={`rotate(${i * 22.5} 60 60)`}
-              animate={{ 
-                strokeLength: [18, 22, 18],
+              animate={{
                 opacity: [0.8, 1, 0.8]
               }}
-              transition={{ 
-                duration: 2, 
-                repeat: Infinity, 
+              transition={{
+                duration: 2,
+                repeat: Infinity,
                 ease: "easeInOut",
-                delay: i * 0.1 
+                delay: i * 0.1
               }}
             />
           ))}
         </motion.g>
-        
-        {/* Sun face - stable, not rotating */}
+
+        {/* Sun face - stable, not rotating *}
         <g>
-          {/* Main body with warm gradient effect */}
+          {/* Main body with warm gradient effect *}
           <circle cx="60" cy="60" r="38" fill="#FCD34D" />
           <circle cx="60" cy="60" r="34" fill="#FBBF24" opacity="0.6" />
-          
-          {/* Eyes - stable and proportional */}
+
+          {/* Eyes - stable and proportional *}
           <ellipse cx="50" cy="54" rx="4" ry="5" fill="#92400E" />
           <ellipse cx="70" cy="54" rx="4" ry="5" fill="#92400E" />
-          
-          {/* Eye shine */}
+
+          {/* Eye shine *}
           <circle cx="51" cy="52" r="1.5" fill="white" opacity="0.8" />
           <circle cx="71" cy="52" r="1.5" fill="white" opacity="0.8" />
-          
-          {/* Smile - stable */}
-          <path 
-            d="M48 68 Q60 78 72 68" 
-            stroke="#92400E" 
-            strokeWidth="3" 
-            strokeLinecap="round" 
+
+          {/* Smile - stable *}
+          <path
+            d="M48 68 Q60 78 72 68"
+            stroke="#92400E"
+            strokeWidth="3"
+            strokeLinecap="round"
             fill="none"
           />
-          
-          {/* Rosy cheeks */}
+
+          {/* Rosy cheeks *}
           <circle cx="42" cy="64" r="7" fill="#F87171" opacity="0.5" />
           <circle cx="78" cy="64" r="7" fill="#F87171" opacity="0.5" />
         </g>
@@ -83,28 +120,28 @@ function AnimatedSun() {
 }
 
 // Animated Moon Component
-function AnimatedMoon() {
+function AnimatedMoonAnimated() {
   return (
     <motion.div
       className="absolute top-8 right-8 sm:top-12 sm:right-16 z-20"
-      animate={{ 
+      animate={{
         rotate: [0, 10, 0],
       }}
-      transition={{ 
+      transition={{
         duration: 6,
         repeat: Infinity,
         ease: "easeInOut"
       }}
     >
       <svg width="100" height="100" viewBox="0 0 100 100" fill="none" className="w-16 h-16 sm:w-24 sm:h-24">
-        {/* Moon body */}
+        {/* Moon body *}
         <circle cx="50" cy="50" r="40" fill="#FEF3C7" />
         <circle cx="55" cy="45" r="35" fill="#0C0A09" />
-        {/* Moon craters */}
+        {/* Moon craters *}
         <circle cx="35" cy="40" r="6" fill="#FEF3C7" opacity="0.5" />
         <circle cx="45" cy="55" r="4" fill="#FEF3C7" opacity="0.5" />
         <circle cx="30" cy="55" r="3" fill="#FEF3C7" opacity="0.5" />
-        {/* Stars around moon */}
+        {/* Stars around moon *}
         <motion.g animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity }}>
           <circle cx="20" cy="30" r="2" fill="#FEF3C7" />
           <circle cx="80" cy="25" r="2" fill="#FEF3C7" />
@@ -138,7 +175,7 @@ function FloatingCloud({ size, startY, duration, delay, opacity = 0.8 }: CloudPr
   return (
     <motion.div
       className="absolute pointer-events-none"
-      style={{ 
+      style={{
         top: startY,
         opacity,
       }}
@@ -152,7 +189,7 @@ function FloatingCloud({ size, startY, duration, delay, opacity = 0.8 }: CloudPr
       }}
     >
       <motion.div
-        animate={{ 
+        animate={{
           y: [0, -8, 0, 6, 0],
         }}
         transition={{
@@ -181,29 +218,29 @@ function FloatingCloud({ size, startY, duration, delay, opacity = 0.8 }: CloudPr
               <stop offset="100%" stopColor="#E2E8F0" />
             </linearGradient>
           </defs>
-          
-          {/* Realistic cloud made of overlapping circles */}
+
+          {/* Realistic cloud made of overlapping circles *}
           <g>
-            {/* Back puffs - darker/larger for depth */}
+            {/* Back puffs - darker/larger for depth *}
             <circle cx="50" cy="65" r="25" fill="#E2E8F0" />
             <circle cx="80" cy="60" r="30" fill="#E2E8F0" />
             <circle cx="120" cy="62" r="28" fill="#E2E8F0" />
             <circle cx="150" cy="68" r="22" fill="#E2E8F0" />
-            
-            {/* Middle layer */}
+
+            {/* Middle layer *}
             <circle cx="40" cy="55" r="22" fill="#F1F5F9" />
             <circle cx="70" cy="48" r="28" fill="#F1F5F9" />
             <circle cx="105" cy="50" r="26" fill="#F1F5F9" />
             <circle cx="140" cy="55" r="24" fill="#F1F5F9" />
             <circle cx="165" cy="62" r="18" fill="#F1F5F9" />
-            
-            {/* Front/top puffs - brightest */}
+
+            {/* Front/top puffs - brightest *}
             <circle cx="55" cy="42" r="20" fill="url(#cloud-gradient)" />
             <circle cx="85" cy="35" r="24" fill="url(#cloud-gradient)" />
             <circle cx="115" cy="38" r="22" fill="url(#cloud-gradient)" />
             <circle cx="140" cy="45" r="19" fill="url(#cloud-gradient)" />
-            
-            {/* Highlight spots */}
+
+            {/* Highlight spots *}
             <ellipse cx="75" cy="32" rx="8" ry="5" fill="white" opacity="0.6" />
             <ellipse cx="105" cy="35" rx="10" ry="6" fill="white" opacity="0.5" />
             <ellipse cx="130" cy="42" rx="6" ry="4" fill="white" opacity="0.4" />
@@ -258,7 +295,7 @@ function FlyingBird({ startY, duration, delay, size = "md", color = "#4B5563" }:
       className="absolute pointer-events-none z-10"
       style={{ top: startY }}
       initial={{ x: "-10vw" }}
-      animate={{ 
+      animate={{
         x: "110vw",
         y: [0, -15, 5, -10, 0],
       }}
@@ -279,7 +316,7 @@ function FlyingBird({ startY, duration, delay, size = "md", color = "#4B5563" }:
         <motion.path
           d="M12 20 Q5 12 8 8 Q12 14 16 18"
           fill={color}
-          animate={{ 
+          animate={{
             d: [
               "M12 20 Q5 12 8 8 Q12 14 16 18",
               "M12 20 Q3 18 2 22 Q8 20 16 18",
@@ -291,7 +328,7 @@ function FlyingBird({ startY, duration, delay, size = "md", color = "#4B5563" }:
         <motion.path
           d="M28 20 Q35 12 32 8 Q28 14 24 18"
           fill={color}
-          animate={{ 
+          animate={{
             d: [
               "M28 20 Q35 12 32 8 Q28 14 24 18",
               "M28 20 Q37 18 38 22 Q32 20 24 18",
@@ -346,10 +383,10 @@ interface ButterflyProps {
   size?: "sm" | "md" | "lg";
 }
 
-function FlutteringButterfly({ 
-  color = "#FBBF24", 
-  delay = 0, 
-  startY, 
+function FlutteringButterfly({
+  color = "#FBBF24",
+  delay = 0,
+  startY,
   duration,
   size = "md"
 }: ButterflyProps) {
@@ -361,7 +398,7 @@ function FlutteringButterfly({
       className="absolute pointer-events-none z-10"
       style={{ top: startY }}
       initial={{ x: "-5vw" }}
-      animate={{ 
+      animate={{
         x: "105vw",
         y: [0, -30, 10, -20, 5, -25, 0],
       }}
@@ -371,7 +408,7 @@ function FlutteringButterfly({
       }}
     >
       <motion.div
-        animate={{ 
+        animate={{
           rotate: [0, 10, -5, 15, -10, 5, 0],
         }}
         transition={{
@@ -441,7 +478,7 @@ function MovingStar({ startY, duration, delay, size = "md" }: MovingStarProps) {
       className="absolute pointer-events-none z-10"
       style={{ top: startY }}
       initial={{ x: "-5vw" }}
-      animate={{ 
+      animate={{
         x: "110vw",
         y: [0, -10, 5, -5, 0],
       }}
@@ -451,7 +488,7 @@ function MovingStar({ startY, duration, delay, size = "md" }: MovingStarProps) {
       }}
     >
       <motion.div
-        animate={{ 
+        animate={{
           opacity: [0.4, 0.9, 0.4],
           scale: [1, 1.2, 1],
         }}
@@ -485,7 +522,7 @@ function ShootingStar({ startY, duration, delay }: ShootingStarProps) {
       className="absolute pointer-events-none z-10"
       style={{ top: startY }}
       initial={{ x: "-10vw", opacity: 0 }}
-      animate={{ 
+      animate={{
         x: "120vw",
         opacity: [0, 1, 1, 0],
       }}
@@ -497,10 +534,10 @@ function ShootingStar({ startY, duration, delay }: ShootingStarProps) {
       }}
     >
       <div className="relative">
-        {/* Star head */}
+        {/* Star head *}
         <motion.div
           className="w-2 h-2 bg-white rounded-full shadow-lg"
-          animate={{ 
+          animate={{
             boxShadow: [
               "0 0 10px 2px rgba(255,255,255,0.8)",
               "0 0 20px 5px rgba(255,255,255,0.6)",
@@ -509,8 +546,8 @@ function ShootingStar({ startY, duration, delay }: ShootingStarProps) {
           }}
           transition={{ duration: 0.5, repeat: Infinity }}
         />
-        {/* Tail */}
-        <div 
+        {/* Tail *}
+        <div
           className="absolute top-1/2 right-0 -translate-y-1/2 h-0.5 bg-gradient-to-l from-transparent via-white/80 to-white"
           style={{ width: "60px" }}
         />
@@ -585,7 +622,7 @@ function TwinklingStarsBackground() {
             width: star.size,
             height: star.size,
           }}
-          animate={{ 
+          animate={{
             opacity: [star.opacity * 0.3, star.opacity, star.opacity * 0.3],
             scale: [1, 1.2, 1],
           }}
@@ -622,24 +659,24 @@ function Mountains() {
   );
 }
 
-// Main Background Component
-export function PlayfulBackground({ children }: { children: React.ReactNode }) {
+// Animated Background Component (Sky/Birds/Clouds version)
+export function PlayfulBackgroundAnimated({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
   return (
     <div className={`relative min-h-screen overflow-hidden ${isDark ? 'bg-black' : 'bg-gradient-to-b from-[#87CEEB] via-[#E8F4F8] to-[#FFF8E7]'}`}>
-      {/* Background */}
+      {/* Background *}
       <div className={`absolute inset-0 transition-colors duration-700 ${
-        isDark 
-          ? 'bg-black' 
+        isDark
+          ? 'bg-black'
           : 'bg-gradient-to-b from-[#87CEEB] via-[#E8F4F8] to-[#FFF8E7]'
       }`} />
-      
-      {/* Sun or Moon */}
-      {isDark ? <AnimatedMoon /> : <AnimatedSun />}
-      
-      {/* Day mode elements */}
+
+      {/* Sun or Moon *}
+      {isDark ? <AnimatedMoonAnimated /> : <AnimatedSunAnimated />}
+
+      {/* Day mode elements *}
       {!isDark && (
         <>
           <AnimatedClouds />
@@ -647,8 +684,8 @@ export function PlayfulBackground({ children }: { children: React.ReactNode }) {
           <FlyingButterflies />
         </>
       )}
-      
-      {/* Night mode elements */}
+
+      {/* Night mode elements *}
       {isDark && (
         <>
           <TwinklingStarsBackground />
@@ -656,13 +693,13 @@ export function PlayfulBackground({ children }: { children: React.ReactNode }) {
           <ShootingStars />
         </>
       )}
-      
-      {/* Mountains */}
+
+      {/* Mountains *}
       <div className={isDark ? 'opacity-30' : ''}>
         <Mountains />
       </div>
-      
-      {/* Main content */}
+
+      {/* Main content *}
       <div className="relative z-10">
         {children}
       </div>
@@ -670,4 +707,5 @@ export function PlayfulBackground({ children }: { children: React.ReactNode }) {
   );
 }
 
-export { AnimatedSun, AnimatedMoon };
+export { AnimatedSunAnimated as AnimatedSun, AnimatedMoonAnimated as AnimatedMoon };
+*/

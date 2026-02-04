@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { getCommunityContact, getGenericCommunityGuidance } from '@/features/autism-navigator/data/contactData';
 import { getStateResource } from '@/features/autism-navigator/data/stateResources';
 import { Phone, MapPin, Globe, Clock, Users, Heart, Baby, Search, ExternalLink } from 'lucide-react';
-import { ResourceFinder } from '@/features/autism-navigator/lib/ResourceFinder';
+import { ResourceFinder } from '@/features/autism-navigator/utils/ResourceFinder';
 
 interface GovernmentContactCardProps {
   state: string;

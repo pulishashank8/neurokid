@@ -33,6 +33,7 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
   const [sentence, setSentence] = useState<AACSentenceWord[]>([]);
   const [activeCategory, setActiveCategory] = useState<AACCategory | "all">("all");
   const [sensoryMode, setSensoryMode] = useState<"vibrant" | "muted">("vibrant");
+  const [isLocked, setIsLocked] = useState(false);
 
   const [isWordEditorOpen, setIsWordEditorOpen] = useState(false);
   const [volume, setVolume] = useState(DEFAULT_SPEECH_CONFIG.volume);
@@ -101,6 +102,9 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
   // Handle word press
   const handleWordPress = useCallback(
     (word: AACWord) => {
+      // Don't respond to taps when locked
+      if (isLocked) return;
+
       playClickSound();
 
       // Speak immediately
@@ -109,7 +113,7 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
       // Add word to sentence
       setSentence((prev) => [...prev, { word, spokenAt: new Date() }]);
     },
-    [playClickSound, speak]
+    [isLocked, playClickSound, speak]
   );
 
   // Handle word removal
@@ -128,6 +132,11 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
   // Handle sensory mode toggle
   const handleToggleSensoryMode = useCallback(() => {
     setSensoryMode((prev) => (prev === "vibrant" ? "muted" : "vibrant"));
+  }, []);
+
+  // Handle lock toggle
+  const handleToggleLock = useCallback(() => {
+    setIsLocked((prev) => !prev);
   }, []);
 
   // Handle add word
@@ -184,8 +193,24 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
       </div>
 
       {/* Vocabulary Grid */}
-      <div className="flex-1 overflow-y-auto px-2 sm:px-4 pb-2 sm:pb-4">
-        <div className="aac-grid">
+      <div className="flex-1 overflow-y-auto px-2 sm:px-4 pb-2 sm:pb-4 relative">
+        {/* Lock Overlay */}
+        {isLocked && (
+          <div className="absolute inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center rounded-xl">
+            <div className="flex flex-col items-center gap-3 text-white">
+              <div className="w-16 h-16 rounded-full bg-red-500/80 flex items-center justify-center animate-pulse">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </div>
+              <p className="font-bold text-lg">Screen Locked</p>
+              <p className="text-sm opacity-75">Tap "Unlock" in settings to continue</p>
+            </div>
+          </div>
+        )}
+
+        <div className={`aac-grid ${isLocked ? 'pointer-events-none' : ''}`}>
           {filteredVocabulary.map((word) => (
             <AACCard
               key={word.id}
@@ -227,6 +252,8 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
           onToggleSensoryMode={handleToggleSensoryMode}
           onToggleFullscreen={onToggleFullscreen}
           isFullscreen={isFullscreen}
+          isLocked={isLocked}
+          onToggleLock={handleToggleLock}
           volume={volume}
           onVolumeChange={setVolume}
           selectedVoice={selectedVoice}

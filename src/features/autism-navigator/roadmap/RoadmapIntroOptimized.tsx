@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, lazy, Suspense } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -12,9 +12,6 @@ import type { LocationData, AgeRange } from '@/features/autism-navigator/types/r
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-
-// Dynamically import heavy zipcodes library
-const zipcodes = lazy(() => import('zipcodes'));
 
 interface RoadmapIntroProps {
   onComplete: (data: LocationData) => void;

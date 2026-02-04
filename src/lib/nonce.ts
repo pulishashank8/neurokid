@@ -69,6 +69,7 @@ export function createCSPHeader(
     "font-src": "'self' https://fonts.gstatic.com",
     "img-src": "'self' data: blob: https: http:",
     "connect-src": "'self' https://*.supabase.co wss://*.supabase.co",
+    "frame-src": "'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com",
     "frame-ancestors": "'none'",
     "form-action": "'self'",
     "base-uri": "'self'",
