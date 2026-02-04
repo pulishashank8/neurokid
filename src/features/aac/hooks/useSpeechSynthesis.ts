@@ -73,6 +73,49 @@ export function useSpeechSynthesis(
 
   // Audio element for OpenAI TTS
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+
+  // Detect if we're on a mobile device
+  const isMobileDevice = useCallback(() => {
+    if (typeof window === "undefined") return false;
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }, []);
+
+  // Initialize audio context on first user interaction (required for mobile)
+  useEffect(() => {
+    if (typeof window === "undefined" || !isMobileDevice()) return;
+
+    const initAudioContext = () => {
+      if (!audioContextRef.current) {
+        try {
+          const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+          if (AudioContext) {
+            audioContextRef.current = new AudioContext();
+            console.log("Audio context initialized for mobile");
+          }
+        } catch (e) {
+          console.warn("Could not create AudioContext:", e);
+        }
+      }
+
+      // Resume audio context if suspended (iOS requirement)
+      if (audioContextRef.current?.state === "suspended") {
+        audioContextRef.current.resume();
+      }
+    };
+
+    // Initialize on any user interaction
+    const events = ["touchstart", "touchend", "mousedown", "keydown"];
+    events.forEach(event => {
+      document.addEventListener(event, initAudioContext, { once: true });
+    });
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, initAudioContext);
+      });
+    };
+  }, [isMobileDevice]);
 
   // Speak a single string of text
   const speak = useCallback(
@@ -90,6 +133,15 @@ export function useSpeechSynthesis(
 
       setIsSpeaking(true);
       setCurrentWordIndex(0);
+
+      // Resume AudioContext on mobile if needed
+      if (isMobileDevice() && audioContextRef.current?.state === "suspended") {
+        try {
+          await audioContextRef.current.resume();
+        } catch (e) {
+          console.warn("Could not resume AudioContext:", e);
+        }
+      }
 
       // Try OpenAI TTS first for smoother, child-friendly voices
       const currentVoice = config.openaiVoice || "nova";
@@ -121,6 +173,11 @@ export function useSpeechSynthesis(
 
             audio.volume = config.volume;
 
+            // CRITICAL: For mobile, load the audio immediately
+            if (isMobileDevice()) {
+              audio.load();
+            }
+
             // Word boundary simulation for karaoke effect
             const words = text.split(/\s+/);
             wordsRef.current = words;
@@ -145,20 +202,33 @@ export function useSpeechSynthesis(
               audioRef.current = null;
             };
 
-            audio.onerror = () => {
+            audio.onerror = (e) => {
+              console.error("Audio playback error on mobile:", e);
               clearInterval(wordInterval);
               setIsSpeaking(false);
               setCurrentWordIndex(-1);
               URL.revokeObjectURL(audioUrl);
               audioRef.current = null;
+
+              // Fallback to browser TTS on error
+              console.log("Falling back to browser TTS due to audio error");
             };
 
-            await audio.play();
-            return;
+            try {
+              // Use a promise to handle play() properly on mobile
+              const playPromise = audio.play();
+              if (playPromise !== undefined) {
+                await playPromise;
+              }
+              return;
+            } catch (playError) {
+              console.error("Audio play() failed:", playError);
+              // Will fall through to browser TTS
+            }
           }
         }
       } catch (error) {
-        console.log("OpenAI TTS unavailable, falling back to browser TTS");
+        console.log("OpenAI TTS unavailable, falling back to browser TTS", error);
       }
 
       // Fallback to browser speech synthesis

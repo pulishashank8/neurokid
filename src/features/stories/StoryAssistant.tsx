@@ -415,16 +415,64 @@ export function StoryAssistant() {
 
             const blob = await res.blob();
             const url = URL.createObjectURL(blob);
-            const audio = new Audio(url);
+            const audio = new Audio();
+
+            // MOBILE FIX: Set src and load before setting other properties
+            audio.src = url;
+            audio.volume = volume;
+
+            // Preload audio (critical for mobile)
+            audio.load();
 
             pollyAudioRef.current = audio;
-            audio.onended = () => setIsLoadingAudio(false);
-            audio.onerror = () => setIsLoadingAudio(false);
 
-            await audio.play();
+            audio.oncanplaythrough = () => {
+                console.log("Audio ready to play on mobile");
+            };
+
+            audio.onended = () => {
+                setIsLoadingAudio(false);
+                URL.revokeObjectURL(url);
+                pollyAudioRef.current = null;
+            };
+
+            audio.onerror = (e) => {
+                console.error("Polly audio error on mobile:", e);
+                setIsLoadingAudio(false);
+                URL.revokeObjectURL(url);
+                pollyAudioRef.current = null;
+                toast.error("Couldn't play audio. Please try again.");
+            };
+
+            // MOBILE FIX: Handle play promise properly
+            try {
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    await playPromise;
+                    console.log("Audio playing successfully");
+                } else {
+                    setIsLoadingAudio(false);
+                }
+            } catch (playError: any) {
+                console.error("Play failed:", playError);
+                setIsLoadingAudio(false);
+
+                // More helpful error message based on error type
+                if (playError.name === "NotAllowedError") {
+                    toast.error("Please tap the button to play audio");
+                } else if (playError.name === "NotSupportedError") {
+                    toast.error("Audio format not supported on this device");
+                } else {
+                    toast.error("Couldn't play audio. Please try again.");
+                }
+
+                URL.revokeObjectURL(url);
+                pollyAudioRef.current = null;
+            }
         } catch (err) {
             console.error("Polly playback error:", err);
             toast.error("Oops! Couldn't generate the voice. Please try again.");
+            setIsLoadingAudio(false);
         } finally {
             setIsLoadingAudio(false);
         }

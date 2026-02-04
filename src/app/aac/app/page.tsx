@@ -31,19 +31,29 @@ export default function AACAppPage() {
   }, [status, router]);
 
   const toggleFullscreen = useCallback(() => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().then(() => {
-        setIsFullscreen(true);
-      }).catch(() => {
-        // Fallback: just toggle the state for UI purposes
-        setIsFullscreen((prev) => !prev);
-      });
+    // On mobile, Fullscreen API doesn't work (especially iOS)
+    // Instead, we'll use a CSS-based "Focus Mode"
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // Just toggle the state for CSS-based focus mode
+      setIsFullscreen((prev) => !prev);
     } else {
-      document.exitFullscreen().then(() => {
-        setIsFullscreen(false);
-      }).catch(() => {
-        setIsFullscreen((prev) => !prev);
-      });
+      // On desktop, try native fullscreen
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().then(() => {
+          setIsFullscreen(true);
+        }).catch(() => {
+          // Fallback: just toggle the state for UI purposes
+          setIsFullscreen((prev) => !prev);
+        });
+      } else {
+        document.exitFullscreen().then(() => {
+          setIsFullscreen(false);
+        }).catch(() => {
+          setIsFullscreen((prev) => !prev);
+        });
+      }
     }
   }, []);
 
@@ -104,7 +114,7 @@ export default function AACAppPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-b from-emerald-50 to-white dark:from-emerald-950/20 dark:to-[var(--background)] pt-20 pt-safe">
+    <div className={`min-h-screen bg-gradient-to-b from-emerald-50 to-white dark:from-emerald-950/20 dark:to-[var(--background)] ${isFullscreen ? 'fixed inset-0 z-50' : 'pt-20'}`}>
       {/* Lock Overlay */}
       {isLocked && (
         <div className="fixed inset-0 z-[200] bg-gradient-to-br from-emerald-900/95 to-teal-900/95 backdrop-blur-sm flex flex-col">
@@ -127,25 +137,25 @@ export default function AACAppPage() {
             </div>
           </div>
 
-          {/* Corner tap areas */}
+          {/* Corner tap areas - made larger for mobile */}
           <button
             onClick={() => handleUnlockTap("TL")}
-            className="absolute top-0 left-0 w-24 h-24 hover:bg-white/10 transition-colors rounded-br-3xl"
+            className="absolute top-0 left-0 w-32 h-32 sm:w-24 sm:h-24 hover:bg-white/10 transition-colors rounded-br-3xl touch-manipulation"
             aria-label="Top left corner"
           />
           <button
             onClick={() => handleUnlockTap("TR")}
-            className="absolute top-0 right-0 w-24 h-24 hover:bg-white/10 transition-colors rounded-bl-3xl"
+            className="absolute top-0 right-0 w-32 h-32 sm:w-24 sm:h-24 hover:bg-white/10 transition-colors rounded-bl-3xl touch-manipulation"
             aria-label="Top right corner"
           />
           <button
             onClick={() => handleUnlockTap("BR")}
-            className="absolute bottom-0 right-0 w-24 h-24 hover:bg-white/10 transition-colors rounded-tl-3xl"
+            className="absolute bottom-0 right-0 w-32 h-32 sm:w-24 sm:h-24 hover:bg-white/10 transition-colors rounded-tl-3xl touch-manipulation"
             aria-label="Bottom right corner"
           />
           <button
             onClick={() => handleUnlockTap("BL")}
-            className="absolute bottom-0 left-0 w-24 h-24 hover:bg-white/10 transition-colors rounded-tr-3xl"
+            className="absolute bottom-0 left-0 w-32 h-32 sm:w-24 sm:h-24 hover:bg-white/10 transition-colors rounded-tr-3xl touch-manipulation"
             aria-label="Bottom left corner"
           />
 
@@ -157,8 +167,8 @@ export default function AACAppPage() {
         </div>
       )}
 
-      {/* Header */}
-      <header className="sticky top-20 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/10">
+      {/* Header - Hidden in focus mode on mobile */}
+      <header className={`sticky top-20 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 transition-transform ${isFullscreen ? '-translate-y-full' : 'translate-y-0'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Left: Logo & Title */}
@@ -182,7 +192,7 @@ export default function AACAppPage() {
               {/* Lock Button */}
               <button
                 onClick={toggleLock}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${isLocked
+                className={`flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 rounded-xl text-sm font-medium transition-colors touch-manipulation ${isLocked
                   ? "bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/25"
                   : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/20"
                   }`}
@@ -211,17 +221,17 @@ export default function AACAppPage() {
 
               <button
                 onClick={toggleFullscreen}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors shadow-lg shadow-emerald-500/25"
+                className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors shadow-lg shadow-emerald-500/25 touch-manipulation"
               >
                 {isFullscreen ? (
                   <>
                     <Minimize2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">Exit Fullscreen</span>
+                    <span className="hidden sm:inline">Exit Focus</span>
                   </>
                 ) : (
                   <>
                     <Maximize2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">Fullscreen</span>
+                    <span className="hidden sm:inline">Focus</span>
                   </>
                 )}
               </button>
@@ -230,8 +240,8 @@ export default function AACAppPage() {
         </div>
       </header>
 
-      {/* AAC Board */}
-      <main className="h-[calc(100dvh-144px)] sm:h-[calc(100dvh-160px)] overflow-hidden pb-safe">
+      {/* AAC Board - Use dvh for proper mobile viewport */}
+      <main className={`overflow-hidden ${isFullscreen ? 'h-screen' : 'h-[calc(100dvh-144px)] sm:h-[calc(100dvh-160px)]'} pb-safe`}>
         <AACBoard
           onToggleFullscreen={toggleFullscreen}
           isFullscreen={isFullscreen}

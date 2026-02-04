@@ -24,12 +24,40 @@ const notes = [
 export default function PianoPage() {
     const [activeNotes, setActiveNotes] = useState<Set<string>>(new Set());
     const audioContextRef = useRef<AudioContext | null>(null);
+    const [audioInitialized, setAudioInitialized] = useState(false);
+
+    // Initialize AudioContext on first user interaction (mobile requirement)
+    const initAudioContext = () => {
+        if (!audioContextRef.current) {
+            try {
+                const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+                audioContextRef.current = new AudioContext();
+                setAudioInitialized(true);
+                console.log("Piano AudioContext initialized");
+            } catch (e) {
+                console.error("Failed to create AudioContext:", e);
+            }
+        }
+
+        // Resume if suspended (iOS requirement)
+        if (audioContextRef.current?.state === "suspended") {
+            audioContextRef.current.resume().then(() => {
+                console.log("Piano AudioContext resumed");
+            });
+        }
+    };
 
     useEffect(() => {
-        // Initialize Web Audio API
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        // Initialize on any user interaction for mobile compatibility
+        const events = ["touchstart", "touchend", "mousedown", "click"];
+        events.forEach(event => {
+            document.addEventListener(event, initAudioContext, { once: true });
+        });
 
         return () => {
+            events.forEach(event => {
+                document.removeEventListener(event, initAudioContext);
+            });
             if (audioContextRef.current) {
                 audioContextRef.current.close();
             }
@@ -37,9 +65,23 @@ export default function PianoPage() {
     }, []);
 
     const playNote = (frequency: number, note: string) => {
-        if (!audioContextRef.current) return;
+        // Initialize audio on first play attempt (for mobile)
+        if (!audioContextRef.current) {
+            initAudioContext();
+        }
+
+        if (!audioContextRef.current) {
+            console.warn("AudioContext not available");
+            return;
+        }
 
         const context = audioContextRef.current;
+
+        // Resume context if suspended (mobile browsers)
+        if (context.state === "suspended") {
+            context.resume();
+        }
+
         const oscillator = context.createOscillator();
         const gainNode = context.createGain();
 

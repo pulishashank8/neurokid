@@ -310,8 +310,24 @@ function MiniGameScreen({ game, onBack, soundEnabled }: { game: MiniGame; onBack
 function ColorPopGame({ soundEnabled }: { soundEnabled: boolean }) {
     const [bubbles, setBubbles] = useState<Array<{ id: number; x: number; y: number; color: string }>>([]);
     const idRef = useRef(0);
+    const audioContextRef = useRef<AudioContext | null>(null);
 
+    // Initialize shared AudioContext on mount
     useEffect(() => {
+        if (soundEnabled && !audioContextRef.current) {
+            try {
+                const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+                audioContextRef.current = new AudioContext();
+
+                // Resume if suspended (iOS requirement)
+                if (audioContextRef.current.state === "suspended") {
+                    audioContextRef.current.resume();
+                }
+            } catch (e) {
+                console.error("Failed to create AudioContext:", e);
+            }
+        }
+
         const interval = setInterval(() => {
             setBubbles(prev => [...prev, {
                 id: idRef.current++,
@@ -321,22 +337,37 @@ function ColorPopGame({ soundEnabled }: { soundEnabled: boolean }) {
             }]);
         }, 2000);
 
-        return () => clearInterval(interval);
-    }, []);
+        return () => {
+            clearInterval(interval);
+            if (audioContextRef.current) {
+                audioContextRef.current.close();
+                audioContextRef.current = null;
+            }
+        };
+    }, [soundEnabled]);
 
     const popBubble = (id: number) => {
-        if (soundEnabled) {
-            const audio = new Audio();
-            const context = new AudioContext();
-            const oscillator = context.createOscillator();
-            const gainNode = context.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(context.destination);
-            oscillator.frequency.value = 800;
-            gainNode.gain.setValueAtTime(0.1, context.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.3);
-            oscillator.start();
-            oscillator.stop(context.currentTime + 0.3);
+        if (soundEnabled && audioContextRef.current) {
+            try {
+                const context = audioContextRef.current;
+
+                // Resume if suspended
+                if (context.state === "suspended") {
+                    context.resume();
+                }
+
+                const oscillator = context.createOscillator();
+                const gainNode = context.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(context.destination);
+                oscillator.frequency.value = 800;
+                gainNode.gain.setValueAtTime(0.1, context.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.3);
+            } catch (e) {
+                console.error("Audio playback error:", e);
+            }
         }
         setBubbles(prev => prev.filter(b => b.id !== id));
     };
@@ -367,6 +398,7 @@ function ColorPopGame({ soundEnabled }: { soundEnabled: boolean }) {
 
 // Sound Explorer Game
 function SoundExplorerGame({ soundEnabled }: { soundEnabled: boolean }) {
+    const audioContextRef = useRef<AudioContext | null>(null);
     const sounds = [
         { id: "bell", emoji: "🔔", name: "Bell", freq: 800 },
         { id: "rain", emoji: "🌧️", name: "Rain", freq: 400 },
@@ -374,9 +406,22 @@ function SoundExplorerGame({ soundEnabled }: { soundEnabled: boolean }) {
         { id: "bird", emoji: "🐦", name: "Bird", freq: 1000 },
     ];
 
+    useEffect(() => {
+        if (soundEnabled) {
+            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+            audioContextRef.current = new AudioContext();
+        }
+        return () => {
+            if (audioContextRef.current) {
+                audioContextRef.current.close();
+            }
+        };
+    }, [soundEnabled]);
+
     const playSound = (freq: number) => {
-        if (!soundEnabled) return;
-        const context = new AudioContext();
+        if (!soundEnabled || !audioContextRef.current) return;
+        const context = audioContextRef.current;
+        if (context.state === "suspended") context.resume();
         const oscillator = context.createOscillator();
         const gainNode = context.createGain();
         oscillator.connect(gainNode);
@@ -468,18 +513,30 @@ function EmotionMatchGame({ soundEnabled }: { soundEnabled: boolean }) {
 function RhythmTapGame({ soundEnabled }: { soundEnabled: boolean }) {
     const [circles, setCircles] = useState<Array<{ id: number; delay: number }>>([]);
     const idRef = useRef(0);
+    const audioContextRef = useRef<AudioContext | null>(null);
 
     useEffect(() => {
+        if (soundEnabled) {
+            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+            audioContextRef.current = new AudioContext();
+        }
+
         const interval = setInterval(() => {
             setCircles(prev => [...prev, { id: idRef.current++, delay: 0 }]);
         }, 2000);
 
-        return () => clearInterval(interval);
-    }, []);
+        return () => {
+            clearInterval(interval);
+            if (audioContextRef.current) {
+                audioContextRef.current.close();
+            }
+        };
+    }, [soundEnabled]);
 
     const tapCircle = (id: number) => {
-        if (soundEnabled) {
-            const context = new AudioContext();
+        if (soundEnabled && audioContextRef.current) {
+            const context = audioContextRef.current;
+            if (context.state === "suspended") context.resume();
             const oscillator = context.createOscillator();
             const gainNode = context.createGain();
             oscillator.connect(gainNode);
@@ -523,6 +580,7 @@ function RhythmTapGame({ soundEnabled }: { soundEnabled: boolean }) {
 
 // Gentle Music Game
 function GentleMusicGame({ soundEnabled }: { soundEnabled: boolean }) {
+    const audioContextRef = useRef<AudioContext | null>(null);
     const notes = [
         { note: "C", freq: 261.63, color: "from-red-200 to-red-300" },
         { note: "D", freq: 293.66, color: "from-orange-200 to-orange-300" },
@@ -531,9 +589,22 @@ function GentleMusicGame({ soundEnabled }: { soundEnabled: boolean }) {
         { note: "G", freq: 392.00, color: "from-blue-200 to-blue-300" },
     ];
 
+    useEffect(() => {
+        if (soundEnabled) {
+            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+            audioContextRef.current = new AudioContext();
+        }
+        return () => {
+            if (audioContextRef.current) {
+                audioContextRef.current.close();
+            }
+        };
+    }, [soundEnabled]);
+
     const playNote = (freq: number) => {
-        if (!soundEnabled) return;
-        const context = new AudioContext();
+        if (!soundEnabled || !audioContextRef.current) return;
+        const context = audioContextRef.current;
+        if (context.state === "suspended") context.resume();
         const oscillator = context.createOscillator();
         const gainNode = context.createGain();
         oscillator.connect(gainNode);
