@@ -20,6 +20,16 @@ import { TagRepository } from '@/infrastructure/repositories/TagRepository';
 import { AACItemRepository } from '@/infrastructure/repositories/AACItemRepository';
 import { AuditLogRepository } from '@/infrastructure/repositories/AuditLogRepository';
 
+// Services
+import { UserService } from '@/application/services/UserService';
+import { PostService } from '@/application/services/PostService';
+import { CommentService } from '@/application/services/CommentService';
+import { TherapySessionService } from '@/application/services/TherapySessionService';
+import { EmergencyCardService } from '@/application/services/EmergencyCardService';
+import { DailyWinService } from '@/application/services/DailyWinService';
+import { NotificationService } from '@/application/services/NotificationService';
+import { EncryptionService } from '@/application/services/EncryptionService';
+
 let isRegistered = false;
 
 export function registerDependencies(): void {
@@ -46,6 +56,16 @@ export function registerDependencies(): void {
   container.register(TOKENS.TagRepository, { useClass: TagRepository });
   container.register(TOKENS.AACItemRepository, { useClass: AACItemRepository });
   container.register(TOKENS.AuditLogRepository, { useClass: AuditLogRepository });
+
+  // Services
+  container.register(TOKENS.UserService, { useClass: UserService });
+  container.register(TOKENS.PostService, { useClass: PostService });
+  container.register(TOKENS.CommentService, { useClass: CommentService });
+  container.register(TOKENS.TherapySessionService, { useClass: TherapySessionService });
+  container.register(TOKENS.EmergencyCardService, { useClass: EmergencyCardService });
+  container.register(TOKENS.DailyWinService, { useClass: DailyWinService });
+  container.register(TOKENS.NotificationService, { useClass: NotificationService });
+  container.register(TOKENS.EncryptionService, { useClass: EncryptionService });
 
   isRegistered = true;
 }
