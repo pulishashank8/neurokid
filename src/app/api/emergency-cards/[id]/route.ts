@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth.config";
 import { prisma } from "@/lib/prisma";
 import { FieldEncryption } from "@/lib/encryption";
 import { z } from "zod";
 import { RateLimits, enforceRateLimit } from "@/lib/rate-limit";
 import { createLogger } from "@/lib/logger";
+import { Prisma } from "@prisma/client";
 
 // Validation schema for emergency card update
 const EmergencyCardUpdateSchema = z.object({
@@ -188,7 +189,7 @@ export async function PUT(
     }
 
     // Build update data with encryption for PHI fields
-    const updateData: any = {};
+    const updateData: Prisma.EmergencyCardUpdateInput = {};
 
     if (data.childName !== undefined) {
       updateData.childName = sanitizeInput(data.childName) || "";

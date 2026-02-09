@@ -2,6 +2,9 @@
 
 export type Role = 'PARENT' | 'THERAPIST' | 'MODERATOR' | 'ADMIN';
 
+// Re-export authorization types
+export * from './authorization';
+
 export type PostStatus = 'ACTIVE' | 'REMOVED' | 'LOCKED' | 'PINNED' | 'DRAFT';
 
 export type CommentStatus = 'ACTIVE' | 'REMOVED' | 'HIDDEN';
@@ -108,10 +111,10 @@ export interface TherapySession {
   therapyType: TherapyType;
   sessionDate: Date;
   duration: number;
-  notes?: string;
-  wentWell?: string;
-  toWorkOn?: string;
-  mood?: number;
+  notes: string | null;
+  wentWell: string | null;
+  toWorkOn: string | null;
+  mood: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -235,3 +238,8 @@ export interface AuthorInfo {
   avatarUrl?: string;
   verifiedTherapist: boolean;
 }
+
+// Re-export additional types
+export * from './authorization';
+export * from './connection';
+export * from './provider';

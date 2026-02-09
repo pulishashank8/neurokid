@@ -4,6 +4,7 @@ import { IEmergencyCardService, CreateEmergencyCardInput, UpdateEmergencyCardInp
 import { IEmergencyCardRepository } from '@/domain/interfaces/repositories/IEmergencyCardRepository';
 import { ValidationError, NotFoundError, BusinessRuleError } from '@/domain/errors';
 import { EmergencyCard } from '@/domain/types';
+import { sanitizationService } from '@/lib/sanitization';
 
 const MAX_CARDS_PER_USER = 10;
 
@@ -46,23 +47,24 @@ export class EmergencyCardService implements IEmergencyCardService {
       }
     }
 
+    // Sanitize all text fields to prevent XSS
     const card = await this.cardRepo.create({
       userId,
-      childName: input.childName.trim(),
+      childName: sanitizationService.sanitizeText(input.childName.trim()),
       childAge: input.childAge,
-      diagnosis: input.diagnosis?.trim(),
-      triggers: input.triggers?.trim(),
-      calmingStrategies: input.calmingStrategies?.trim(),
-      communication: input.communication?.trim(),
-      medications: input.medications?.trim(),
-      allergies: input.allergies?.trim(),
-      emergencyContact1Name: input.emergencyContact1Name?.trim(),
+      diagnosis: input.diagnosis ? sanitizationService.sanitizeContent(input.diagnosis.trim()) : undefined,
+      triggers: input.triggers ? sanitizationService.sanitizeContent(input.triggers.trim()) : undefined,
+      calmingStrategies: input.calmingStrategies ? sanitizationService.sanitizeContent(input.calmingStrategies.trim()) : undefined,
+      communication: input.communication ? sanitizationService.sanitizeContent(input.communication.trim()) : undefined,
+      medications: input.medications ? sanitizationService.sanitizeContent(input.medications.trim()) : undefined,
+      allergies: input.allergies ? sanitizationService.sanitizeContent(input.allergies.trim()) : undefined,
+      emergencyContact1Name: input.emergencyContact1Name ? sanitizationService.sanitizeText(input.emergencyContact1Name.trim()) : undefined,
       emergencyContact1Phone: input.emergencyContact1Phone?.trim(),
-      emergencyContact2Name: input.emergencyContact2Name?.trim(),
+      emergencyContact2Name: input.emergencyContact2Name ? sanitizationService.sanitizeText(input.emergencyContact2Name.trim()) : undefined,
       emergencyContact2Phone: input.emergencyContact2Phone?.trim(),
-      doctorName: input.doctorName?.trim(),
+      doctorName: input.doctorName ? sanitizationService.sanitizeText(input.doctorName.trim()) : undefined,
       doctorPhone: input.doctorPhone?.trim(),
-      additionalNotes: input.additionalNotes?.trim(),
+      additionalNotes: input.additionalNotes ? sanitizationService.sanitizeContent(input.additionalNotes.trim()) : undefined,
     });
 
     return this.toDTO(card);
@@ -95,22 +97,23 @@ export class EmergencyCardService implements IEmergencyCardService {
       }
     }
 
+    // Sanitize all text fields to prevent XSS
     const card = await this.cardRepo.update(id, userId, {
-      childName: input.childName?.trim(),
+      childName: input.childName ? sanitizationService.sanitizeText(input.childName.trim()) : undefined,
       childAge: input.childAge,
-      diagnosis: input.diagnosis?.trim(),
-      triggers: input.triggers?.trim(),
-      calmingStrategies: input.calmingStrategies?.trim(),
-      communication: input.communication?.trim(),
-      medications: input.medications?.trim(),
-      allergies: input.allergies?.trim(),
-      emergencyContact1Name: input.emergencyContact1Name?.trim(),
+      diagnosis: input.diagnosis !== undefined ? sanitizationService.sanitizeContent(input.diagnosis.trim()) : undefined,
+      triggers: input.triggers !== undefined ? sanitizationService.sanitizeContent(input.triggers.trim()) : undefined,
+      calmingStrategies: input.calmingStrategies !== undefined ? sanitizationService.sanitizeContent(input.calmingStrategies.trim()) : undefined,
+      communication: input.communication !== undefined ? sanitizationService.sanitizeContent(input.communication.trim()) : undefined,
+      medications: input.medications !== undefined ? sanitizationService.sanitizeContent(input.medications.trim()) : undefined,
+      allergies: input.allergies !== undefined ? sanitizationService.sanitizeContent(input.allergies.trim()) : undefined,
+      emergencyContact1Name: input.emergencyContact1Name !== undefined ? sanitizationService.sanitizeText(input.emergencyContact1Name.trim()) : undefined,
       emergencyContact1Phone: input.emergencyContact1Phone?.trim(),
-      emergencyContact2Name: input.emergencyContact2Name?.trim(),
+      emergencyContact2Name: input.emergencyContact2Name !== undefined ? sanitizationService.sanitizeText(input.emergencyContact2Name.trim()) : undefined,
       emergencyContact2Phone: input.emergencyContact2Phone?.trim(),
-      doctorName: input.doctorName?.trim(),
+      doctorName: input.doctorName !== undefined ? sanitizationService.sanitizeText(input.doctorName.trim()) : undefined,
       doctorPhone: input.doctorPhone?.trim(),
-      additionalNotes: input.additionalNotes?.trim(),
+      additionalNotes: input.additionalNotes !== undefined ? sanitizationService.sanitizeContent(input.additionalNotes.trim()) : undefined,
     });
 
     return this.toDTO(card);

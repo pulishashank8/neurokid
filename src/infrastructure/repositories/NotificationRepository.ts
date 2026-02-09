@@ -4,6 +4,7 @@ import { TOKENS } from '@/lib/container';
 import { INotificationRepository, CreateNotificationInput, ListNotificationsQuery } from '@/domain/interfaces/repositories/INotificationRepository';
 import { Notification, NotificationType, PaginatedResult } from '@/domain/types';
 import { IDatabaseConnection } from '../database/DatabaseConnection';
+import { normalizeLimit } from '@/lib/validation';
 
 @injectable()
 export class NotificationRepository implements INotificationRepository {
@@ -30,6 +31,9 @@ export class NotificationRepository implements INotificationRepository {
   }
 
   async list(query: ListNotificationsQuery): Promise<PaginatedResult<Notification>> {
+    const limit = normalizeLimit(query.limit);
+    const take = limit + 1;
+
     const where: Prisma.NotificationWhereInput = {
       userId: query.userId,
     };
@@ -41,23 +45,37 @@ export class NotificationRepository implements INotificationRepository {
       where.type = query.type;
     }
 
+    // Support both cursor and offset pagination
+    const findManyArgs: Prisma.NotificationFindManyArgs = {
+      where,
+      orderBy: { createdAt: 'desc' },
+      take,
+    };
+
+    if (query.cursor) {
+      // Cursor-based pagination (preferred)
+      findManyArgs.cursor = { id: query.cursor };
+      findManyArgs.skip = 1;
+    } else if (query.offset !== undefined) {
+      // Offset pagination (backward compatibility)
+      findManyArgs.skip = query.offset;
+    }
+
     const [notifications, total] = await Promise.all([
-      this.prisma.notification.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip: query.offset,
-        take: query.limit,
-      }),
-      this.prisma.notification.count({ where }),
+      this.prisma.notification.findMany(findManyArgs),
+      query.cursor ? Promise.resolve(0) : this.prisma.notification.count({ where }),
     ]);
 
+    const hasMore = notifications.length > limit;
+    const data = notifications.slice(0, limit);
+
     return {
-      data: notifications.map(n => this.toDomain(n)),
+      data: data.map(n => this.toDomain(n)),
       pagination: {
-        total,
-        limit: query.limit,
-        offset: query.offset,
-        hasMore: query.offset + notifications.length < total,
+        total: query.cursor ? 0 : total,
+        limit,
+        offset: query.offset || 0,
+        hasMore,
       },
     };
   }

@@ -12,3 +12,7 @@ export { CategoryRepository } from './CategoryRepository';
 export { TagRepository } from './TagRepository';
 export { AACItemRepository } from './AACItemRepository';
 export { AuditLogRepository } from './AuditLogRepository';
+export { MessageRepository } from './MessageRepository';
+export { ConnectionRepository } from './ConnectionRepository';
+export { ProviderRepository } from './ProviderRepository';
+export { BookmarkRepository } from './BookmarkRepository';

@@ -1,218 +1,98 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { prisma } from "@/lib/prisma";
-import { createCommentSchema } from "@/lib/validations/community";
-import { canModerate } from "@/lib/rbac";
-import { invalidateCache } from "@/lib/redis";
-import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
-import { createLogger } from "@/lib/logger";
-import { getRequestId, withApiHandler } from "@/lib/apiHandler";
-import { sanitizeHtml } from "@/lib/security";
-import { successResponse, errorResponse, notFoundError, unauthorizedError } from "@/lib/apiResponse";
-import { logSecurityEvent } from "@/lib/securityAudit";
+import { NextResponse } from 'next/server';
+import { container, TOKENS } from '@/lib/container';
+import {
+  withApiHandler,
+  parseBody,
+  AuthenticatedRequest,
+  RateLimits,
+} from '@/lib/api';
+import { ICommentService } from '@/domain/interfaces/services/ICommentService';
+import { IPostService } from '@/domain/interfaces/services/IPostService';
+import { ValidationError, NotFoundError } from '@/domain/errors';
+import { registerDependencies } from '@/lib/container-registrations';
+
+// Ensure dependencies are registered
+registerDependencies();
+
+interface RouteContext {
+  params: Promise<{ id: string }>;
+}
 
 // GET /api/posts/[id]/comments - Get threaded comments
-export const GET = withApiHandler(async (
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) => {
-  try {
-    const requestId = getRequestId(request);
-    const logger = createLogger({ requestId });
+export const GET = withApiHandler<RouteContext>(
+  async (request: AuthenticatedRequest, context) => {
+    const commentService = container.resolve<ICommentService>(TOKENS.CommentService);
+    const { id } = await context!.params;
 
-    // Rate limit: 100 reads per minute per IP (prevent scraping)
-    const ip = getClientIp(request);
-    const canProceed = await RATE_LIMITERS.readComments.checkLimit(ip);
-    if (!canProceed) {
-      const retryAfter = await RATE_LIMITERS.readComments.getRetryAfter(ip);
-      logger.warn({ ip }, 'Read comments rate limit exceeded');
-      return rateLimitResponse(retryAfter);
-    }
-
-    const { id } = await params;
-
-    // Validate ID format (basic check to ensure it's not a path traversal attempt)
-    if (!id || id.includes('/') || id.includes('\\')) {
-      logger.warn({ id }, 'Invalid post ID format');
-      return NextResponse.json({ error: "Invalid post ID format" }, { status: 400 });
-    }
-
-    logger.debug({ postId: id }, 'Fetching comments');
-
-    // Verify post exists
-    const post = await prisma.post.findUnique({
-      where: { id },
-      select: { id: true },
-    });
-
+    // Validate post exists
+    const postService = container.resolve<IPostService>(TOKENS.PostService);
+    const post = await postService.getPost(id);
     if (!post) {
-      logger.warn({ postId: id }, 'Post not found');
-      return notFoundError("Post");
+      throw new NotFoundError('Post', id);
     }
 
-    // Fetch comments for the post with safety limit
-    const comments = await prisma.comment.findMany({
-      where: {
-        postId: id,
-        status: { not: "REMOVED" },
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            profile: {
-              select: {
-                username: true,
-                avatarUrl: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-      take: 500, // Safety limit for threaded comments
-    });
+    const currentUserId = request.session?.user?.id;
 
-    // Build threaded structure
-    const commentMap = new Map();
-    const rootComments: any[] = [];
+    // Get all comments for the post (flat structure, client can thread)
+    const result = await commentService.listComments(
+      id,
+      null, // Get all root-level comments
+      500, // Safety limit
+      0,
+      currentUserId
+    );
 
-    // First pass: create comment objects
-    comments.forEach((comment) => {
-      const formattedComment = {
-        id: comment.id,
-        content: comment.content,
-        createdAt: comment.createdAt,
-        updatedAt: comment.updatedAt,
-        author: comment.isAnonymous
-          ? {
-            id: "anonymous",
-            username: "Anonymous",
-            avatarUrl: null,
-          }
-          : {
-            id: comment.author.id,
-            username: comment.author.profile?.username || "Unknown",
-            avatarUrl: comment.author.profile?.avatarUrl || null,
-          },
-        voteScore: comment.voteScore,
-        isAnonymous: comment.isAnonymous,
-        parentCommentId: comment.parentCommentId,
-        children: [],
-      };
-      commentMap.set(comment.id, formattedComment);
-    });
-
-    // Second pass: build tree structure
-    commentMap.forEach((comment) => {
-      if (comment.parentCommentId) {
-        const parent = commentMap.get(comment.parentCommentId);
-        if (parent) {
-          parent.children.push(comment);
-        }
-      } else {
-        rootComments.push(comment);
-      }
-    });
-
-    logger.info({ postId: id, commentCount: comments.length }, 'Comments fetched successfully');
-    return successResponse({ comments: rootComments });
-  } catch (error: any) {
-    console.error("Error fetching comments:", error);
-    return errorResponse("INTERNAL_ERROR", "Failed to load comments", 500);
+    return NextResponse.json({ comments: result.data });
+  },
+  {
+    method: 'GET',
+    routeName: 'GET /api/posts/[id]/comments',
+    requireAuth: false,
+    rateLimit: 'readComments',
   }
-}, { method: 'GET', routeName: '/api/posts/[id]/comments' });
+);
 
 // POST /api/posts/[id]/comments - Create a comment
-export const POST = withApiHandler(async (
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) => {
-  const requestId = getRequestId(request);
-  const logger = createLogger({ requestId });
+export const POST = withApiHandler<RouteContext>(
+  async (request: AuthenticatedRequest, context) => {
+    const commentService = container.resolve<ICommentService>(TOKENS.CommentService);
+    const postService = container.resolve<IPostService>(TOKENS.PostService);
+    const { id } = await context!.params;
 
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return unauthorizedError();
-  }
+    // Verify post exists
+    const post = await postService.getPost(id);
+    if (!post) {
+      throw new NotFoundError('Post', id);
+    }
 
-  const { id } = await params;
+    const body = await parseBody<{
+      content: string;
+      parentCommentId?: string;
+      isAnonymous?: boolean;
+    }>(request);
 
-  // Verify post exists
-  const post = await prisma.post.findUnique({
-    where: { id },
-    select: { id: true },
-  });
+    if (!body.content || body.content.trim().length === 0) {
+      throw new ValidationError('Content is required', {
+        content: 'Cannot be empty',
+      });
+    }
 
-  if (!post) {
-    logger.warn({ postId: id }, 'Post not found for comment');
-    return notFoundError("Post");
-  }
-
-  const body = await request.json();
-  const validation = createCommentSchema.safeParse({ ...body, postId: id });
-
-  if (!validation.success) {
-    return errorResponse("VALIDATION_ERROR", "Invalid input", 400, validation.error.errors);
-  }
-
-  const canComment = await RATE_LIMITERS.createComment.checkLimit(session.user.id);
-  if (!canComment) {
-    const retryAfter = await RATE_LIMITERS.createComment.getRetryAfter(session.user.id);
-    return rateLimitResponse(retryAfter);
-  }
-
-  const { content, parentCommentId, isAnonymous } = validation.data;
-  const sanitizedContent = sanitizeHtml(content);
-
-  const [comment] = await prisma.$transaction([
-    prisma.comment.create({
-      data: {
-        content: sanitizedContent,
-        authorId: session.user.id,
+    const comment = await commentService.createComment(
+      {
+        content: body.content,
         postId: id,
-        parentCommentId: parentCommentId || null,
-        isAnonymous,
-        status: "ACTIVE",
+        parentCommentId: body.parentCommentId,
+        isAnonymous: body.isAnonymous,
       },
-      include: {
-        author: {
-          select: {
-            id: true,
-            profile: {
-              select: { username: true, avatarUrl: true },
-            },
-          },
-        },
-      },
-    }),
-    prisma.post.update({
-      where: { id },
-      data: { commentCount: { increment: 1 } },
-    }),
-  ]);
+      request.session.user.id
+    );
 
-  await invalidateCache(`comments:${id}:*`, { prefix: "posts" });
-
-  // Format response for anonymity if needed
-  const responseData = isAnonymous ? {
-    ...comment,
-    author: {
-      id: "anonymous",
-      username: "Anonymous",
-      avatarUrl: null,
-    }
-  } : {
-    ...comment,
-    author: {
-      id: comment.author.id,
-      username: comment.author.profile?.username || "Unknown",
-      avatarUrl: comment.author.profile?.avatarUrl || null,
-    }
-  };
-
-  return successResponse(responseData, 201);
-}, { method: 'POST', routeName: '/api/posts/[id]/comments' });
+    return NextResponse.json(comment, { status: 201 });
+  },
+  {
+    method: 'POST',
+    routeName: 'POST /api/posts/[id]/comments',
+    requireAuth: true,
+    rateLimit: 'createComment',
+  }
+);

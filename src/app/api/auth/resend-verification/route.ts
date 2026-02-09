@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { sendVerificationEmail } from "@/lib/mailer";
-import { withApiHandler, getRequestId } from "@/lib/apiHandler";
-import { RATE_LIMITERS, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
+import { withApiHandler, getRequestId } from "@/lib/api";
+import { RATE_LIMITERS, checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { createLogger } from "@/lib/logger";
 
 export const POST = withApiHandler(async (request: NextRequest) => {

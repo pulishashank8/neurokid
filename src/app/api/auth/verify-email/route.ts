@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
-import { RATE_LIMITERS, getClientIp } from "@/lib/rateLimit";
+import { RATE_LIMITERS, getClientIp } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
     try {

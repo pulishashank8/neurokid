@@ -4,6 +4,8 @@ import { TOKENS } from '@/lib/container';
 import { ICommentRepository, CreateCommentInput, UpdateCommentInput, ListCommentsQuery, CommentWithAuthor } from '@/domain/interfaces/repositories/ICommentRepository';
 import { Comment, CommentStatus, PaginatedResult } from '@/domain/types';
 import { IDatabaseConnection } from '../database/DatabaseConnection';
+import { normalizeLimit } from '@/lib/validation';
+import { CacheAsideService } from '@/lib/cache-aside';
 
 @injectable()
 export class CommentRepository implements ICommentRepository {
@@ -51,6 +53,8 @@ export class CommentRepository implements ICommentRepository {
   }
 
   async list(query: ListCommentsQuery): Promise<PaginatedResult<CommentWithAuthor>> {
+    const limit = normalizeLimit(query.limit);
+
     const where: Prisma.CommentWhereInput = {
       postId: query.postId,
       status: 'ACTIVE',
@@ -64,32 +68,71 @@ export class CommentRepository implements ICommentRepository {
       where.parentCommentId = query.parentCommentId;
     }
 
+    // OPTIMIZATION: Cache comment count for 5 minutes (reduces load on comment-heavy posts)
+    const getCachedCount = async (): Promise<number> => {
+      const countCacheKey = {
+        postId: query.postId,
+        parentCommentId: query.parentCommentId,
+        status: 'ACTIVE',
+      };
+
+      return CacheAsideService.get(
+        'comments',
+        `count:${JSON.stringify(countCacheKey)}`,
+        () => this.prisma.comment.count({ where }),
+        { ttl: 300 } // 5 minute cache
+      );
+    };
+
     const [comments, total] = await Promise.all([
       this.prisma.comment.findMany({
         where,
-        include: {
+        // OPTIMIZATION: Use select instead of include for better performance
+        select: {
+          id: true,
+          content: true,
+          authorId: true,
+          postId: true,
+          parentCommentId: true,
+          status: true,
+          isAnonymous: true,
+          voteScore: true,
+          createdAt: true,
+          updatedAt: true,
+          // Nested select for author
           author: {
-            include: { profile: true },
+            select: {
+              id: true,
+              profile: {
+                select: {
+                  username: true,
+                  displayName: true,
+                  avatarUrl: true,
+                  verifiedTherapist: true,
+                },
+              },
+            },
           },
+          // Count only active child comments
           _count: {
-            select: { childComments: true },
+            select: {
+              childComments: {
+                where: { status: 'ACTIVE' },
+              },
+            },
           },
         },
+        // Uses idx_comment_post_status_created composite index
         orderBy: { createdAt: 'asc' },
         skip: query.offset,
-        take: query.limit,
+        take: limit,
       }),
-      this.prisma.comment.count({ where }),
+      getCachedCount(),
     ]);
 
-    type CommentWithRelations = PrismaComment & {
-      author: { id: string; profile: { username: string; displayName: string; avatarUrl: string | null; verifiedTherapist: boolean } | null };
-      _count: { childComments: number };
-    };
-
     return {
-      data: (comments as CommentWithRelations[]).map(c => ({
-        comment: this.toDomain(c),
+      data: comments.map(c => ({
+        comment: this.toDomain(c as PrismaComment),
         author: c.isAnonymous ? null : {
           id: c.author.id,
           username: c.author.profile?.username ?? 'Unknown',
@@ -101,7 +144,7 @@ export class CommentRepository implements ICommentRepository {
       })),
       pagination: {
         total,
-        limit: query.limit,
+        limit,
         offset: query.offset,
         hasMore: query.offset + comments.length < total,
       },
@@ -118,6 +161,15 @@ export class CommentRepository implements ICommentRepository {
         isAnonymous: data.isAnonymous ?? false,
       },
     });
+
+    // Invalidate comment count cache for this post
+    const countCacheKey = {
+      postId: data.postId,
+      parentCommentId: data.parentCommentId ?? null,
+      status: 'ACTIVE',
+    };
+    await CacheAsideService.invalidate('comments', `count:${JSON.stringify(countCacheKey)}`);
+
     return this.toDomain(comment);
   }
 

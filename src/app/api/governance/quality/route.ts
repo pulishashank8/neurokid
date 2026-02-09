@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 
 const querySchema = z.object({
   datasetId: z.string().optional(),
@@ -28,8 +29,7 @@ export async function GET(request: NextRequest) {
     const query = querySchema.parse(searchParams);
 
     // Build where clause
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { isActive: true };
+    const where: Prisma.DataQualityRuleWhereInput = { isActive: true };
 
     if (query.datasetId) {
       where.datasetId = query.datasetId;
@@ -135,8 +135,7 @@ export async function POST(request: NextRequest) {
     const { datasetId, ruleIds } = body;
 
     // Get rules to execute
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { isActive: true };
+    const where: Prisma.DataQualityRuleWhereInput = { isActive: true };
     if (datasetId) where.datasetId = datasetId;
     if (ruleIds) where.id = { in: ruleIds };
 

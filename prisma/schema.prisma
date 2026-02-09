@@ -21,7 +21,15 @@ model User {
   isBanned                   Boolean                   @default(false)
   bannedAt                   DateTime?
   bannedReason               String?
+  lockedUntil                DateTime?                 // Account lockout for failed logins
+  lockoutCount               Int                       @default(0) // Number of times account has been locked
+  mfaEnabled                 Boolean                   @default(false)
+  mfaSecret                  String?                   @db.VarChar(255) // Encrypted TOTP secret
+  mfaBackupCodes             String[]                  // Hashed backup codes
+  passwordHistory            String[]                  // Last 5 password hashes
+  passwordChangedAt          DateTime?                 // Last password change
   lastActiveAt               DateTime?
+  sessionVersion             Int                       @default(0) // Incremented on privilege changes to force session rotation
   aacVocabulary              AACVocabulary[]
   aiConversations            AIConversation[]
   aiMessages                 AIMessage[]
@@ -59,6 +67,7 @@ model User {
   screeningResults           ScreeningResult[]
   searchQueries              SearchQuery[]
   sensitiveAccessLogs        SensitiveAccessLog[]
+  securityAlerts             SecurityAlert[]
   consents                   UserConsent[]
   userFinder                 UserFinder?
   userRoles                  UserRole[]
@@ -241,6 +250,12 @@ model Post {
   @@index([createdAt])
   @@index([updatedAt])
   @@index([viewCount])
+
+  // NEW COMPOSITE INDEXES for query optimization (Phase 7.1.2)
+  @@index([status, createdAt], name: "idx_post_status_created")
+  @@index([categoryId, status, createdAt], name: "idx_post_category_status_created")
+  @@index([authorId, createdAt], name: "idx_post_author_created")
+  @@index([voteScore, createdAt], name: "idx_post_score_created")
 }
 
 model Comment {
@@ -265,6 +280,11 @@ model Comment {
   @@index([parentCommentId])
   @@index([status])
   @@index([createdAt])
+
+  // NEW COMPOSITE INDEXES for query optimization (Phase 7.1.2)
+  @@index([postId, status, createdAt], name: "idx_comment_post_status_created")
+  @@index([parentCommentId, createdAt], name: "idx_comment_parent_created")
+  @@index([authorId, createdAt], name: "idx_comment_author_created")
 }
 
 model Vote {
@@ -281,6 +301,10 @@ model Vote {
   @@index([targetId])
   @@index([targetType])
   @@index([createdAt])
+
+  // NEW COMPOSITE INDEXES for query optimization (Phase 7.1.2)
+  @@index([userId, targetType], name: "idx_vote_user_type")
+  @@index([targetId, targetType], name: "idx_vote_target")
 }
 
 model Bookmark {
@@ -482,6 +506,84 @@ model AIJob {
   @@index([userId])
   @@index([status])
   @@index([createdAt])
+
+  // NEW COMPOSITE INDEXES for query optimization (Phase 7.1.2)
+  @@index([status, createdAt], name: "idx_aijob_status_created")
+  @@index([userId, status], name: "idx_aijob_user_status")
+  @@index([conversationId], name: "idx_aijob_conversation")
+}
+
+/// Dead Letter Queue for failed AI jobs that exceeded max retries
+model AIJobDeadLetter {
+  id             String    @id @default(cuid())
+  originalJobId  String
+  userId         String
+  conversationId String
+  /// ENCRYPTED: Contains conversation messages
+  messages       String    @db.Text
+  error          String    @db.Text
+  retryCount     Int       @default(0)
+  failedAt       DateTime  @default(now())
+  /// Whether this job has been manually retried
+  retried        Boolean   @default(false)
+  retriedAt      DateTime?
+  /// ID of the new job created when retrying
+  newJobId       String?
+
+  @@index([userId])
+  @@index([retried])
+  @@index([failedAt])
+}
+
+/// AI Token usage tracking for cost monitoring
+model AITokenUsage {
+  id             String   @id @default(cuid())
+  userId         String
+  jobId          String
+  inputTokens    Int
+  outputTokens   Int
+  totalTokens    Int
+  /// Estimated cost in USD
+  estimatedCost  Float    @default(0)
+  provider       String   // groq, gemini, fallback
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+  @@index([jobId])
+  @@index([provider])
+  @@index([createdAt])
+}
+
+/// AI Interaction Audit Log - tracks all AI interactions for compliance
+model AIInteractionLog {
+  id             String   @id @default(cuid())
+  userId         String
+  jobId          String
+  conversationId String
+  action         String   // REQUEST, RESPONSE, ERROR, SAFETY_BLOCK, RATE_LIMIT, COST_LIMIT
+  /// Redacted messages (PII removed)
+  messages       Json?
+  /// Redacted response (PII removed)
+  response       String?  @db.Text
+  provider       String?
+  model          String?
+  inputTokens    Int?
+  outputTokens   Int?
+  totalTokens    Int?
+  cost           Float?
+  latencyMs      Int?
+  error          String?
+  safetyFlags    Json?
+  ipAddress      String?
+  userAgent      String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+  @@index([jobId])
+  @@index([conversationId])
+  @@index([action])
+  @@index([createdAt])
 }
 
 model RateLimitLog {
@@ -508,6 +610,10 @@ model Notification {
   @@index([userId])
   @@index([readAt])
   @@index([createdAt])
+
+  // NEW COMPOSITE INDEXES for query optimization (Phase 7.1.2)
+  @@index([userId, readAt], name: "idx_notification_user_read")
+  @@index([userId, createdAt], name: "idx_notification_user_created")
 }
 
 model Resource {
@@ -646,6 +752,9 @@ model TherapySession {
   @@index([sessionDate])
   @@index([therapyType])
   @@index([createdAt])
+
+  // NEW COMPOSITE INDEX for query optimization (Phase 7.1.2)
+  @@index([userId, sessionDate], name: "idx_therapy_user_date")
 }
 
 model EmergencyCard {
@@ -713,6 +822,10 @@ model Message {
   @@index([conversationId], map: "idx_messages_conversation_id")
   @@index([createdAt], map: "idx_messages_created_at")
   @@index([senderId], map: "idx_messages_sender_id")
+
+  // NEW COMPOSITE INDEX for query optimization (Phase 7.1.2)
+  @@index([conversationId, createdAt], map: "idx_messages_conversation_created")
+
   @@map("Messages")
 }
 
@@ -773,6 +886,11 @@ model ConnectionRequest {
   @@unique([senderId, receiverId])
   @@index([receiverId], map: "idx_connection_requests_receiver_id")
   @@index([status], map: "idx_connection_requests_status")
+
+  // NEW COMPOSITE INDEXES for query optimization (Phase 7.1.2)
+  @@index([receiverId, status], map: "idx_connection_requests_receiver_status")
+  @@index([senderId, status], map: "idx_connection_requests_sender_status")
+
   @@map("ConnectionRequests")
 }
 
@@ -804,6 +922,10 @@ model DailyWin {
   @@index([userId])
   @@index([date])
   @@index([createdAt])
+
+  // NEW COMPOSITE INDEXES for query optimization (Phase 7.1.2)
+  @@index([userId, date], name: "idx_dailywin_user_date")
+  @@index([userId, category], name: "idx_dailywin_user_category")
 }
 
 model OwnerNote {
@@ -978,6 +1100,25 @@ model SensitiveAccessLog {
   @@index([adminUserId])
   @@index([datasetName])
   @@index([accessedAt])
+}
+
+model SecurityAlert {
+  id            String    @id @default(cuid())
+  userId        String
+  alertType     String    @db.VarChar(100)
+  severity      String    @db.VarChar(20) // low, medium, high, critical
+  details       Json?
+  acknowledged  Boolean   @default(false)
+  acknowledgedAt DateTime?
+  acknowledgedBy String?
+  createdAt     DateTime  @default(now())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([alertType])
+  @@index([severity])
+  @@index([acknowledged])
+  @@index([createdAt])
 }
 
 model AACVocabulary {

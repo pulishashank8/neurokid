@@ -1,13 +1,13 @@
-import { getServerSession as getServerSessionBase } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import type { Session } from "next-auth";
-import { prisma } from "@/lib/prisma";
+import { getServerSession as getServerSessionBase } from 'next-auth';
+import { authOptions } from '@/lib/auth.config';
+import type { Session } from 'next-auth';
+import { prisma } from '@/lib/prisma';
 
 // Re-export authOptions for use in other files
 export { authOptions };
 
 export interface SessionWithRoles extends Session {
-  user: Session["user"] & {
+  user: Session['user'] & {
     id: string;
     roles: string[];
   };
@@ -45,7 +45,7 @@ export async function getCurrentUser() {
 export async function requireAuth() {
   const user = await getCurrentUser();
   if (!user) {
-    throw new Error("Unauthorized");
+    throw new Error('Unauthorized');
   }
   return user;
 }

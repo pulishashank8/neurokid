@@ -276,23 +276,23 @@ export default function NavBar() {
               </Link>
 
               {/* Theme Toggle - Premium */}
+              <button
+                onClick={toggleTheme}
+                className="relative inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300 glass-premium hover:shadow-lg group overflow-hidden"
+                aria-label="Toggle theme"
+                title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+              >
+                {/* Animated background */}
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-500/10 to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                {theme === "light" ? (
+                  <Moon className="w-4 h-4 text-slate-600 transition-transform duration-300 group-hover:rotate-12" />
+                ) : (
+                  <Sun className="w-4 h-4 text-amber-400 transition-transform duration-300 group-hover:rotate-45" />
+                )}
+              </button>
+
               {session && (
                 <>
-                  <button
-                    onClick={toggleTheme}
-                    className="relative inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300 glass-premium hover:shadow-lg group overflow-hidden"
-                    aria-label="Toggle theme"
-                    title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
-                  >
-                    {/* Animated background */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-slate-500/10 to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    {theme === "light" ? (
-                      <Moon className="w-4 h-4 text-slate-600 transition-transform duration-300 group-hover:rotate-12" />
-                    ) : (
-                      <Sun className="w-4 h-4 text-amber-400 transition-transform duration-300 group-hover:rotate-45" />
-                    )}
-                  </button>
-
                   {/* PREMIUM USER MENU */}
                   <div className="relative group/user">
                     <button className="relative flex items-center justify-center w-10 h-10 rounded-xl glass-premium hover:shadow-lg transition-all duration-300 group-hover/user:scale-105">
@@ -469,21 +469,21 @@ export default function NavBar() {
               })}
 
               {/* Mobile Theme Toggle + Sign Out */}
-              {session && (
-                <div className="border-t border-[var(--border)] mt-4 pt-4 flex flex-col gap-3">
-                  <button
-                    onClick={toggleTheme}
-                    className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all duration-300 glass-premium hover:shadow-lg text-[var(--text)] w-full"
-                  >
-                    <div className="p-2 rounded-lg bg-[var(--surface2)]">
-                      {theme === "light" ? (
-                        <Moon className="w-5 h-5 text-slate-600" />
-                      ) : (
-                        <Sun className="w-5 h-5 text-amber-400" />
-                      )}
-                    </div>
-                    <span>{theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}</span>
-                  </button>
+              <div className="border-t border-[var(--border)] mt-4 pt-4 flex flex-col gap-3">
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all duration-300 glass-premium hover:shadow-lg text-[var(--text)] w-full"
+                >
+                  <div className="p-2 rounded-lg bg-[var(--surface2)]">
+                    {theme === "light" ? (
+                      <Moon className="w-5 h-5 text-slate-600" />
+                    ) : (
+                      <Sun className="w-5 h-5 text-amber-400" />
+                    )}
+                  </div>
+                  <span>{theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}</span>
+                </button>
+                {session && (
                   <button
                     onClick={() => signOut({ callbackUrl: "/login" })}
                     className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all duration-300 bg-gradient-to-r from-rose-500/10 to-pink-500/10 hover:from-rose-500/20 hover:to-pink-500/20 text-rose-600 dark:text-rose-400 w-full"
@@ -493,8 +493,8 @@ export default function NavBar() {
                     </div>
                     <span>Sign Out</span>
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
         </div>

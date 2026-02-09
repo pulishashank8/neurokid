@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { vi } from 'vitest';
 
 // All shared state and the main Prisma mock must be hoisted together
@@ -21,6 +22,16 @@ const {
   mockAIMessages,
   mockProviders,
   mockUserFinders,
+  mockAACVocabulary,
+  mockTherapySessions,
+  mockEmergencyCards,
+  mockDailyWins,
+  mockConversations,
+  mockMessages,
+  mockConversationParticipants,
+  mockBlockedUsers,
+  mockMessageReports,
+  mockMessageRateLimits,
   mockPrisma
 } = vi.hoisted(() => {
   const tokens: any[] = [];
@@ -41,6 +52,17 @@ const {
   const aiMessages: any[] = [];
   const providers: any[] = [];
   const userFinders: any[] = [];
+  const aacVocabulary: any[] = [];
+  const therapySessions: any[] = [];
+  const emergencyCards: any[] = [];
+  const dailyWins: any[] = [];
+  const conversations: any[] = [];
+  const messages: any[] = [];
+  const conversationParticipants: any[] = [];
+  const blockedUsers: any[] = [];
+  const messageReports: any[] = [];
+  const messageRateLimits: any[] = [];
+  const connections: any[] = [];
 
   const prismaMock: any = {
     category: {
@@ -144,7 +166,8 @@ const {
         const id = args?.data?.id || `u_${users.length + 1}`;
         const user = {
           id,
-          ...args?.data,
+          emailVerified: false,  // Default to false
+          ...args?.data,  // Allow override if explicitly provided
           profile: args?.data?.profile?.create || { username: args?.data?.username || 'user' },
           userRoles: args?.data?.userRoles?.create ? [args.data.userRoles.create] : (args?.data?.userRoles || [])
         };
@@ -415,6 +438,31 @@ const {
       }),
       findMany: vi.fn().mockImplementation((args: any) => {
         let list = comments.filter(c => !args?.where?.postId || c.postId === args.where.postId);
+
+        // Handle select/include for _count, author, etc.
+        if (args?.select || args?.include) {
+          list = list.map(c => {
+            const result: any = { ...c };
+
+            // Handle select for _count
+            if (args.select?._count || args.include?._count) {
+              const childCount = comments.filter(child => child.parentCommentId === c.id).length;
+              result._count = { childComments: childCount };
+            }
+
+            // Handle author
+            if (args.select?.author || args.include?.author) {
+              const author = users.find(u => u.id === c.authorId);
+              result.author = author || { id: c.authorId, profile: null };
+              if ((args.select?.author?.select?.profile || args.include?.author?.include?.profile) && author) {
+                result.author.profile = author.profile || null;
+              }
+            }
+
+            return result;
+          });
+        }
+
         return Promise.resolve(list);
       }),
       findFirst: vi.fn().mockImplementation((args: any) => {
@@ -436,8 +484,26 @@ const {
         return Promise.resolve(list.length);
       }),
       findUnique: vi.fn().mockImplementation((args: any) => {
-        const c = comments.find(c => c.id === args?.where?.id);
-        return Promise.resolve(c || null);
+        let c = comments.find(c => c.id === args?.where?.id);
+        if (!c) return Promise.resolve(null);
+
+        // Handle includes
+        if (args?.include) {
+          c = { ...c };
+          if (args.include.author) {
+            const author = users.find(u => u.id === c.authorId);
+            c.author = author || { id: c.authorId, profile: null };
+            if (args.include.author.include?.profile && author) {
+              c.author.profile = author.profile || null;
+            }
+          }
+          if (args.include._count) {
+            const childCount = comments.filter(child => child.parentCommentId === c.id).length;
+            c._count = { childComments: childCount };
+          }
+        }
+
+        return Promise.resolve(c);
       }),
       update: vi.fn().mockImplementation((args: any) => {
         const c = comments.find(c => c.id === args?.where?.id);
@@ -783,13 +849,684 @@ const {
         }
         return Promise.resolve(v);
       }),
-      deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
+      deleteMany: vi.fn().mockImplementation((args: any) => {
+        let count = 0;
+        if (args?.where) {
+          // Find all indices that match the where clause (in reverse order to safely remove)
+          const indices: number[] = [];
+          votes.forEach((v, i) => {
+            let matches = true;
+            if (args.where.userId && v.userId !== args.where.userId) matches = false;
+            if (args.where.targetId && v.targetId !== args.where.targetId) matches = false;
+            if (args.where.targetType && v.targetType !== args.where.targetType) matches = false;
+            if (args.where.id && v.id !== args.where.id) matches = false;
+            if (matches) indices.push(i);
+          });
+          // Remove in reverse order to maintain indices
+          indices.reverse().forEach(i => {
+            votes.splice(i, 1);
+            count++;
+          });
+        } else {
+          // No where clause = delete all
+          count = votes.length;
+          votes.length = 0;
+        }
+        return Promise.resolve({ count });
+      }),
       update: vi.fn().mockImplementation((args: any) => {
         const v = votes.find(v => v.id === args.where.id);
         if (v) Object.assign(v, args.data);
         return Promise.resolve(v || { id: 'v1', ...args.data });
       }),
       updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+    },
+    // AAC Vocabulary Model
+    aACVocabulary: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        let list = aacVocabulary;
+        if (args?.where?.userId) list = list.filter(v => v.userId === args.where.userId);
+        if (args?.where?.category) list = list.filter(v => v.category === args.where.category);
+        if (args?.where?.isActive !== undefined) list = list.filter(v => v.isActive === args.where.isActive);
+        if (args?.orderBy?.order) {
+          list = [...list].sort((a, b) => a.order - b.order);
+        }
+        return Promise.resolve(list);
+      }),
+      findFirst: vi.fn().mockImplementation((args: any) => {
+        let list = aacVocabulary;
+        if (args?.where?.id) list = list.filter(v => v.id === args.where.id);
+        if (args?.where?.userId) list = list.filter(v => v.userId === args.where.userId);
+        return Promise.resolve(list[0] || null);
+      }),
+      findUnique: vi.fn().mockImplementation((args: any) => {
+        const v = aacVocabulary.find(v => v.id === args.where.id);
+        return Promise.resolve(v || null);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const v = { 
+          id: `aac_${aacVocabulary.length + 1}`, 
+          ...args.data,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        aacVocabulary.push(v);
+        return Promise.resolve(v);
+      }),
+      update: vi.fn().mockImplementation((args: any) => {
+        const v = aacVocabulary.find(v => v.id === args.where.id);
+        if (v) {
+          Object.assign(v, args.data, { updatedAt: new Date() });
+        }
+        return Promise.resolve(v || { id: args.where.id, ...args.data });
+      }),
+      delete: vi.fn().mockImplementation((args: any) => {
+        const index = aacVocabulary.findIndex(v => v.id === args.where.id);
+        if (index !== -1) aacVocabulary.splice(index, 1);
+        return Promise.resolve({ id: args.where.id });
+      }),
+      deleteMany: vi.fn().mockImplementation((args: any) => {
+        if (args?.where?.userId) {
+          const indices = aacVocabulary.map((v, i) => v.userId === args.where.userId ? i : -1)
+            .filter(i => i !== -1).reverse();
+          indices.forEach(i => aacVocabulary.splice(i, 1));
+        } else {
+          aacVocabulary.length = 0;
+        }
+        return Promise.resolve({ count: 1 });
+      }),
+      count: vi.fn().mockImplementation((args: any) => {
+        let list = aacVocabulary;
+        if (args?.where?.userId) list = list.filter(v => v.userId === args.where.userId);
+        return Promise.resolve(list.length);
+      }),
+    },
+    // Therapy Session Model
+    therapySession: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        let list = therapySessions;
+        if (args?.where?.userId) list = list.filter(s => s.userId === args.where.userId);
+        if (args?.where?.therapyType) list = list.filter(s => s.therapyType === args.where.therapyType);
+        if (args?.where?.sessionDate?.gte) {
+          list = list.filter(s => new Date(s.sessionDate) >= args.where.sessionDate.gte);
+        }
+        if (args?.orderBy?.sessionDate) {
+          list = [...list].sort((a, b) => {
+            const dateA = new Date(a.sessionDate).getTime();
+            const dateB = new Date(b.sessionDate).getTime();
+            return args.orderBy.sessionDate === 'desc' ? dateB - dateA : dateA - dateB;
+          });
+        }
+        if (args?.take) list = list.slice(0, args.take);
+        return Promise.resolve(list);
+      }),
+      findFirst: vi.fn().mockImplementation((args: any) => {
+        let list = therapySessions;
+        if (args?.where?.id) list = list.filter(s => s.id === args.where.id);
+        if (args?.where?.userId) list = list.filter(s => s.userId === args.where.userId);
+        return Promise.resolve(list[0] || null);
+      }),
+      findUnique: vi.fn().mockImplementation((args: any) => {
+        const s = therapySessions.find(s => s.id === args.where.id);
+        return Promise.resolve(s || null);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const s = { 
+          id: `ther_${therapySessions.length + 1}`, 
+          ...args.data,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        therapySessions.push(s);
+        return Promise.resolve(s);
+      }),
+      update: vi.fn().mockImplementation((args: any) => {
+        const s = therapySessions.find(s => s.id === args.where.id);
+        if (s) {
+          Object.assign(s, args.data, { updatedAt: new Date() });
+        }
+        return Promise.resolve(s || { id: args.where.id, ...args.data });
+      }),
+      delete: vi.fn().mockImplementation((args: any) => {
+        const index = therapySessions.findIndex(s => s.id === args.where.id);
+        if (index !== -1) therapySessions.splice(index, 1);
+        return Promise.resolve({ id: args.where.id });
+      }),
+      deleteMany: vi.fn().mockImplementation((args: any) => {
+        if (args?.where?.userId) {
+          const indices = therapySessions.map((s, i) => s.userId === args.where.userId ? i : -1)
+            .filter(i => i !== -1).reverse();
+          indices.forEach(i => therapySessions.splice(i, 1));
+        } else {
+          therapySessions.length = 0;
+        }
+        return Promise.resolve({ count: 1 });
+      }),
+      count: vi.fn().mockImplementation((args: any) => {
+        let list = therapySessions;
+        if (args?.where?.userId) list = list.filter(s => s.userId === args.where.userId);
+        return Promise.resolve(list.length);
+      }),
+    },
+    // Emergency Card Model
+    emergencyCard: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        let list = emergencyCards;
+        if (args?.where?.userId) list = list.filter(c => c.userId === args.where.userId);
+        return Promise.resolve(list);
+      }),
+      findFirst: vi.fn().mockImplementation((args: any) => {
+        let list = emergencyCards;
+        if (args?.where?.id) list = list.filter(c => c.id === args.where.id);
+        if (args?.where?.userId) list = list.filter(c => c.userId === args.where.userId);
+        return Promise.resolve(list[0] || null);
+      }),
+      findUnique: vi.fn().mockImplementation((args: any) => {
+        const c = emergencyCards.find(c => c.id === args.where.id);
+        return Promise.resolve(c || null);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const c = { 
+          id: `emc_${emergencyCards.length + 1}`, 
+          ...args.data,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        emergencyCards.push(c);
+        return Promise.resolve(c);
+      }),
+      update: vi.fn().mockImplementation((args: any) => {
+        const c = emergencyCards.find(c => c.id === args.where.id);
+        if (c) {
+          Object.assign(c, args.data, { updatedAt: new Date() });
+        }
+        return Promise.resolve(c || { id: args.where.id, ...args.data });
+      }),
+      delete: vi.fn().mockImplementation((args: any) => {
+        const index = emergencyCards.findIndex(c => c.id === args.where.id);
+        if (index !== -1) emergencyCards.splice(index, 1);
+        return Promise.resolve({ id: args.where.id });
+      }),
+      deleteMany: vi.fn().mockImplementation((args: any) => {
+        if (args?.where?.userId) {
+          const indices = emergencyCards.map((c, i) => c.userId === args.where.userId ? i : -1)
+            .filter(i => i !== -1).reverse();
+          indices.forEach(i => emergencyCards.splice(i, 1));
+        } else {
+          emergencyCards.length = 0;
+        }
+        return Promise.resolve({ count: 1 });
+      }),
+    },
+    // Daily Win Model
+    dailyWin: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        let list = dailyWins;
+        if (args?.where?.userId) list = list.filter(w => w.userId === args.where.userId);
+        if (args?.where?.date) list = list.filter(w => w.date === args.where.date);
+        if (args?.where?.date?.gte) {
+          list = list.filter(w => new Date(w.date) >= args.where.date.gte);
+        }
+        if (args?.orderBy?.date) {
+          list = [...list].sort((a, b) => {
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+            return args.orderBy.date === 'desc' ? dateB - dateA : dateA - dateB;
+          });
+        }
+        return Promise.resolve(list);
+      }),
+      findFirst: vi.fn().mockImplementation((args: any) => {
+        let list = dailyWins;
+        if (args?.where?.id) list = list.filter(w => w.id === args.where.id);
+        if (args?.where?.userId) list = list.filter(w => w.userId === args.where.userId);
+        if (args?.where?.date) list = list.filter(w => w.date === args.where.date);
+        return Promise.resolve(list[0] || null);
+      }),
+      findUnique: vi.fn().mockImplementation((args: any) => {
+        const w = dailyWins.find(w => w.id === args.where.id);
+        return Promise.resolve(w || null);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const w = { 
+          id: `dw_${dailyWins.length + 1}`, 
+          ...args.data,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        dailyWins.push(w);
+        return Promise.resolve(w);
+      }),
+      update: vi.fn().mockImplementation((args: any) => {
+        const w = dailyWins.find(w => w.id === args.where.id);
+        if (w) {
+          Object.assign(w, args.data, { updatedAt: new Date() });
+        }
+        return Promise.resolve(w || { id: args.where.id, ...args.data });
+      }),
+      delete: vi.fn().mockImplementation((args: any) => {
+        const index = dailyWins.findIndex(w => w.id === args.where.id);
+        if (index !== -1) dailyWins.splice(index, 1);
+        return Promise.resolve({ id: args.where.id });
+      }),
+      deleteMany: vi.fn().mockImplementation((args: any) => {
+        if (args?.where?.userId) {
+          const indices = dailyWins.map((w, i) => w.userId === args.where.userId ? i : -1)
+            .filter(i => i !== -1).reverse();
+          indices.forEach(i => dailyWins.splice(i, 1));
+        } else {
+          dailyWins.length = 0;
+        }
+        return Promise.resolve({ count: 1 });
+      }),
+      count: vi.fn().mockImplementation((args: any) => {
+        let list = dailyWins;
+        if (args?.where?.userId) list = list.filter(w => w.userId === args.where.userId);
+        return Promise.resolve(list.length);
+      }),
+    },
+    // Conversation Model
+    conversation: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        let list = conversations;
+        if (args?.where?.participants?.some?.userId) {
+          const userId = args.where.participants.some.userId;
+          const userConvIds = conversationParticipants
+            .filter(p => p.userId === userId)
+            .map(p => p.conversationId);
+          list = list.filter(c => userConvIds.includes(c.id));
+        }
+        if (args?.orderBy?.createdAt) {
+          list = [...list].sort((a, b) => {
+            const dateA = new Date(a.createdAt).getTime();
+            const dateB = new Date(b.createdAt).getTime();
+            return args.orderBy.createdAt === 'desc' ? dateB - dateA : dateA - dateB;
+          });
+        }
+        // Handle include clause for participants and messages
+        list = list.map((c: any) => {
+          const result = { ...c };
+          if (args?.include?.participants) {
+            result.participants = conversationParticipants.filter(p => p.conversationId === c.id);
+            // Handle nested user include
+            if (args.include.participants.include?.user) {
+              result.participants = result.participants.map((p: any) => ({
+                ...p,
+                user: mockUsers.find((u: any) => u.id === p.userId) || { 
+                  id: p.userId, 
+                  profile: { username: 'Unknown', displayName: 'Unknown User', avatarUrl: null } 
+                }
+              }));
+            }
+          }
+          if (args?.include?.messages) {
+            let msgs = mockMessages.filter(m => m.conversationId === c.id);
+            if (args.include.messages.orderBy?.createdAt) {
+              msgs = msgs.sort((a: any, b: any) => {
+                const dateA = new Date(a.createdAt).getTime();
+                const dateB = new Date(b.createdAt).getTime();
+                return args.include.messages.orderBy.createdAt === 'desc' ? dateB - dateA : dateA - dateB;
+              });
+            }
+            if (args.include.messages.take) {
+              msgs = msgs.slice(0, args.include.messages.take);
+            }
+            result.messages = msgs;
+          }
+          return result;
+        });
+        return Promise.resolve(list);
+      }),
+      findFirst: vi.fn().mockImplementation((args: any) => {
+        let list = conversations;
+        if (args?.where?.id) list = list.filter(c => c.id === args.where.id);
+        return Promise.resolve(list[0] || null);
+      }),
+      findUnique: vi.fn().mockImplementation((args: any) => {
+        const c = conversations.find(c => c.id === args.where.id);
+        if (!c) return Promise.resolve(null);
+
+        if (args?.include?.participants) {
+          const parts = conversationParticipants.filter(p => p.conversationId === c.id);
+          // Handle nested user include
+          if (args.include.participants.include?.user) {
+            return Promise.resolve({
+              ...c,
+              participants: parts.map((p: any) => ({
+                ...p,
+                user: users.find((u: any) => u.id === p.userId) || {
+                  id: p.userId,
+                  lastActiveAt: null,
+                  profile: { username: 'Unknown', displayName: 'Unknown User', avatarUrl: null }
+                }
+              }))
+            });
+          }
+          return Promise.resolve({
+            ...c,
+            participants: parts
+          });
+        }
+        return Promise.resolve(c);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const c = { 
+          id: `conv_${conversations.length + 1}_${Date.now()}`, 
+          createdAt: new Date()
+        };
+        conversations.push(c);
+        // Handle participants creation
+        if (args?.data?.participants?.create) {
+          const participants = Array.isArray(args.data.participants.create) 
+            ? args.data.participants.create 
+            : [args.data.participants.create];
+          participants.forEach((p: any) => {
+            conversationParticipants.push({
+              conversationId: c.id,
+              userId: p.userId,
+              createdAt: new Date()
+            });
+          });
+        }
+        return Promise.resolve(c);
+      }),
+      delete: vi.fn().mockImplementation((args: any) => {
+        const index = conversations.findIndex(c => c.id === args.where.id);
+        if (index !== -1) conversations.splice(index, 1);
+        // Clean up participants
+        const pIndices = conversationParticipants.map((p, i) => 
+          p.conversationId === args.where.id ? i : -1).filter(i => i !== -1).reverse();
+        pIndices.forEach(i => conversationParticipants.splice(i, 1));
+        return Promise.resolve({ id: args.where.id });
+      }),
+    },
+    // Conversation Participant Model
+    conversationParticipant: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        let list = conversationParticipants;
+        if (args?.where?.conversationId) list = list.filter(p => p.conversationId === args.where.conversationId);
+        if (args?.where?.userId) list = list.filter(p => p.userId === args.where.userId);
+        return Promise.resolve(list);
+      }),
+      findFirst: vi.fn().mockImplementation((args: any) => {
+        let list = conversationParticipants;
+        if (args?.where?.conversationId) list = list.filter(p => p.conversationId === args.where.conversationId);
+        if (args?.where?.userId) list = list.filter(p => p.userId === args.where.userId);
+        return Promise.resolve(list[0] || null);
+      }),
+      findUnique: vi.fn().mockImplementation((args: any) => {
+        const p = conversationParticipants.find(p => p.id === args.where.id);
+        return Promise.resolve(p || null);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const p = { id: `cp_${conversationParticipants.length + 1}`, ...args.data, createdAt: new Date() };
+        conversationParticipants.push(p);
+        return Promise.resolve(p);
+      }),
+      deleteMany: vi.fn().mockImplementation((args: any) => {
+        if (args?.where?.conversationId) {
+          const indices = conversationParticipants.map((p, i) => 
+            p.conversationId === args.where.conversationId ? i : -1).filter(i => i !== -1).reverse();
+          indices.forEach(i => conversationParticipants.splice(i, 1));
+        }
+        return Promise.resolve({ count: 1 });
+      }),
+    },
+    // Connection Model (for messaging)
+    connection: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        let list = connections;
+        if (args?.where?.OR) {
+          list = list.filter(c => {
+            return args.where.OR.some((condition: any) => {
+              if (condition.userA && condition.userB) {
+                return c.userA === condition.userA && c.userB === condition.userB;
+              }
+              if (condition.userA) return c.userA === condition.userA || c.userB === condition.userA;
+              if (condition.userB) return c.userA === condition.userB || c.userB === condition.userB;
+              return false;
+            });
+          });
+        }
+        return Promise.resolve(list);
+      }),
+      findFirst: vi.fn().mockImplementation((args: any) => {
+        let list = connections;
+        if (args?.where?.OR) {
+          list = list.filter(c => {
+            return args.where.OR.some((condition: any) => {
+              const matchA = condition.userA && condition.userB &&
+                c.userA === condition.userA && c.userB === condition.userB;
+              const matchB = condition.userA && condition.userB &&
+                c.userA === condition.userB && c.userB === condition.userA;
+              return matchA || matchB;
+            });
+          });
+        } else {
+          if (args?.where?.userA) list = list.filter(c => c.userA === args.where.userA || c.userB === args.where.userA);
+          if (args?.where?.userB) list = list.filter(c => c.userA === args.where.userB || c.userB === args.where.userB);
+        }
+        return Promise.resolve(list[0] || null);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const conn = { id: `conn_${Date.now()}`, ...args.data, createdAt: new Date() };
+        connections.push(conn);
+        return Promise.resolve(conn);
+      }),
+      delete: vi.fn().mockImplementation((args: any) => {
+        const index = connections.findIndex(c => c.id === args?.where?.id);
+        if (index !== -1) connections.splice(index, 1);
+        return Promise.resolve({ id: args?.where?.id });
+      }),
+      deleteMany: vi.fn().mockImplementation(() => {
+        connections.length = 0;
+        return Promise.resolve({ count: 1 });
+      }),
+    },
+    // Message Model
+    message: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        let list = messages;
+        if (args?.where?.conversationId) list = list.filter(m => m.conversationId === args.where.conversationId);
+        if (args?.where?.senderId) list = list.filter(m => m.senderId === args.where.senderId);
+        if (args?.orderBy?.createdAt) {
+          list = [...list].sort((a, b) => {
+            const dateA = new Date(a.createdAt).getTime();
+            const dateB = new Date(b.createdAt).getTime();
+            return args.orderBy.createdAt === 'desc' ? dateB - dateA : dateA - dateB;
+          });
+        }
+        if (args?.take) list = list.slice(0, args.take);
+        if (args?.skip) list = list.slice(args.skip);
+        return Promise.resolve(list);
+      }),
+      findFirst: vi.fn().mockImplementation((args: any) => {
+        let list = messages;
+        if (args?.where?.id) list = list.filter(m => m.id === args.where.id);
+        if (args?.where?.conversationId) list = list.filter(m => m.conversationId === args.where.conversationId);
+        return Promise.resolve(list[0] || null);
+      }),
+      findUnique: vi.fn().mockImplementation((args: any) => {
+        const m = messages.find(m => m.id === args.where.id);
+        if (!m) return Promise.resolve(null);
+
+        // Handle select/include for conversation relation
+        if (args?.select?.conversation || args?.include?.conversation) {
+          const conv = conversations.find(c => c.id === m.conversationId);
+          return Promise.resolve({
+            ...m,
+            conversation: conv ? {
+              id: conv.id,
+              participants: conversationParticipants
+                .filter(p => p.conversationId === conv.id)
+                .map(p => ({ userId: p.userId }))
+            } : null
+          });
+        }
+
+        return Promise.resolve(m);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const m = { 
+          id: `msg_${messages.length + 1}_${Date.now()}`, 
+          ...args.data,
+          createdAt: new Date()
+        };
+        messages.push(m);
+        return Promise.resolve(m);
+      }),
+      update: vi.fn().mockImplementation((args: any) => {
+        const m = messages.find(m => m.id === args.where.id);
+        if (m) {
+          Object.assign(m, args.data);
+        }
+        return Promise.resolve(m || { id: args.where.id, ...args.data });
+      }),
+      delete: vi.fn().mockImplementation((args: any) => {
+        const index = messages.findIndex(m => m.id === args.where.id);
+        if (index !== -1) messages.splice(index, 1);
+        return Promise.resolve({ id: args.where.id });
+      }),
+      deleteMany: vi.fn().mockImplementation((args: any) => {
+        if (args?.where?.conversationId) {
+          const indices = messages.map((m, i) => 
+            m.conversationId === args.where.conversationId ? i : -1).filter(i => i !== -1).reverse();
+          indices.forEach(i => messages.splice(i, 1));
+        } else {
+          messages.length = 0;
+        }
+        return Promise.resolve({ count: 1 });
+      }),
+      count: vi.fn().mockImplementation((args: any) => {
+        let list = messages;
+        if (args?.where?.conversationId) list = list.filter(m => m.conversationId === args.where.conversationId);
+        if (args?.where?.senderId) list = list.filter(m => m.senderId === args.where.senderId);
+        return Promise.resolve(list.length);
+      }),
+    },
+    // Blocked User Model
+    blockedUser: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        let list = blockedUsers;
+        if (args?.where?.blockerId) list = list.filter(b => b.blockerId === args.where.blockerId);
+        if (args?.where?.blockedId) list = list.filter(b => b.blockedId === args.where.blockedId);
+        return Promise.resolve(list);
+      }),
+      findFirst: vi.fn().mockImplementation((args: any) => {
+        let list = blockedUsers;
+        // Handle OR conditions
+        if (args?.where?.OR) {
+          list = list.filter(b => {
+            return args.where.OR.some((condition: any) => {
+              if (condition.blockerId && condition.blockedId) {
+                return b.blockerId === condition.blockerId && b.blockedId === condition.blockedId;
+              }
+              if (condition.blockerId) return b.blockerId === condition.blockerId;
+              if (condition.blockedId) return b.blockedId === condition.blockedId;
+              return false;
+            });
+          });
+        } else {
+          if (args?.where?.blockerId) list = list.filter(b => b.blockerId === args.where.blockerId);
+          if (args?.where?.blockedId) list = list.filter(b => b.blockedId === args.where.blockedId);
+        }
+        return Promise.resolve(list[0] || null);
+      }),
+      findUnique: vi.fn().mockImplementation((args: any) => {
+        const b = blockedUsers.find(b => b.id === args.where.id);
+        return Promise.resolve(b || null);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const b = { 
+          id: `blk_${blockedUsers.length + 1}`, 
+          ...args.data,
+          createdAt: new Date()
+        };
+        blockedUsers.push(b);
+        return Promise.resolve(b);
+      }),
+      delete: vi.fn().mockImplementation((args: any) => {
+        const index = blockedUsers.findIndex(b => b.id === args.where.id);
+        if (index !== -1) blockedUsers.splice(index, 1);
+        return Promise.resolve({ id: args.where.id });
+      }),
+      deleteMany: vi.fn().mockImplementation((args: any) => {
+        const where = args?.where;
+        if (where?.blockerId && where?.blockedId) {
+          const indices = blockedUsers.map((b, i) => 
+            (b.blockerId === where.blockerId && b.blockedId === where.blockedId) ? i : -1)
+            .filter(i => i !== -1).reverse();
+          indices.forEach(i => blockedUsers.splice(i, 1));
+        }
+        return Promise.resolve({ count: 1 });
+      }),
+    },
+    // Message Report Model
+    messageReport: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        let list = messageReports;
+        if (args?.where?.reporterId) list = list.filter(r => r.reporterId === args.where.reporterId);
+        if (args?.where?.status) list = list.filter(r => r.status === args.where.status);
+        return Promise.resolve(list);
+      }),
+      findFirst: vi.fn().mockImplementation((args: any) => {
+        let list = messageReports;
+        if (args?.where?.reporterId) list = list.filter(r => r.reporterId === args.where.reporterId);
+        if (args?.where?.messageId) list = list.filter(r => r.messageId === args.where.messageId);
+        return Promise.resolve(list[0] || null);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const r = { 
+          id: `mr_${messageReports.length + 1}`, 
+          ...args.data,
+          status: 'OPEN',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        messageReports.push(r);
+        return Promise.resolve(r);
+      }),
+      update: vi.fn().mockImplementation((args: any) => {
+        const r = messageReports.find(r => r.id === args.where.id);
+        if (r) {
+          Object.assign(r, args.data, { updatedAt: new Date() });
+        }
+        return Promise.resolve(r || { id: args.where.id, ...args.data });
+      }),
+    },
+    // Message Rate Limit Model
+    messageRateLimit: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        let list = messageRateLimits;
+        if (args?.where?.userId) list = list.filter(r => r.userId === args.where.userId);
+        if (args?.where?.actionType) list = list.filter(r => r.actionType === args.where.actionType);
+        if (args?.where?.createdAt?.gte) {
+          list = list.filter(r => new Date(r.createdAt) >= args.where.createdAt.gte);
+        }
+        return Promise.resolve(list);
+      }),
+      count: vi.fn().mockImplementation((args: any) => {
+        let list = messageRateLimits;
+        if (args?.where?.userId) list = list.filter(r => r.userId === args.where.userId);
+        if (args?.where?.actionType) list = list.filter(r => r.actionType === args.where.actionType);
+        if (args?.where?.createdAt?.gte) {
+          list = list.filter(r => new Date(r.createdAt) >= args.where.createdAt.gte);
+        }
+        return Promise.resolve(list.length);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const r = { 
+          id: `mrl_${messageRateLimits.length + 1}`, 
+          ...args.data,
+          createdAt: new Date()
+        };
+        messageRateLimits.push(r);
+        return Promise.resolve(r);
+      }),
+      deleteMany: vi.fn().mockImplementation(() => {
+        messageRateLimits.length = 0;
+        return Promise.resolve({ count: 1 });
+      }),
     },
     $executeRawUnsafe: vi.fn().mockResolvedValue(0),
     $queryRaw: vi.fn().mockResolvedValue([{ 1: 1 }]),
@@ -800,6 +1537,7 @@ const {
     ),
     $disconnect: vi.fn().mockResolvedValue(undefined),
     $connect: vi.fn().mockResolvedValue(undefined),
+    $use: vi.fn().mockReturnValue(undefined),
   };
 
   return {
@@ -821,6 +1559,16 @@ const {
     mockAIMessages: aiMessages,
     mockProviders: providers,
     mockUserFinders: userFinders,
+    mockAACVocabulary: aacVocabulary,
+    mockTherapySessions: therapySessions,
+    mockEmergencyCards: emergencyCards,
+    mockDailyWins: dailyWins,
+    mockConversations: conversations,
+    mockMessages: messages,
+    mockConversationParticipants: conversationParticipants,
+    mockBlockedUsers: blockedUsers,
+    mockMessageReports: messageReports,
+    mockMessageRateLimits: messageRateLimits,
     mockPrisma: prismaMock
   };
 });
@@ -829,6 +1577,8 @@ const {
 vi.mock('@prisma/client', () => ({
   PrismaClient: class { constructor() { return mockPrisma; } },
   Role: { PARENT: 'PARENT', THERAPIST: 'THERAPIST', MODERATOR: 'MODERATOR', ADMIN: 'ADMIN' },
+  ReportReason: { SPAM: 'SPAM', HARASSMENT: 'HARASSMENT', MISINFO: 'MISINFO', SELF_HARM: 'SELF_HARM', INAPPROPRIATE_CONTENT: 'INAPPROPRIATE_CONTENT', OTHER: 'OTHER' },
+  ReportStatus: { OPEN: 'OPEN', UNDER_REVIEW: 'UNDER_REVIEW', RESOLVED: 'RESOLVED', DISMISSED: 'DISMISSED' },
   Prisma: {
     PrismaClientKnownRequestError: class extends Error { code = ''; meta = {}; constructor(m: string, c: string) { super(m); this.code = c; } },
     PrismaClientValidationError: class extends Error { },
@@ -894,6 +1644,109 @@ vi.mock('@/lib/rateLimit', () => {
   };
 });
 
+// Mock CAPTCHA - Always succeed in tests
+vi.mock('@/lib/captcha', () => ({
+  verifyCaptcha: vi.fn().mockResolvedValue({ success: true }),
+  requireCaptcha: vi.fn().mockResolvedValue(null),
+  isCaptchaConfigured: vi.fn().mockReturnValue(false),
+  getCaptchaConfig: vi.fn().mockReturnValue({
+    enabled: false,
+    provider: 'hcaptcha',
+    siteKey: null
+  }),
+}));
+
+// Mock CAPTCHA client - for frontend tests
+vi.mock('@/lib/captcha-client', () => ({
+  getCaptchaConfig: vi.fn().mockResolvedValue({
+    enabled: false,
+    provider: 'hcaptcha',
+    siteKey: null,
+  }),
+  isCaptchaEnabled: vi.fn().mockResolvedValue(false),
+  clearCaptchaConfigCache: vi.fn(),
+}));
+
+// Mock encryption module for PHI protection
+vi.mock('@/lib/encryption', () => ({
+  FieldEncryption: {
+    encrypt: vi.fn().mockImplementation((plaintext: string | null) => {
+      if (!plaintext) return null;
+      // Return a mock encrypted format
+      return JSON.stringify({
+        ciphertext: Buffer.from(plaintext).toString('hex'),
+        iv: '0'.repeat(32),
+        tag: '0'.repeat(32),
+        version: 1
+      });
+    }),
+    decrypt: vi.fn().mockImplementation((encrypted: string | null) => {
+      if (!encrypted) return null;
+      try {
+        const data = JSON.parse(encrypted);
+        // Reverse the mock encryption
+        return Buffer.from(data.ciphertext, 'hex').toString('utf8');
+      } catch {
+        return encrypted; // Return as-is if not encrypted format
+      }
+    }),
+    hashForSearch: vi.fn().mockImplementation((plaintext: string | null) => {
+      if (!plaintext) return null;
+      return 'mock_hash_' + plaintext.substring(0, 10);
+    }),
+    isEncrypted: vi.fn().mockImplementation((value: string | null) => {
+      if (!value) return false;
+      try {
+        const data = JSON.parse(value);
+        return !!data.ciphertext && !!data.iv && !!data.tag;
+      } catch {
+        return false;
+      }
+    }),
+  },
+}));
+
+// Mock Supabase client for file uploads
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: vi.fn().mockReturnValue({
+    storage: {
+      from: vi.fn().mockReturnValue({
+        upload: vi.fn().mockResolvedValue({ data: { path: 'test/path' }, error: null }),
+        getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: 'https://test-bucket.supabase.co/test/image.jpg' } }),
+      }),
+    },
+  }),
+}));
+
+// Mock env module for health checks and environment validation
+vi.mock('@/lib/env', () => ({
+  getEnv: vi.fn().mockReturnValue({
+    DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
+    NEXTAUTH_SECRET: 'test-secret-at-least-32-characters-long',
+    NEXTAUTH_URL: 'http://localhost:3000',
+    EMAIL_FROM: 'test@example.com',
+    RESEND_API_KEY: 're_test_key',
+    REDIS_URL: undefined,
+    OPENAI_API_KEY: undefined,
+    GROQ_API_KEY: undefined,
+    NODE_ENV: 'test',
+  }),
+  getOptionalEnv: vi.fn().mockReturnValue(undefined),
+  isRedisAvailable: vi.fn().mockReturnValue(false),
+  isAIEnabled: vi.fn().mockReturnValue(false),
+  isGroqEnabled: vi.fn().mockReturnValue(false),
+  isGooglePlacesEnabled: vi.fn().mockReturnValue(false),
+  isGoogleOAuthEnabled: vi.fn().mockReturnValue(false),
+  isProduction: vi.fn().mockReturnValue(false),
+  isEmailConfigured: vi.fn().mockReturnValue(true),
+  getEmailConfigStatus: vi.fn().mockReturnValue({
+    configured: true,
+    fromAddress: 'test@example.com',
+    apiKeyPrefix: 're_test...',
+  }),
+  validateSecretSecurity: vi.fn().mockReturnValue({ secure: true, issues: [] }),
+}));
+
 // Export a helper function for test cleanup
 export const resetMockData = () => {
   mockTokens.length = 0;
@@ -914,6 +1767,16 @@ export const resetMockData = () => {
   mockAIMessages.length = 0;
   mockProviders.length = 0;
   mockUserFinders.length = 0;
+  mockAACVocabulary.length = 0;
+  mockTherapySessions.length = 0;
+  mockEmergencyCards.length = 0;
+  mockDailyWins.length = 0;
+  mockConversations.length = 0;
+  mockMessages.length = 0;
+  mockConversationParticipants.length = 0;
+  mockBlockedUsers.length = 0;
+  mockMessageReports.length = 0;
+  mockMessageRateLimits.length = 0;
 
   // Repopulate default data
   mockCategories.push(
@@ -933,3 +1796,104 @@ export const resetMockData = () => {
 
 // Initialize default data once on module load
 resetMockData();
+
+// ============================================================================
+// MOCK next-auth - MUST be after all hoisted mocks
+// ============================================================================
+
+// Mock next-auth module with proper default export
+vi.mock('next-auth', () => {
+  const mockSession = {
+    user: {
+      id: 'u_test',
+      email: 'test@example.com',
+      name: 'Test User',
+    },
+    expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+  };
+
+  return {
+    default: vi.fn().mockImplementation(() => ({
+      auth: vi.fn().mockResolvedValue(mockSession),
+      signIn: vi.fn().mockResolvedValue({ ok: true, error: null }),
+      signOut: vi.fn().mockResolvedValue({ ok: true }),
+    })),
+    getServerSession: vi.fn().mockResolvedValue(mockSession),
+    auth: vi.fn().mockResolvedValue(mockSession),
+  };
+});
+
+// Mock next-auth/react for client-side auth
+vi.mock('next-auth/react', () => ({
+  useSession: vi.fn().mockReturnValue({
+    data: {
+      user: {
+        id: 'u_test',
+        email: 'test@example.com',
+        name: 'Test User',
+      },
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    },
+    status: 'authenticated',
+    update: vi.fn(),
+  }),
+  signIn: vi.fn().mockResolvedValue({ ok: true, error: null }),
+  signOut: vi.fn().mockResolvedValue({ ok: true }),
+  getSession: vi.fn().mockResolvedValue({
+    user: {
+      id: 'u_test',
+      email: 'test@example.com',
+      name: 'Test User',
+    },
+    expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+  }),
+  SessionProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+// Mock @/lib/auth to return mock auth options
+vi.mock('@/lib/auth', () => ({
+  authOptions: {
+    providers: [],
+    callbacks: {},
+  },
+  getAuthOptions: vi.fn().mockReturnValue({
+    providers: [],
+    callbacks: {},
+  }),
+}));
+
+// Mock @/lib/auth.config
+vi.mock('@/lib/auth.config', () => ({
+  authOptions: {
+    providers: [],
+    callbacks: {},
+  },
+  getAuthOptions: vi.fn().mockReturnValue({
+    providers: [],
+    callbacks: {},
+  }),
+}));
+
+// Helper to set mock session for a specific test
+export function setMockSession(session: any) {
+  const { useSession, getServerSession } = require('next-auth/react');
+  useSession.mockReturnValue({
+    data: session,
+    status: session ? 'authenticated' : 'unauthenticated',
+    update: vi.fn(),
+  });
+  getServerSession.mockResolvedValue(session);
+}
+
+// Helper to reset mock session to default
+export function resetMockSession() {
+  const defaultSession = {
+    user: {
+      id: 'u_test',
+      email: 'test@example.com',
+      name: 'Test User',
+    },
+    expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+  };
+  setMockSession(defaultSession);
+}

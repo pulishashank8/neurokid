@@ -28,6 +28,7 @@ interface AACControlPanelProps {
   availableVoices: SpeechSynthesisVoice[];
   onVoiceChange: (voice: SpeechSynthesisVoice) => void;
   onAddWord: () => void;
+  onUnlockAudio?: () => void;
 }
 
 export function AACControlPanel({
@@ -43,6 +44,7 @@ export function AACControlPanel({
   availableVoices,
   onVoiceChange,
   onAddWord,
+  onUnlockAudio,
 }: AACControlPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -159,6 +161,15 @@ export function AACControlPanel({
         >
           <Plus className="w-4 h-4" />
           <span className="hidden sm:inline">Add Word</span>
+        </button>
+
+        {/* Enable Sound (Mobile Only) */}
+        <button
+          onClick={onUnlockAudio}
+          className="flex lg:hidden items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-blue-500 text-white shadow-lg shadow-blue-500/25 active:scale-95 transition-all animate-pulse"
+        >
+          <Volume2 className="w-4 h-4" />
+          <span>Enable Sound</span>
         </button>
       </div>
 

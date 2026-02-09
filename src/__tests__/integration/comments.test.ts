@@ -20,6 +20,12 @@ vi.mock('@/app/api/auth/[...nextauth]/route', () => ({
   authOptions: {},
 }));
 
+// Mock @/lib/auth
+vi.mock('@/lib/auth', () => ({
+  getServerSession: vi.fn(),
+  authOptions: {},
+}));
+
 const prisma = getTestPrisma();
 
 describe('Comments API Integration Tests', () => {

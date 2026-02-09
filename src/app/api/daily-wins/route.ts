@@ -1,11 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
+import { container, TOKENS } from "@/lib/container";
+import {
+  withApiHandler,
+  parseBody,
+  AuthenticatedRequest,
+} from "@/lib/api";
+import { IDailyWinService } from "@/domain/interfaces/services/IDailyWinService";
+import { ValidationError } from "@/domain/errors";
+import { registerDependencies } from "@/lib/container-registrations";
 import { z } from "zod";
-import { RateLimits, enforceRateLimit } from "@/lib/rate-limit";
-import { createLogger } from "@/lib/logger";
-import { addSecurityHeaders, sanitizeString } from "@/lib/api-security";
+
+// Ensure dependencies are registered
+registerDependencies();
 
 // Validation schema for daily wins
 const DailyWinSchema = z.object({
@@ -20,95 +26,59 @@ const QuerySchema = z.object({
   offset: z.coerce.number().min(0).default(0),
 });
 
-export async function GET(request: NextRequest) {
-  const requestId = crypto.randomUUID();
-  const logger = createLogger({ requestId });
-
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+// GET /api/daily-wins - List user's daily wins
+export const GET = withApiHandler(
+  async (request: AuthenticatedRequest) => {
+    const dailyWinService = container.resolve<IDailyWinService>(TOKENS.DailyWinService);
 
     // Parse and validate query params
     const searchParams = Object.fromEntries(request.nextUrl.searchParams);
     const queryValidation = QuerySchema.safeParse(searchParams);
     
     if (!queryValidation.success) {
-      return NextResponse.json(
-        { error: "Invalid query parameters", details: queryValidation.error.format() },
-        { status: 400 }
-      );
+      throw new ValidationError('Invalid query parameters', Object.fromEntries(
+        queryValidation.error.errors.map(e => [e.path.join('.'), e.message])
+      ));
     }
 
     const { limit, offset } = queryValidation.data;
 
-    const [wins, total] = await Promise.all([
-      prisma.dailyWin.findMany({
-        where: { userId: session.user.id },
-        orderBy: { date: "desc" },
-        take: limit,
-        skip: offset,
-      }),
-      prisma.dailyWin.count({
-        where: { userId: session.user.id },
-      }),
-    ]);
+    const result = await dailyWinService.list(
+      request.session.user.id,
+      { limit, offset }
+    );
 
-    logger.info({ userId: session.user.id, count: wins.length }, "Daily wins fetched");
-
-    const response = NextResponse.json({ 
-      wins,
-      pagination: {
-        total,
-        limit,
-        offset,
-        hasMore: total > offset + wins.length,
-      },
+    return NextResponse.json({ 
+      wins: result.data,
+      pagination: result.pagination,
     });
-    
-    return addSecurityHeaders(response);
-  } catch (error) {
-    logger.error({ error }, "Error fetching daily wins");
-    return NextResponse.json(
-      { error: "Failed to fetch daily wins" },
-      { status: 500 }
-    );
+  },
+  {
+    method: 'GET',
+    routeName: 'GET /api/daily-wins',
+    requireAuth: true,
+    rateLimit: 'readPost',
   }
-}
+);
 
-export async function POST(request: NextRequest) {
-  const requestId = crypto.randomUUID();
-  const logger = createLogger({ requestId });
+// POST /api/daily-wins - Create new daily win
+export const POST = withApiHandler(
+  async (request: AuthenticatedRequest) => {
+    const dailyWinService = container.resolve<IDailyWinService>(TOKENS.DailyWinService);
 
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Rate limiting
-    const rateLimitResult = await enforceRateLimit(
-      RateLimits.postCreate,
-      session.user.id
-    );
-    if (rateLimitResult) return rateLimitResult;
-
-    // Parse JSON body safely
-    let body;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-    }
+    const body = await parseBody<{
+      date?: string;
+      content: string;
+      mood?: number | null;
+      category?: string | null;
+    }>(request);
 
     // Validate input
     const validation = DailyWinSchema.safeParse(body);
     if (!validation.success) {
-      return NextResponse.json(
-        { error: "Validation failed", details: validation.error.format() },
-        { status: 400 }
-      );
+      throw new ValidationError('Validation failed', Object.fromEntries(
+        validation.error.errors.map(e => [e.path.join('.'), e.message])
+      ));
     }
 
     const data = validation.data;
@@ -116,31 +86,25 @@ export async function POST(request: NextRequest) {
     // Validate date is not in the future
     const winDate = data.date ? new Date(data.date) : new Date();
     if (winDate > new Date()) {
-      return NextResponse.json(
-        { error: "Date cannot be in the future" },
-        { status: 400 }
-      );
+      throw new ValidationError('Date cannot be in the future');
     }
 
-    const win = await prisma.dailyWin.create({
-      data: {
-        userId: session.user.id,
+    const win = await dailyWinService.create(
+      request.session.user.id,
+      {
         date: winDate,
-        content: sanitizeString(data.content) || "",
-        mood: data.mood,
-        category: sanitizeString(data.category),
-      },
-    });
-
-    logger.info({ userId: session.user.id, winId: win.id }, "Daily win created");
-
-    const response = NextResponse.json({ win }, { status: 201 });
-    return addSecurityHeaders(response);
-  } catch (error) {
-    logger.error({ error }, "Error creating daily win");
-    return NextResponse.json(
-      { error: "Failed to create daily win" },
-      { status: 500 }
+        content: data.content,
+        mood: data.mood ?? undefined,
+        category: data.category ?? undefined,
+      }
     );
+
+    return NextResponse.json({ win }, { status: 201 });
+  },
+  {
+    method: 'POST',
+    routeName: 'POST /api/daily-wins',
+    requireAuth: true,
+    rateLimit: 'postCreate',
   }
-}
+);

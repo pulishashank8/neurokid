@@ -1,145 +1,351 @@
-import { injectable, inject } from 'tsyringe';
-import { TOKENS } from '@/lib/container';
-import { ITherapySessionService, CreateTherapySessionInput, UpdateTherapySessionInput, TherapySessionDTO, ListTherapySessionsInput } from '@/domain/interfaces/services/ITherapySessionService';
-import { ITherapySessionRepository } from '@/domain/interfaces/repositories/ITherapySessionRepository';
-import { ValidationError, NotFoundError } from '@/domain/errors';
-import { TherapySession, PaginatedResult } from '@/domain/types';
+/**
+ * Therapy Session Service
+ *
+ * Business logic layer for therapy session management.
+ * Orchestrates repository operations, authorization, and audit logging.
+ */
+
+import { injectable, inject } from "tsyringe";
+import { TOKENS } from "@/lib/container";
+import { ITherapySessionRepository } from "@/domain/interfaces/repositories/ITherapySessionRepository";
+import { IAuditLogRepository } from "@/domain/interfaces/repositories/IAuditLogRepository";
+import { createLogger } from "@/lib/logger";
+import {
+  NotFoundError,
+  ValidationError,
+} from "@/domain/errors";
+import { sanitizationService } from "@/lib/sanitization";
+import type {
+  TherapySession,
+  CreateTherapySessionInput,
+  UpdateTherapySessionInput,
+  TherapySessionFilters,
+} from "@/domain/therapy-session.types";
+
+const logger = createLogger({ context: 'TherapySessionService' });
 
 @injectable()
-export class TherapySessionService implements ITherapySessionService {
+export class TherapySessionService {
+  private static readonly MAX_NOTES_LENGTH = 10000;
+  private static readonly MAX_REFLECTION_LENGTH = 5000;
+
   constructor(
-    @inject(TOKENS.TherapySessionRepository) private sessionRepo: ITherapySessionRepository
+    @inject(TOKENS.TherapySessionRepository) private repo: ITherapySessionRepository,
+    @inject(TOKENS.AuditLogRepository) private auditRepo: IAuditLogRepository
   ) {}
 
-  async create(userId: string, input: CreateTherapySessionInput): Promise<TherapySessionDTO> {
-    // Validate required fields
-    if (!input.childName || input.childName.trim().length < 1) {
-      throw new ValidationError('Child name is required', { childName: 'Required' });
-    }
-    if (!input.therapistName || input.therapistName.trim().length < 1) {
-      throw new ValidationError('Therapist name is required', { therapistName: 'Required' });
-    }
-    if (!input.therapyType) {
-      throw new ValidationError('Therapy type is required', { therapyType: 'Required' });
-    }
-    if (!input.sessionDate) {
-      throw new ValidationError('Session date is required', { sessionDate: 'Required' });
-    }
+  /**
+   * Create a new therapy session
+   */
+  async create(
+    userId: string,
+    input: Omit<CreateTherapySessionInput, 'userId'>
+  ): Promise<TherapySession> {
+    // Business validation
+    this.validateInput(input);
 
-    // Validate duration if provided
-    if (input.duration !== undefined && (input.duration < 1 || input.duration > 480)) {
-      throw new ValidationError('Duration must be between 1 and 480 minutes', { duration: 'Invalid range' });
-    }
-
-    // Validate mood if provided
-    if (input.mood !== undefined && (input.mood < 1 || input.mood > 5)) {
-      throw new ValidationError('Mood must be between 1 and 5', { mood: 'Invalid range' });
-    }
-
-    const session = await this.sessionRepo.create({
+    // Sanitize text fields to prevent XSS
+    const sanitizedInput: CreateTherapySessionInput = {
       userId,
-      childName: input.childName.trim(),
-      therapistName: input.therapistName.trim(),
-      therapyType: input.therapyType,
-      sessionDate: new Date(input.sessionDate),
-      duration: input.duration ?? 60,
-      notes: input.notes?.trim(),
-      wentWell: input.wentWell?.trim(),
-      toWorkOn: input.toWorkOn?.trim(),
-      mood: input.mood,
+      ...input,
+      childName: sanitizationService.sanitizeText(input.childName),
+      therapistName: sanitizationService.sanitizeText(input.therapistName),
+      notes: input.notes ? sanitizationService.sanitizeContent(input.notes) : undefined,
+      wentWell: input.wentWell ? sanitizationService.sanitizeContent(input.wentWell) : undefined,
+      toWorkOn: input.toWorkOn ? sanitizationService.sanitizeContent(input.toWorkOn) : undefined,
+    };
+
+    const session = await this.repo.create(sanitizedInput);
+
+    // Audit log
+    await this.auditRepo.create({
+      userId,
+      action: 'THERAPY_SESSION_CREATED',
+      targetType: 'TherapySession',
+      targetId: session.id,
     });
 
-    return this.toDTO(session);
+    logger.info({ userId, sessionId: session.id }, 'Therapy session created');
+
+    return session;
   }
 
-  async update(id: string, userId: string, input: UpdateTherapySessionInput): Promise<TherapySessionDTO> {
-    const existing = await this.sessionRepo.findByIdAndUser(id, userId);
-    if (!existing) {
-      throw new NotFoundError('Therapy session', id);
-    }
-
-    // Validate fields if provided
-    if (input.childName !== undefined && input.childName.trim().length < 1) {
-      throw new ValidationError('Child name cannot be empty', { childName: 'Required' });
-    }
-    if (input.therapistName !== undefined && input.therapistName.trim().length < 1) {
-      throw new ValidationError('Therapist name cannot be empty', { therapistName: 'Required' });
-    }
-    if (input.duration !== undefined && (input.duration < 1 || input.duration > 480)) {
-      throw new ValidationError('Duration must be between 1 and 480 minutes', { duration: 'Invalid range' });
-    }
-    if (input.mood !== undefined && (input.mood < 1 || input.mood > 5)) {
-      throw new ValidationError('Mood must be between 1 and 5', { mood: 'Invalid range' });
-    }
-
-    const session = await this.sessionRepo.update(id, userId, {
-      childName: input.childName?.trim(),
-      therapistName: input.therapistName?.trim(),
-      therapyType: input.therapyType,
-      sessionDate: input.sessionDate ? new Date(input.sessionDate) : undefined,
-      duration: input.duration,
-      notes: input.notes?.trim(),
-      wentWell: input.wentWell?.trim(),
-      toWorkOn: input.toWorkOn?.trim(),
-      mood: input.mood,
+  /**
+   * Get all sessions for a user
+   */
+  async getUserSessions(
+    userId: string,
+    filters?: TherapySessionFilters
+  ): Promise<{ sessions: TherapySession[]; total: number }> {
+    const result = await this.repo.list({
+      userId,
+      childName: filters?.childName,
+      therapyType: filters?.therapyType,
+      startDate: filters?.startDate,
+      endDate: filters?.endDate,
+      limit: filters?.limit ?? 100,
+      offset: filters?.offset ?? 0,
     });
 
-    return this.toDTO(session);
+    logger.info({ userId, count: result.data.length }, 'Retrieved therapy sessions');
+
+    return { sessions: result.data, total: result.pagination.total ?? result.data.length };
   }
 
-  async list(userId: string, input: ListTherapySessionsInput): Promise<PaginatedResult<TherapySessionDTO>> {
-    const result = await this.sessionRepo.list({
+  /**
+   * Get a single session
+   */
+  async getSession(
+    sessionId: string,
+    userId: string
+  ): Promise<TherapySession> {
+    const session = await this.repo.findByIdAndUser(sessionId, userId);
+
+    if (!session) {
+      throw new NotFoundError("TherapySession", sessionId);
+    }
+
+    await this.auditRepo.create({
       userId,
-      childName: input.childName,
-      therapyType: input.therapyType,
-      startDate: input.startDate,
-      endDate: input.endDate,
-      limit: Math.min(Math.max(input.limit, 1), 100),
-      offset: Math.max(input.offset, 0),
+      action: 'THERAPY_SESSION_ACCESSED',
+      targetType: 'TherapySession',
+      targetId: sessionId,
     });
 
+    return session;
+  }
+
+  /**
+   * Get a single session by ID (alias for getSession to match interface)
+   */
+  async getById(
+    id: string,
+    userId: string
+  ): Promise<TherapySession | null> {
+    try {
+      return await this.getSession(id, userId);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * List therapy sessions (alias for getUserSessions to match interface)
+   */
+  async list(
+    userId: string,
+    input: TherapySessionFilters
+  ): Promise<{ data: TherapySession[]; pagination: { total: number; limit: number; offset: number } }> {
+    const result = await this.getUserSessions(userId, input);
     return {
-      data: result.data.map(s => this.toDTO(s)),
-      pagination: result.pagination,
+      data: result.sessions,
+      pagination: {
+        total: result.total,
+        limit: input.limit ?? 100,
+        offset: input.offset ?? 0,
+      },
     };
   }
 
-  async getById(id: string, userId: string): Promise<TherapySessionDTO | null> {
-    const session = await this.sessionRepo.findByIdAndUser(id, userId);
-    return session ? this.toDTO(session) : null;
-  }
-
-  async delete(id: string, userId: string): Promise<void> {
-    const existing = await this.sessionRepo.findByIdAndUser(id, userId);
-    if (!existing) {
-      throw new NotFoundError('Therapy session', id);
-    }
-
-    await this.sessionRepo.delete(id, userId);
-  }
-
+  /**
+   * Get all unique child names for a user
+   */
   async getChildNames(userId: string): Promise<string[]> {
-    return this.sessionRepo.getChildNames(userId);
+    const { sessions } = await this.getUserSessions(userId, { limit: 1000 });
+    const uniqueNames = new Set(sessions.map(s => s.childName));
+    return Array.from(uniqueNames).sort();
   }
 
+  /**
+   * Get all unique therapist names for a user
+   */
   async getTherapistNames(userId: string): Promise<string[]> {
-    return this.sessionRepo.getTherapistNames(userId);
+    const { sessions } = await this.getUserSessions(userId, { limit: 1000 });
+    const uniqueNames = new Set(sessions.map(s => s.therapistName));
+    return Array.from(uniqueNames).sort();
   }
 
-  private toDTO(session: TherapySession): TherapySessionDTO {
-    return {
-      id: session.id,
-      childName: session.childName,
-      therapistName: session.therapistName,
-      therapyType: session.therapyType,
-      sessionDate: session.sessionDate,
-      duration: session.duration,
-      notes: session.notes,
-      wentWell: session.wentWell,
-      toWorkOn: session.toWorkOn,
-      mood: session.mood,
-      createdAt: session.createdAt,
-      updatedAt: session.updatedAt,
+  /**
+   * Update a session
+   */
+  async update(
+    sessionId: string,
+    userId: string,
+    input: UpdateTherapySessionInput
+  ): Promise<TherapySession> {
+    // Validate if any updatable fields are provided
+    if (Object.keys(input).length === 0) {
+      throw new ValidationError("No fields provided for update");
+    }
+
+    this.validateUpdateInput(input);
+
+    // Sanitize text fields to prevent XSS
+    const sanitizedInput: UpdateTherapySessionInput = {
+      ...input,
+      childName: input.childName ? sanitizationService.sanitizeText(input.childName) : undefined,
+      therapistName: input.therapistName ? sanitizationService.sanitizeText(input.therapistName) : undefined,
+      notes: input.notes !== undefined ? sanitizationService.sanitizeContent(input.notes) : undefined,
+      wentWell: input.wentWell !== undefined ? sanitizationService.sanitizeContent(input.wentWell) : undefined,
+      toWorkOn: input.toWorkOn !== undefined ? sanitizationService.sanitizeContent(input.toWorkOn) : undefined,
     };
+
+    const session = await this.repo.update(
+      sessionId,
+      userId,
+      sanitizedInput
+    );
+
+    if (!session) {
+      throw new NotFoundError("TherapySession", sessionId);
+    }
+
+    await this.auditRepo.create({
+      userId,
+      action: 'THERAPY_SESSION_UPDATED',
+      targetType: 'TherapySession',
+      targetId: sessionId,
+    });
+
+    logger.info({ userId, sessionId }, 'Therapy session updated');
+
+    return session;
+  }
+
+  /**
+   * Delete a session
+   */
+  async delete(sessionId: string, userId: string): Promise<void> {
+    const deleted = await this.repo.delete(sessionId, userId);
+
+    if (!deleted) {
+      throw new NotFoundError("TherapySession", sessionId);
+    }
+
+    await this.auditRepo.create({
+      userId,
+      action: 'THERAPY_SESSION_DELETED',
+      targetType: 'TherapySession',
+      targetId: sessionId,
+    });
+
+    logger.info({ userId, sessionId }, 'Therapy session deleted');
+  }
+
+  /**
+   * Get therapy statistics for a user
+   */
+  async getStats(userId: string): Promise<{
+    totalSessions: number;
+    byTherapyType: Record<string, number>;
+    byChild: Record<string, number>;
+    averageMood: number | null;
+  }> {
+    const { sessions } = await this.getUserSessions(userId, { limit: 1000 });
+
+    const byTherapyType: Record<string, number> = {};
+    const byChild: Record<string, number> = {};
+    let moodSum = 0;
+    let moodCount = 0;
+
+    for (const session of sessions) {
+      // Count by therapy type
+      byTherapyType[session.therapyType] =
+        (byTherapyType[session.therapyType] || 0) + 1;
+
+      // Count by child
+      byChild[session.childName] = (byChild[session.childName] || 0) + 1;
+
+      // Average mood
+      if (session.mood !== null) {
+        moodSum += session.mood;
+        moodCount++;
+      }
+    }
+
+    return {
+      totalSessions: sessions.length,
+      byTherapyType,
+      byChild,
+      averageMood: moodCount > 0 ? moodSum / moodCount : null,
+    };
+  }
+
+  // Private validation methods
+
+  private validateInput(input: Omit<CreateTherapySessionInput, 'userId'>): void {
+    if (!input.childName?.trim()) {
+      throw new ValidationError("Child name is required");
+    }
+
+    if (!input.therapistName?.trim()) {
+      throw new ValidationError("Therapist name is required");
+    }
+
+    if (input.sessionDate > new Date()) {
+      throw new ValidationError("Session date cannot be in the future");
+    }
+
+    if (input.notes && input.notes.length > TherapySessionService.MAX_NOTES_LENGTH) {
+      throw new ValidationError(
+        `Notes cannot exceed ${TherapySessionService.MAX_NOTES_LENGTH} characters`
+      );
+    }
+
+    if (input.wentWell && input.wentWell.length > TherapySessionService.MAX_REFLECTION_LENGTH) {
+      throw new ValidationError(
+        `Went well cannot exceed ${TherapySessionService.MAX_REFLECTION_LENGTH} characters`
+      );
+    }
+
+    if (
+      input.toWorkOn &&
+      input.toWorkOn.length > TherapySessionService.MAX_REFLECTION_LENGTH
+    ) {
+      throw new ValidationError(
+        `To work on cannot exceed ${TherapySessionService.MAX_REFLECTION_LENGTH} characters`
+      );
+    }
+
+    if (input.mood != null && (input.mood < 1 || input.mood > 5)) {
+      throw new ValidationError("Mood must be between 1 and 5");
+    }
+
+    if (input.duration !== undefined && (input.duration < 1 || input.duration > 480)) {
+      throw new ValidationError("Duration must be between 1 and 480 minutes");
+    }
+  }
+
+  private validateUpdateInput(input: UpdateTherapySessionInput): void {
+    if (input.notes != null && input.notes.length > TherapySessionService.MAX_NOTES_LENGTH) {
+      throw new ValidationError(
+        `Notes cannot exceed ${TherapySessionService.MAX_NOTES_LENGTH} characters`
+      );
+    }
+
+    if (
+      input.wentWell != null &&
+      input.wentWell.length > TherapySessionService.MAX_REFLECTION_LENGTH
+    ) {
+      throw new ValidationError(
+        `Went well cannot exceed ${TherapySessionService.MAX_REFLECTION_LENGTH} characters`
+      );
+    }
+
+    if (
+      input.toWorkOn != null &&
+      input.toWorkOn.length > TherapySessionService.MAX_REFLECTION_LENGTH
+    ) {
+      throw new ValidationError(
+        `To work on cannot exceed ${TherapySessionService.MAX_REFLECTION_LENGTH} characters`
+      );
+    }
+
+    if (input.mood != null && (input.mood < 1 || input.mood > 5)) {
+      throw new ValidationError("Mood must be between 1 and 5");
+    }
   }
 }

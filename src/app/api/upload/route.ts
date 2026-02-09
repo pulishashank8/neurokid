@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth.config";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { join } from "path";
 import { v4 as uuidv4 } from "uuid";
-import { rateLimitResponse, RATE_LIMITERS } from "@/lib/rateLimit";
+import { rateLimitResponse, RATE_LIMITERS } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
     try {

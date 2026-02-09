@@ -1,12 +1,26 @@
-import { injectable, inject } from 'tsyringe';
-import { PrismaClient, TherapySession as PrismaTherapySession, Prisma } from '@prisma/client';
-import { TOKENS } from '@/lib/container';
-import { ITherapySessionRepository, CreateTherapySessionInput, UpdateTherapySessionInput, ListTherapySessionsQuery } from '@/domain/interfaces/repositories/ITherapySessionRepository';
-import { TherapySession, TherapyType, PaginatedResult } from '@/domain/types';
-import { IDatabaseConnection } from '../database/DatabaseConnection';
+/**
+ * Therapy Session Repository
+ *
+ * Handles all database operations for therapy sessions.
+ * Implements encryption/decryption at the data layer.
+ */
+
+import { injectable, inject } from "tsyringe";
+import { PrismaClient, Prisma } from "@prisma/client";
+import { TOKENS } from "@/lib/container";
+import { IDatabaseConnection } from "../database/DatabaseConnection";
+import { FieldEncryption } from "@/lib/encryption";
+import type {
+  TherapySession,
+  CreateTherapySessionInput,
+  UpdateTherapySessionInput,
+  TherapySessionFilters,
+} from "@/domain/therapy-session.types";
 
 @injectable()
-export class TherapySessionRepository implements ITherapySessionRepository {
+export class TherapySessionRepository {
+  private static readonly DEFAULT_LIMIT = 50;
+  private static readonly MAX_LIMIT = 100;
   private prisma: PrismaClient;
 
   constructor(
@@ -15,133 +29,245 @@ export class TherapySessionRepository implements ITherapySessionRepository {
     this.prisma = db.getClient();
   }
 
+  /**
+   * Create new therapy session with encrypted PHI
+   */
+  async create(
+    input: CreateTherapySessionInput
+  ): Promise<TherapySession> {
+    const data: Prisma.TherapySessionCreateInput = {
+      userId: input.userId,
+      childName: input.childName,
+      therapistName: input.therapistName,
+      therapyType: input.therapyType,
+      sessionDate: input.sessionDate,
+      duration: input.duration ?? 60,
+      // Encrypt PHI fields
+      notes: FieldEncryption.encrypt(input.notes),
+      wentWell: FieldEncryption.encrypt(input.wentWell),
+      toWorkOn: FieldEncryption.encrypt(input.toWorkOn),
+      mood: input.mood ?? null,
+    };
+
+    const session = await this.prisma.therapySession.create({ data });
+    return this.decryptSession(session);
+  }
+
+  /**
+   * Find session by ID only (no ownership check)
+   */
   async findById(id: string): Promise<TherapySession | null> {
     const session = await this.prisma.therapySession.findUnique({
       where: { id },
     });
-    return session ? this.toDomain(session) : null;
+
+    if (!session) return null;
+    return this.decryptSession(session);
   }
 
-  async findByIdAndUser(id: string, userId: string): Promise<TherapySession | null> {
+  /**
+   * Find session by ID with ownership verification
+   */
+  async findByIdAndUser(
+    id: string,
+    userId: string
+  ): Promise<TherapySession | null> {
     const session = await this.prisma.therapySession.findFirst({
-      where: { id, userId },
+      where: {
+        id,
+        userId, // Enforce ownership at DB level
+      },
     });
-    return session ? this.toDomain(session) : null;
+
+    if (!session) return null;
+    return this.decryptSession(session);
   }
 
-  async list(query: ListTherapySessionsQuery): Promise<PaginatedResult<TherapySession>> {
-    const where: Prisma.TherapySessionWhereInput = {
-      userId: query.userId,
-    };
+  /**
+   * Find sessions by user with optional filters
+   */
+  async findByUserId(
+    userId: string,
+    filters?: TherapySessionFilters
+  ): Promise<TherapySession[]> {
+    const limit = Math.min(
+      filters?.limit ?? TherapySessionRepository.DEFAULT_LIMIT,
+      TherapySessionRepository.MAX_LIMIT
+    );
 
-    if (query.childName) where.childName = query.childName;
-    if (query.therapyType) where.therapyType = query.therapyType;
-    if (query.startDate || query.endDate) {
-      where.sessionDate = {};
-      if (query.startDate) where.sessionDate.gte = query.startDate;
-      if (query.endDate) where.sessionDate.lte = query.endDate;
+    const where: Prisma.TherapySessionWhereInput = { userId };
+
+    if (filters?.childName) {
+      where.childName = {
+        equals: filters.childName,
+        mode: "insensitive",
+      };
     }
 
-    const [sessions, total] = await Promise.all([
-      this.prisma.therapySession.findMany({
-        where,
-        orderBy: { sessionDate: 'desc' },
-        skip: query.offset,
-        take: query.limit,
-      }),
-      this.prisma.therapySession.count({ where }),
-    ]);
+    if (filters?.therapyType) {
+      where.therapyType = filters.therapyType;
+    }
+
+    if (filters?.startDate || filters?.endDate) {
+      where.sessionDate = {
+        gte: filters.startDate,
+        lte: filters.endDate,
+      };
+    }
+
+    const sessions = await this.prisma.therapySession.findMany({
+      where,
+      orderBy: { sessionDate: "desc" },
+      take: limit,
+      skip: filters?.offset ?? 0,
+    });
+
+    return sessions.map((s) => this.decryptSession(s));
+  }
+
+  /**
+   * List sessions with pagination (alias to match interface)
+   */
+  async list(query: {
+    userId: string;
+    childName?: string;
+    therapyType?: string;
+    startDate?: Date;
+    endDate?: Date;
+    limit: number;
+    offset: number;
+  }): Promise<{ data: TherapySession[]; pagination: { total: number; limit: number; offset: number } }> {
+    const sessions = await this.findByUserId(query.userId, query);
+    const total = await this.countByUserId(query.userId, {
+      childName: query.childName,
+      therapyType: query.therapyType as any,
+      startDate: query.startDate,
+      endDate: query.endDate,
+    });
 
     return {
-      data: sessions.map(s => this.toDomain(s)),
+      data: sessions,
       pagination: {
         total,
         limit: query.limit,
         offset: query.offset,
-        hasMore: query.offset + sessions.length < total,
       },
     };
   }
 
-  async create(data: CreateTherapySessionInput): Promise<TherapySession> {
-    const session = await this.prisma.therapySession.create({
-      data: {
-        userId: data.userId,
-        childName: data.childName,
-        therapistName: data.therapistName,
-        therapyType: data.therapyType,
-        sessionDate: data.sessionDate,
-        duration: data.duration ?? 60,
-        notes: data.notes,
-        wentWell: data.wentWell,
-        toWorkOn: data.toWorkOn,
-        mood: data.mood,
-      },
-    });
-    return this.toDomain(session);
-  }
-
-  async update(id: string, userId: string, data: UpdateTherapySessionInput): Promise<TherapySession> {
-    const updateData: Prisma.TherapySessionUpdateInput = {};
-
-    if (data.childName !== undefined) updateData.childName = data.childName;
-    if (data.therapistName !== undefined) updateData.therapistName = data.therapistName;
-    if (data.therapyType !== undefined) updateData.therapyType = data.therapyType;
-    if (data.sessionDate !== undefined) updateData.sessionDate = data.sessionDate;
-    if (data.duration !== undefined) updateData.duration = data.duration;
-    if (data.notes !== undefined) updateData.notes = data.notes;
-    if (data.wentWell !== undefined) updateData.wentWell = data.wentWell;
-    if (data.toWorkOn !== undefined) updateData.toWorkOn = data.toWorkOn;
-    if (data.mood !== undefined) updateData.mood = data.mood;
-
-    const session = await this.prisma.therapySession.update({
-      where: { id, userId },
-      data: updateData,
-    });
-    return this.toDomain(session);
-  }
-
-  async delete(id: string, userId: string): Promise<void> {
-    await this.prisma.therapySession.delete({
+  /**
+   * Update session with ownership verification
+   */
+  async update(
+    id: string,
+    userId: string,
+    input: UpdateTherapySessionInput
+  ): Promise<TherapySession | null> {
+    // First verify ownership
+    const existing = await this.prisma.therapySession.findFirst({
       where: { id, userId },
     });
+
+    if (!existing) return null;
+
+    const data: Prisma.TherapySessionUpdateInput = {};
+
+    if (input.childName !== undefined) data.childName = input.childName;
+    if (input.therapistName !== undefined)
+      data.therapistName = input.therapistName;
+    if (input.therapyType !== undefined) data.therapyType = input.therapyType;
+    if (input.sessionDate !== undefined) data.sessionDate = input.sessionDate;
+    if (input.duration !== undefined) data.duration = input.duration;
+    if (input.mood !== undefined) data.mood = input.mood;
+
+    // Encrypt PHI fields if provided
+    if (input.notes !== undefined) {
+      data.notes = FieldEncryption.encrypt(input.notes);
+    }
+    if (input.wentWell !== undefined) {
+      data.wentWell = FieldEncryption.encrypt(input.wentWell);
+    }
+    if (input.toWorkOn !== undefined) {
+      data.toWorkOn = FieldEncryption.encrypt(input.toWorkOn);
+    }
+
+    const updated = await this.prisma.therapySession.update({
+      where: { id },
+      data,
+    });
+
+    return this.decryptSession(updated);
   }
 
+  /**
+   * Delete session with ownership verification
+   */
+  async delete(id: string, userId: string): Promise<boolean> {
+    const result = await this.prisma.therapySession.deleteMany({
+      where: { id, userId },
+    });
+
+    return result.count > 0;
+  }
+
+  /**
+   * Count sessions for a user (for pagination)
+   */
+  async countByUserId(
+    userId: string,
+    filters?: Omit<TherapySessionFilters, "limit" | "offset">
+  ): Promise<number> {
+    const where: Prisma.TherapySessionWhereInput = { userId };
+
+    if (filters?.childName) {
+      where.childName = { equals: filters.childName, mode: "insensitive" };
+    }
+    if (filters?.therapyType) {
+      where.therapyType = filters.therapyType;
+    }
+
+    return this.prisma.therapySession.count({ where });
+  }
+
+  /**
+   * Get all unique child names for a user
+   */
   async getChildNames(userId: string): Promise<string[]> {
-    const results = await this.prisma.therapySession.findMany({
+    const sessions = await this.prisma.therapySession.findMany({
       where: { userId },
       select: { childName: true },
       distinct: ['childName'],
       orderBy: { childName: 'asc' },
     });
-    return results.map(r => r.childName);
+
+    return sessions.map(s => s.childName);
   }
 
+  /**
+   * Get all unique therapist names for a user
+   */
   async getTherapistNames(userId: string): Promise<string[]> {
-    const results = await this.prisma.therapySession.findMany({
+    const sessions = await this.prisma.therapySession.findMany({
       where: { userId },
       select: { therapistName: true },
       distinct: ['therapistName'],
       orderBy: { therapistName: 'asc' },
     });
-    return results.map(r => r.therapistName);
+
+    return sessions.map(s => s.therapistName);
   }
 
-  private toDomain(session: PrismaTherapySession): TherapySession {
+  /**
+   * Decrypt session fields after retrieval
+   */
+  private decryptSession(
+    session: Prisma.TherapySessionGetPayload<true>
+  ): TherapySession {
     return {
-      id: session.id,
-      userId: session.userId,
-      childName: session.childName,
-      therapistName: session.therapistName,
-      therapyType: session.therapyType as TherapyType,
-      sessionDate: session.sessionDate,
-      duration: session.duration,
-      notes: session.notes ?? undefined,
-      wentWell: session.wentWell ?? undefined,
-      toWorkOn: session.toWorkOn ?? undefined,
-      mood: session.mood ?? undefined,
-      createdAt: session.createdAt,
-      updatedAt: session.updatedAt,
+      ...session,
+      notes: FieldEncryption.decrypt(session.notes),
+      wentWell: FieldEncryption.decrypt(session.wentWell),
+      toWorkOn: FieldEncryption.decrypt(session.toWorkOn),
     };
   }
 }

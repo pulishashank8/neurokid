@@ -7,6 +7,7 @@ import { SessionProvider } from "@/app/providers";
 import { ProfileGuard } from "@/components/shared/ProfileGuard";
 import SessionTracker from "@/components/shared/SessionTracker";
 import { OrganizationSchema, SoftwareAppSchema } from "@/components/seo/SchemaMarkup";
+import { RoutePrefetcher } from "@/components/navigation/RoutePrefetcher";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -131,6 +132,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[var(--background)] transition-colors duration-300`}
       >
+        <RoutePrefetcher />
         <SessionProvider>
           <SessionTracker />
           <ProfileGuard>

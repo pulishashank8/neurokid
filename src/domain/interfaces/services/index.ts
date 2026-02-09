@@ -11,3 +11,8 @@ export * from './INotificationService';
 export * from './IMessageService';
 export * from './IEmailService';
 export * from './IEncryptionService';
+export * from './IAIService';
+export * from './IConnectionService';
+export * from './IBookmarkService';
+export * from './IVoteService';
+export * from './IAuthorizationService';

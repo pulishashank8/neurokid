@@ -1,9 +1,18 @@
 import { withSentryConfig } from "@sentry/nextjs";
+import withBundleAnalyzer from "@next/bundle-analyzer";
+
+// Bundle analyzer - run with ANALYZE=true npm run build
+const bundleAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Enable turbopack to silence webpack warning
-  turbopack: {},
+  // turbopack: {},
+  experimental: {
+    serverComponentsExternalPackages: ['ioredis'],
+  },
   allowedDevOrigins: [
     'https://*.replit.dev',
     'https://*.janeway.replit.dev',
@@ -32,6 +41,71 @@ const nextConfig = {
   // Production performance optimizations
   productionBrowserSourceMaps: false,
   poweredByHeader: false,
+
+  // Security headers - applied to all routes including static files
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=(), accelerometer=(), gyroscope=(), magnetometer=(), payment=(), usb=(), vr=()',
+          },
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'same-site',
+          },
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+          {
+            key: 'Origin-Agent-Cluster',
+            value: '?1',
+          },
+        ],
+      },
+      // PHI endpoints - no caching
+      {
+        source: '/api/:path*(therapy-sessions|emergency-cards)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
+          },
+        ],
+      },
+    ];
+  },
 
   // Webpack optimizations for code splitting
   webpack: (config, { isServer }) => {
@@ -110,7 +184,10 @@ const sentryOptions = {
   automaticVercelMonitors: true,
 };
 
-// Export with Sentry if DSN is configured, otherwise plain config
+// Apply bundle analyzer first
+const withAnalyzer = bundleAnalyzer(nextConfig);
+
+// Export with Sentry if DSN is configured, otherwise plain config with analyzer
 export default process.env.SENTRY_DSN
-  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions, sentryOptions)
-  : nextConfig;
+  ? withSentryConfig(withAnalyzer, sentryWebpackPluginOptions, sentryOptions)
+  : withAnalyzer;

@@ -6,8 +6,13 @@ import { IPostRepository } from '@/domain/interfaces/repositories/IPostRepositor
 import { IUserRepository } from '@/domain/interfaces/repositories/IUserRepository';
 import { IVoteRepository } from '@/domain/interfaces/repositories/IVoteRepository';
 import { INotificationRepository } from '@/domain/interfaces/repositories/INotificationRepository';
+import { IAuthorizationService } from '@/domain/interfaces/services/IAuthorizationService';
 import { ValidationError, NotFoundError, ForbiddenError, BusinessRuleError } from '@/domain/errors';
 import { PaginatedResult } from '@/domain/types';
+import { sanitizationService } from '@/lib/sanitization';
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger({ context: 'CommentService' });
 
 @injectable()
 export class CommentService implements ICommentService {
@@ -16,7 +21,8 @@ export class CommentService implements ICommentService {
     @inject(TOKENS.PostRepository) private postRepo: IPostRepository,
     @inject(TOKENS.UserRepository) private userRepo: IUserRepository,
     @inject(TOKENS.VoteRepository) private voteRepo: IVoteRepository,
-    @inject(TOKENS.NotificationRepository) private notificationRepo: INotificationRepository
+    @inject(TOKENS.NotificationRepository) private notificationRepo: INotificationRepository,
+    @inject(TOKENS.AuthorizationService) private authService: IAuthorizationService
   ) {}
 
   async createComment(input: CreateCommentInput, authorId: string): Promise<FormattedComment> {
@@ -51,7 +57,7 @@ export class CommentService implements ICommentService {
     }
 
     // Sanitize content
-    const sanitizedContent = this.sanitizeHtml(input.content);
+    const sanitizedContent = sanitizationService.sanitizeContent(input.content);
 
     // Create comment
     const comment = await this.commentRepo.create({
@@ -106,9 +112,20 @@ export class CommentService implements ICommentService {
       throw new NotFoundError('Comment', id);
     }
 
-    // Check ownership
-    if (comment.authorId !== userId) {
-      throw new ForbiddenError('Not authorized to edit this comment');
+    // Check authorization using centralized service
+    const authContext = await this.authService.getAuthContext(userId);
+    if (!authContext) {
+      throw new ForbiddenError('User not found');
+    }
+
+    const resourceContext = await this.authService.getCommentResourceContext(id);
+    if (!resourceContext) {
+      throw new NotFoundError('Comment', id);
+    }
+
+    const canUpdate = await this.authService.canUpdate(authContext, resourceContext);
+    if (!canUpdate.allowed) {
+      throw new ForbiddenError(canUpdate.reason || 'Not authorized to edit this comment');
     }
 
     // Validate content
@@ -119,7 +136,7 @@ export class CommentService implements ICommentService {
       throw new ValidationError('Comment is too long', { content: 'Maximum 10000 characters' });
     }
 
-    const sanitizedContent = this.sanitizeHtml(input.content);
+    const sanitizedContent = sanitizationService.sanitizeContent(input.content);
 
     await this.commentRepo.update(id, { content: sanitizedContent });
 
@@ -210,13 +227,20 @@ export class CommentService implements ICommentService {
       throw new NotFoundError('Comment', id);
     }
 
-    // Check ownership or moderator
-    if (comment.authorId !== userId) {
-      const user = await this.userRepo.findByIdWithProfile(userId);
-      const isModeratorOrAdmin = user?.user.roles.some(r => r === 'MODERATOR' || r === 'ADMIN');
-      if (!isModeratorOrAdmin) {
-        throw new ForbiddenError('Not authorized to delete this comment');
-      }
+    // Check authorization using centralized service
+    const authContext = await this.authService.getAuthContext(userId);
+    if (!authContext) {
+      throw new ForbiddenError('User not found');
+    }
+
+    const resourceContext = await this.authService.getCommentResourceContext(id);
+    if (!resourceContext) {
+      throw new NotFoundError('Comment', id);
+    }
+
+    const canDelete = await this.authService.canDelete(authContext, resourceContext);
+    if (!canDelete.allowed) {
+      throw new ForbiddenError(canDelete.reason || 'Not authorized to delete this comment');
     }
 
     await this.commentRepo.delete(id);
@@ -298,14 +322,5 @@ export class CommentService implements ICommentService {
       isAnonymous: result.comment.isAnonymous,
       userVote,
     };
-  }
-
-  private sanitizeHtml(html: string): string {
-    if (!html) return '';
-    return html
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/\s*on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '')
-      .replace(/javascript:[^"']*/gi, '')
-      .replace(/data:text\/html[^"']*/gi, '');
   }
 }

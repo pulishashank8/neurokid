@@ -6,18 +6,29 @@ import {
   RATE_LIMITERS,
   getClientIp,
   rateLimitResponse,
-} from "@/lib/rateLimit";
-import { withApiHandler, getRequestId } from "@/lib/apiHandler";
+} from "@/lib/rate-limit";
+import { withApiHandler, getRequestId } from "@/lib/api";
 import { createLogger } from "@/lib/logger";
 import crypto from "crypto";
 import { sendVerificationEmail } from "@/lib/mailer";
 import { verifyCaptcha } from "@/lib/captcha";
+import { isHoneypotFilled } from "@/lib/security/honeypot";
 
 export const POST = withApiHandler(async (request: NextRequest) => {
   const requestId = getRequestId(request);
   const logger = createLogger({ requestId });
 
   const body = await request.json();
+
+  // Honeypot check - silently reject bots
+  if (isHoneypotFilled(body)) {
+    logger.warn({ ip: getClientIp(request) }, 'Honeypot triggered - possible bot registration attempt');
+    // Return fake success to not alert the bot
+    return NextResponse.json(
+      { message: "User registered successfully", _security: 'honeypot' },
+      { status: 201 }
+    );
+  }
 
   // Verify CAPTCHA
   if (body.captchaToken) {

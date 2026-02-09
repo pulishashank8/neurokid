@@ -61,3 +61,26 @@ export function createAuthHeader(token: string) {
     Authorization: `Bearer ${token}`,
   };
 }
+
+/**
+ * Create a mock NextRequest with FormData for testing API routes that expect multipart data
+ */
+export function createFormDataRequest(
+  method: string,
+  url: string,
+  formFields: Record<string, string | Blob>,
+  headers: Record<string, string> = {}
+): NextRequest {
+  const formData = new FormData();
+  Object.entries(formFields).forEach(([key, value]) => {
+    formData.append(key, value);
+  });
+
+  const urlObj = new URL(url, 'http://localhost:3000');
+
+  return new NextRequest(urlObj, {
+    method,
+    body: formData,
+    headers,
+  });
+}

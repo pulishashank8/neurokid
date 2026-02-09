@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '@/app/api/ai/chat/route';
 import { createTestUser, createMockSession } from '../helpers/auth';
 import { createMockRequest, parseResponse } from '../helpers/api';
@@ -11,6 +10,12 @@ vi.mock('next-auth', () => ({
 
 vi.mock('@/app/api/auth/[...nextauth]/route', () => ({
     authOptions: {},
+}));
+
+// Mock @/lib/auth
+vi.mock('@/lib/auth', () => ({
+  getServerSession: vi.fn(),
+  authOptions: {},
 }));
 
 import { getServerSession } from 'next-auth';
@@ -41,7 +46,8 @@ describe('AI Chat API Integration Tests', () => {
         // Mock GROQ_API_KEY so the route doesn't return early
         process.env = { ...originalEnv, GROQ_API_KEY: 'test-api-key' };
         resetMockData();
-        testUser = await createTestUser('ai-user@example.com', 'password123', 'aiuser');
+        const uniqueId = Date.now();
+        testUser = await createTestUser(`ai-user-${uniqueId}@example.com`, 'password123!@#', `aiuser${uniqueId}`);
         mockSession = createMockSession(testUser);
     });
 

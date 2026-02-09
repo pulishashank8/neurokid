@@ -2,7 +2,70 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { VoteType } from "@prisma/client";
+import { VoteType, PostStatus } from "@prisma/client";
+
+// Type for Prisma query result
+interface PostWithRelations {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+  voteScore: number;
+  isAnonymous: boolean;
+  isPinned: boolean;
+  isLocked: boolean;
+  status: PostStatus;
+  images: string[];
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  tags: {
+    id: string;
+    name: string;
+    slug: string;
+  }[];
+  author: {
+    id: string;
+    profile: {
+      username: string;
+      avatarUrl: string | null;
+    } | null;
+  } | null;
+  _count: {
+    comments: number;
+  };
+}
+
+interface FormattedPost {
+  id: string;
+  title: string;
+  snippet: string;
+  createdAt: Date;
+  voteScore: number;
+  commentCount: number;
+  isAnonymous: boolean;
+  isPinned: boolean;
+  isLocked: boolean;
+  status: PostStatus;
+  images: string[];
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  tags: {
+    id: string;
+    name: string;
+    slug: string;
+  }[];
+  author: {
+    id: string;
+    username: string;
+    avatarUrl: string | null;
+  };
+}
 
 export async function GET(
   request: NextRequest,
@@ -98,7 +161,7 @@ export async function GET(
     });
 
     // Format posts to match PostCard expectations
-    const formattedPosts = posts.map((post: any) => ({
+    const formattedPosts = posts.map((post: PostWithRelations): FormattedPost => ({
       id: post.id,
       title: post.title,
       snippet: post.content.substring(0, 200) + (post.content.length > 200 ? "..." : ""),
@@ -123,8 +186,8 @@ export async function GET(
 
     // Order by vote time (most recent first)
     const orderedPosts = postIds
-      .map((id) => formattedPosts.find((p: any) => p.id === id))
-      .filter(Boolean);
+      .map((id) => formattedPosts.find((p) => p.id === id))
+      .filter((p): p is FormattedPost => p !== undefined);
 
     return NextResponse.json({ posts: orderedPosts });
   } catch (error) {

@@ -19,6 +19,12 @@ vi.mock('@/app/api/auth/[...nextauth]/route', () => ({
   authOptions: {},
 }));
 
+// Mock @/lib/auth
+vi.mock('@/lib/auth', () => ({
+  getServerSession: vi.fn(),
+  authOptions: {},
+}));
+
 import { getServerSession } from 'next-auth';
 
 const prisma = getTestPrisma();

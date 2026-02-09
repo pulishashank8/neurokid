@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth.config";
 import { prisma } from "@/lib/prisma";
 import { canModerate } from "@/lib/rbac";
 
@@ -15,10 +15,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const body = await req.json();
     const { action, reason } = body as { action?: string; reason?: string };
 
-    const allowedActions = ["DISMISS", "REVIEW", "RESOLVE"] as const;
-    if (!action || !allowedActions.includes(action as any)) {
+    type ReportAction = 'DISMISS' | 'REVIEW' | 'RESOLVE';
+    const allowedActions: ReportAction[] = ["DISMISS", "REVIEW", "RESOLVE"];
+    if (!action || !allowedActions.includes(action as ReportAction)) {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
+    const typedAction = action as ReportAction;
 
     const report = await prisma.report.findUnique({ where: { id } });
     if (!report) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -26,11 +28,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     let updatedReport = report;
 
     // Perform action
-    if (action === "DISMISS") {
+    if (typedAction === "DISMISS") {
       updatedReport = await prisma.report.update({ where: { id }, data: { status: "DISMISSED" } });
-    } else if (action === "REVIEW") {
+    } else if (typedAction === "REVIEW") {
       updatedReport = await prisma.report.update({ where: { id }, data: { status: "UNDER_REVIEW" } });
-    } else if (action === "RESOLVE") {
+    } else if (typedAction === "RESOLVE") {
       updatedReport = await prisma.report.update({ where: { id }, data: { status: "RESOLVED" } });
     }
 
@@ -43,7 +45,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     // Log the action
     await prisma.modActionLog.create({
       data: {
-        actionType: actionTypeMap[action as keyof typeof actionTypeMap],
+        actionType: actionTypeMap[typedAction],
         targetType: report.targetType,
         targetId: report.targetId,
         moderatorId: session.user.id,

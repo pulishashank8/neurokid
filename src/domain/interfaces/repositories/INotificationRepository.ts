@@ -11,7 +11,8 @@ export interface ListNotificationsQuery {
   unreadOnly?: boolean;
   type?: NotificationType;
   limit: number;
-  offset: number;
+  offset?: number; // For backward compatibility
+  cursor?: string; // Cursor-based pagination (preferred)
 }
 
 export interface INotificationRepository {

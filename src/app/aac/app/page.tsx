@@ -114,7 +114,7 @@ export default function AACAppPage() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b from-emerald-50 to-white dark:from-emerald-950/20 dark:to-[var(--background)] ${isFullscreen ? 'fixed inset-0 z-50' : 'pt-20'}`}>
+    <div className={`min-h-screen bg-gradient-to-b from-emerald-50 to-white dark:from-emerald-950/20 dark:to-[var(--background)] ${isFullscreen ? 'fixed inset-0 z-50' : 'pt-28'}`}>
       {/* Lock Overlay */}
       {isLocked && (
         <div className="fixed inset-0 z-[200] bg-gradient-to-br from-emerald-900/95 to-teal-900/95 backdrop-blur-sm flex flex-col">
@@ -168,7 +168,7 @@ export default function AACAppPage() {
       )}
 
       {/* Header - Hidden in focus mode on mobile */}
-      <header className={`sticky top-20 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 transition-transform ${isFullscreen ? '-translate-y-full' : 'translate-y-0'}`}>
+      <header className={`sticky top-28 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/10 transition-transform ${isFullscreen ? '-translate-y-full' : 'translate-y-0'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Left: Logo & Title */}
@@ -241,7 +241,7 @@ export default function AACAppPage() {
       </header>
 
       {/* AAC Board - Use dvh for proper mobile viewport */}
-      <main className={`overflow-hidden ${isFullscreen ? 'h-screen' : 'h-[calc(100dvh-144px)] sm:h-[calc(100dvh-160px)]'} pb-safe`}>
+      <main className={`overflow-hidden ${isFullscreen ? 'h-screen' : 'h-[calc(100dvh-176px)] sm:h-[calc(100dvh-192px)]'} pb-safe`}>
         <AACBoard
           onToggleFullscreen={toggleFullscreen}
           isFullscreen={isFullscreen}

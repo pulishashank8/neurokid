@@ -20,7 +20,8 @@ export interface ListDailyWinsQuery {
   endDate?: Date;
   category?: string;
   limit: number;
-  offset: number;
+  offset?: number; // For backward compatibility, use cursor instead
+  cursor?: string; // Cursor-based pagination (preferred)
 }
 
 export interface IDailyWinRepository {

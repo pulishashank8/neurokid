@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canModerate } from "@/lib/rbac";
+import { Prisma, ReportStatus, ReportTargetType } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,9 +21,13 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const targetType = searchParams.get("targetType");
 
-    const where: any = {};
-    if (status) where.status = status;
-    if (targetType) where.targetType = targetType;
+    const where: Prisma.ReportWhereInput = {};
+    if (status && Object.values(ReportStatus).includes(status as ReportStatus)) {
+      where.status = status as ReportStatus;
+    }
+    if (targetType && Object.values(ReportTargetType).includes(targetType as ReportTargetType)) {
+      where.targetType = targetType as ReportTargetType;
+    }
 
     const [reports, total] = await Promise.all([
       prisma.report.findMany({
@@ -52,7 +57,7 @@ export async function GET(request: NextRequest) {
         targetId: r.targetId,
         status: r.status,
         createdAt: r.createdAt,
-        reporter: r.reporter ? { id: r.reporter.id, username: (r.reporter.profile as any)?.username ?? null } : null,
+        reporter: r.reporter ? { id: r.reporter.id, username: r.reporter.profile?.username ?? null } : null,
       })),
       total,
       skip,

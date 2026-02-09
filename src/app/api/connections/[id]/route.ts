@@ -1,130 +1,57 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { prisma } from "@/lib/prisma";
+import { container, TOKENS } from "@/lib/container";
+import { withApiHandler, AuthenticatedRequest, parseBody } from "@/lib/api";
+import { IConnectionService } from "@/domain/interfaces/services/IConnectionService";
+import { ValidationError } from "@/domain/errors";
+import { registerDependencies } from "@/lib/container-registrations";
+import { z } from "zod";
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+// Ensure dependencies are registered
+registerDependencies();
 
-    const userId = (session.user as any).id;
+const actionSchema = z.object({
+  action: z.enum(['accept', 'decline', 'cancel']),
+});
+
+// PATCH /api/connections/[id] - Accept, decline, or cancel connection request
+export const PATCH = withApiHandler(
+  async (
+    request: AuthenticatedRequest,
+    { params }: { params: Promise<{ id: string }> }
+  ) => {
+    const connectionService = container.resolve<IConnectionService>(TOKENS.ConnectionService);
     const { id } = await params;
-    const { action } = await request.json();
 
-    if (!["accept", "decline", "cancel"].includes(action)) {
-      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    const body = await parseBody<{ action: string }>(request);
+
+    // Validate action
+    const validation = actionSchema.safeParse(body);
+    if (!validation.success) {
+      throw new ValidationError('Invalid action. Must be accept, decline, or cancel');
     }
 
-    const connectionRequest = await prisma.connectionRequest.findUnique({
-      where: { id },
-    });
+    const { action } = validation.data;
 
-    if (!connectionRequest) {
-      return NextResponse.json({ error: "Request not found" }, { status: 404 });
+    switch (action) {
+      case 'accept':
+        await connectionService.acceptRequest(id, request.session.user.id);
+        return NextResponse.json({ success: true, message: "Connection accepted" });
+
+      case 'decline':
+        await connectionService.rejectRequest(id, request.session.user.id);
+        return NextResponse.json({ success: true, message: "Connection declined" });
+
+      case 'cancel':
+        await connectionService.cancelRequest(id, request.session.user.id);
+        return NextResponse.json({ success: true, message: "Request cancelled" });
+
+      default:
+        throw new ValidationError('Invalid action');
     }
-
-    if (action === "cancel") {
-      if (connectionRequest.senderId !== userId) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-      }
-
-      await prisma.connectionRequest.delete({
-        where: { id },
-      });
-
-      return NextResponse.json({ success: true, message: "Request cancelled" });
-    }
-
-    if (connectionRequest.receiverId !== userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
-
-    if (connectionRequest.status !== "PENDING") {
-      return NextResponse.json(
-        { error: "This request has already been responded to" },
-        { status: 400 }
-      );
-    }
-
-    if (action === "accept") {
-      const senderId = connectionRequest.senderId;
-      const receiverId = connectionRequest.receiverId;
-
-      if (!senderId || !receiverId) {
-        return NextResponse.json({ error: "Invalid connection request" }, { status: 400 });
-      }
-
-      await prisma.$transaction(async (tx) => {
-        await tx.connectionRequest.update({
-          where: { id },
-          data: {
-            status: "ACCEPTED",
-          },
-        });
-
-        // Create persistent Connection record
-        // Sort IDs to ensure uniqueness constraint works (user_a < user_b usually preferred but unique constraint handles both if ordered)
-        // Our constraint is unique([userA, userB]). We should sort.
-        const [userA, userB] = [senderId, receiverId].sort();
-
-        // Idempotent creation of Connection
-        const existingConnection = await tx.connection.findUnique({
-          where: { userA_userB: { userA, userB } }
-        });
-
-        if (!existingConnection) {
-          await tx.connection.create({
-            data: { userA, userB }
-          });
-        }
-
-        // Check for existing conversation via participants
-        const existingConversation = await tx.conversation.findFirst({
-          where: {
-            AND: [
-              { participants: { some: { userId: senderId } } },
-              { participants: { some: { userId: receiverId } } }
-            ]
-          }
-        });
-
-        if (!existingConversation) {
-          await tx.conversation.create({
-            data: {
-              participants: {
-                create: [
-                  { userId: senderId },
-                  { userId: receiverId }
-                ]
-              }
-            },
-          });
-        }
-      });
-
-      return NextResponse.json({ success: true, message: "Connection accepted" });
-    }
-
-    if (action === "decline") {
-      await prisma.connectionRequest.update({
-        where: { id },
-        data: {
-          status: "DECLINED",
-        },
-      });
-
-      return NextResponse.json({ success: true, message: "Connection declined" });
-    }
-
-    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-  } catch (error) {
-    console.error("Error updating connection request:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  },
+  {
+    method: 'PATCH',
+    routeName: 'PATCH /api/connections/[id]',
+    requireAuth: true,
   }
-}
+);

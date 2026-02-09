@@ -49,10 +49,11 @@ export async function GET() {
         "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
       },
     });
-  } catch (error: any) {
-    console.error("Error fetching categories:", error?.message || error);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error("Error fetching categories:", message);
     return NextResponse.json(
-      { error: "Failed to fetch categories", details: error?.message || "Unknown error", categories: [] },
+      { error: "Failed to fetch categories", details: message, categories: [] },
       { status: 500 }
     );
   }

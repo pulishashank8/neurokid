@@ -2,6 +2,42 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { PostStatus } from "@prisma/client";
+
+interface BookmarkWithPost {
+  post: {
+    id: string;
+    title: string;
+    content: string;
+    createdAt: Date;
+    voteScore: number;
+    isAnonymous: boolean;
+    isPinned: boolean;
+    isLocked: boolean;
+    status: PostStatus;
+    images: string[];
+    category: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+    tags: {
+      id: string;
+      name: string;
+      slug: string;
+    }[];
+    author: {
+      id: string;
+      profile: {
+        username: string;
+        avatarUrl: string | null;
+      } | null;
+    } | null;
+    _count: {
+      comments: number;
+    };
+  };
+}
 
 export async function GET(
   request: NextRequest,
@@ -88,7 +124,7 @@ export async function GET(
     });
 
     // Format posts to match PostCard expectations
-    const posts = bookmarks.map((b: any) => ({
+    const posts = bookmarks.map((b: BookmarkWithPost) => ({
       id: b.post.id,
       title: b.post.title,
       snippet: b.post.content.substring(0, 200) + (b.post.content.length > 200 ? "..." : ""),

@@ -7,7 +7,6 @@
       "esnext"
     ],
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,

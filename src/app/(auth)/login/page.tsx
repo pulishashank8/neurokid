@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, Suspense } from "react";
+import { useState, useEffect, FormEvent, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { AnimatedMascot, MascotState } from "@/components/ui/AnimatedMascot";
-import { Eye, EyeOff, Check } from "lucide-react";
+import { CaptchaWidget } from "@/components/captcha";
+import { Eye, EyeOff, Check, Shield } from "lucide-react";
 
 // Floating animated orbs background for Auth pages
 function authFloatingOrbs() {
@@ -34,6 +35,25 @@ function LoginContent() {
   const [resendStatus, setResendStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [isLoading, setIsLoading] = useState(false);
   const [mascotState, setMascotState] = useState<MascotState>("idle");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
+  const [captchaRequired, setCaptchaRequired] = useState(false);
+  const [remainingAttempts, setRemainingAttempts] = useState(3);
+
+  // Check CAPTCHA requirement when email changes
+  useEffect(() => {
+    if (email && email.includes('@')) {
+      fetch(`/api/auth/login-captcha-check?email=${encodeURIComponent(email)}`)
+        .then(res => res.json())
+        .then(data => {
+          setCaptchaRequired(data.captchaRequired);
+          setRemainingAttempts(data.remainingAttempts);
+        })
+        .catch(() => {
+          // Fail silently - backend will enforce if needed
+        });
+    }
+  }, [email]);
 
   const verified = searchParams.get("verified") === "1";
   const resetSuccess = searchParams.get("reset") === "1";
@@ -55,10 +75,19 @@ function LoginContent() {
         return;
       }
 
+      // Check CAPTCHA if required
+      if (captchaRequired && !captchaToken) {
+        setError("Please complete the CAPTCHA verification");
+        setCaptchaError("CAPTCHA verification required");
+        setIsLoading(false);
+        return;
+      }
+
       // Sign in with credentials
       const result = await signIn("credentials", {
         email,
         password,
+        captchaToken: captchaToken || '',
         redirect: false,
       });
 
@@ -66,12 +95,25 @@ function LoginContent() {
         if (result?.error === "EmailNotVerified" || result?.error?.includes("not verified")) {
           setError("Please verify your email before logging in.");
           setShowResend(true);
+        } else if (result?.error === 'CaptchaRequired') {
+          setError("Security verification required. Please complete the CAPTCHA.");
+          setCaptchaRequired(true);
         } else {
           setError(result?.error || "Invalid email or password");
+          // Update remaining attempts
+          if (remainingAttempts > 0) {
+            setRemainingAttempts(prev => Math.max(0, prev - 1));
+            if (remainingAttempts <= 1) {
+              setCaptchaRequired(true);
+            }
+          }
         }
         setIsLoading(false);
         return;
       }
+      
+      // Clear CAPTCHA token on success
+      setCaptchaToken(null);
 
       // Redirect to callback URL
       router.push(callbackUrl);
@@ -202,6 +244,15 @@ function LoginContent() {
             />
           </div>
 
+          {/* Failed Attempts Warning */}
+          {remainingAttempts < 3 && remainingAttempts > 0 && !captchaRequired && (
+            <div className="animate-slide-up p-3 bg-amber-50/80 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-500/20 rounded-xl" style={{ animationDelay: '280ms' }}>
+              <p className="text-xs text-amber-700 dark:text-amber-400">
+                Warning: {remainingAttempts} login attempt{remainingAttempts !== 1 ? 's' : ''} remaining before security verification is required.
+              </p>
+            </div>
+          )}
+
           <div className="animate-slide-up" style={{ animationDelay: '300ms' }}>
             <div className="flex justify-between mb-2 ml-1">
               <label className="text-sm font-bold text-gray-700 dark:text-gray-300">
@@ -232,10 +283,39 @@ function LoginContent() {
             </div>
           </div>
 
+          {/* CAPTCHA Widget - shown after failed attempts */}
+          {captchaRequired && (
+            <div className="animate-slide-up" style={{ animationDelay: '380ms' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <Shield className="w-4 h-4 text-gray-500" />
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                  Security Verification Required
+                </label>
+              </div>
+              <CaptchaWidget
+                onVerify={(token) => {
+                  setCaptchaToken(token);
+                  setCaptchaError(null);
+                }}
+                onError={(error) => {
+                  setCaptchaError(error);
+                  setCaptchaToken(null);
+                }}
+                onExpire={() => {
+                  setCaptchaToken(null);
+                }}
+                theme="light"
+              />
+              {captchaError && (
+                <p className="mt-1 ml-1 text-xs font-bold text-rose-500">{captchaError}</p>
+              )}
+            </div>
+          )}
+
           <div className="animate-slide-up" style={{ animationDelay: '400ms' }}>
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || (captchaRequired && !captchaToken)}
               variant="default"
               className="w-full py-7 text-lg font-extrabold rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 transform hover:-translate-y-1 active:scale-95 transition-all duration-300"
             >

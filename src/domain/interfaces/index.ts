@@ -1,3 +1,4 @@
-// Domain interfaces
+// Domain interfaces exports
 export * from './repositories';
-export * from './services';
+// Note: Service interfaces are exported separately to avoid naming conflicts
+export * from './queue';

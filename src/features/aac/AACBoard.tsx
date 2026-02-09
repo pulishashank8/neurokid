@@ -53,7 +53,7 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
     volume,
   });
 
-  const { playClickSound, playSuccessSound } = useAudioFeedback();
+  const { playClickSound, playSuccessSound, unlockAudio } = useAudioFeedback();
 
   const {
     customWords,
@@ -260,6 +260,7 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
           availableVoices={availableVoices}
           onVoiceChange={setSelectedVoice}
           onAddWord={() => setIsWordEditorOpen(true)}
+          onUnlockAudio={unlockAudio}
         />
       </div>
 

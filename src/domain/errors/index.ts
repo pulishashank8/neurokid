@@ -126,6 +126,36 @@ export class RateLimitError extends DomainError {
 }
 
 /**
+ * Authentication error with specific error code.
+ * Use for login/authentication failures that need specific handling.
+ */
+export class AuthenticationError extends DomainError {
+  readonly code = 'AUTHENTICATION_ERROR';
+  readonly statusCode = 401;
+
+  constructor(
+    message: string = 'Authentication failed',
+    public readonly authCode: 
+      | 'TooManyAttempts' 
+      | 'EmailNotVerified' 
+      | 'InvalidCredentials' 
+      | 'AccountLocked' 
+      | 'SessionExpired'
+      | string
+  ) {
+    super(message);
+    Object.setPrototypeOf(this, AuthenticationError.prototype);
+  }
+
+  toJSON(): Record<string, unknown> {
+    return {
+      ...super.toJSON(),
+      authCode: this.authCode,
+    };
+  }
+}
+
+/**
  * Internal server error.
  * Use for unexpected errors that shouldn't be exposed to clients.
  */

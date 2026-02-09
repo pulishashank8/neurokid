@@ -4,6 +4,7 @@ import { IDailyWinService, CreateDailyWinInput, UpdateDailyWinInput, DailyWinDTO
 import { IDailyWinRepository } from '@/domain/interfaces/repositories/IDailyWinRepository';
 import { ValidationError, NotFoundError, ConflictError } from '@/domain/errors';
 import { DailyWin, PaginatedResult } from '@/domain/types';
+import { sanitizationService } from '@/lib/sanitization';
 
 @injectable()
 export class DailyWinService implements IDailyWinService {
@@ -46,9 +47,9 @@ export class DailyWinService implements IDailyWinService {
     const win = await this.winRepo.create({
       userId,
       date: normalizedDate,
-      content: input.content.trim(),
+      content: sanitizationService.sanitizeContent(input.content.trim()),
       mood: input.mood,
-      category: input.category?.trim(),
+      category: input.category ? sanitizationService.sanitizeText(input.category.trim()) : undefined,
     });
 
     return this.toDTO(win);
@@ -79,9 +80,9 @@ export class DailyWinService implements IDailyWinService {
     }
 
     const win = await this.winRepo.update(id, userId, {
-      content: input.content?.trim(),
+      content: input.content ? sanitizationService.sanitizeContent(input.content.trim()) : undefined,
       mood: input.mood,
-      category: input.category?.trim(),
+      category: input.category ? sanitizationService.sanitizeText(input.category.trim()) : undefined,
     });
 
     return this.toDTO(win);

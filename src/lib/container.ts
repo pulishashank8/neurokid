@@ -24,23 +24,28 @@ export const TOKENS = {
   VoteRepository: Symbol('VoteRepository'),
   DailyWinRepository: Symbol('DailyWinRepository'),
   AACItemRepository: Symbol('AACItemRepository'),
-  ChatSessionRepository: Symbol('ChatSessionRepository'),
+  BookmarkRepository: Symbol('BookmarkRepository'),
 
   // Services
   UserService: Symbol('UserService'),
   PostService: Symbol('PostService'),
   CommentService: Symbol('CommentService'),
+  VoteService: Symbol('VoteService'),
   AuthService: Symbol('AuthService'),
+  AuthorizationService: Symbol('AuthorizationService'),
   TherapySessionService: Symbol('TherapySessionService'),
   EmergencyCardService: Symbol('EmergencyCardService'),
   MessageService: Symbol('MessageService'),
   NotificationService: Symbol('NotificationService'),
   ModerationService: Symbol('ModerationService'),
+  ConnectionService: Symbol('ConnectionService'),
   AIService: Symbol('AIService'),
   EmailService: Symbol('EmailService'),
   FileUploadService: Symbol('FileUploadService'),
   DailyWinService: Symbol('DailyWinService'),
   AACService: Symbol('AACService'),
+  ViewCountService: Symbol('ViewCountService'),
+  BookmarkService: Symbol('BookmarkService'),
 
   // Infrastructure
   Logger: Symbol('Logger'),
@@ -49,6 +54,7 @@ export const TOKENS = {
   RedisClient: Symbol('RedisClient'),
   JobQueue: Symbol('JobQueue'),
   EncryptionService: Symbol('EncryptionService'),
+  DataGovernanceService: Symbol('DataGovernanceService'),
 } as const;
 
 export type TokenType = typeof TOKENS;

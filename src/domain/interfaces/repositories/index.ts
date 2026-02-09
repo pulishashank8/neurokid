@@ -13,3 +13,6 @@ export * from './ICategoryRepository';
 export * from './ITagRepository';
 export * from './IAACItemRepository';
 export * from './IAuditLogRepository';
+export * from './IConnectionRepository';
+export * from './IProviderRepository';
+export * from './IBookmarkRepository';

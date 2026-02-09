@@ -75,47 +75,76 @@ export function useSpeechSynthesis(
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  // Detect if we're on a mobile device
+  // Detect if we're on a mobile device (especially iOS)
   const isMobileDevice = useCallback(() => {
     if (typeof window === "undefined") return false;
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }, []);
 
-  // Initialize audio context on first user interaction (required for mobile)
-  useEffect(() => {
-    if (typeof window === "undefined" || !isMobileDevice()) return;
+  const isIOS = useCallback(() => {
+    if (typeof window === "undefined") return false;
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }, []);
 
-    const initAudioContext = () => {
+  // Initialize audio context and synthesis on first user interaction (required for mobile)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const initAudio = async () => {
+      // 1. Initialize AudioContext
       if (!audioContextRef.current) {
         try {
-          const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-          if (AudioContext) {
-            audioContextRef.current = new AudioContext();
-            console.log("Audio context initialized for mobile");
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+          if (AudioContextClass) {
+            audioContextRef.current = new AudioContextClass();
+            console.log("Audio context created for mobile");
           }
         } catch (e) {
           console.warn("Could not create AudioContext:", e);
         }
       }
 
-      // Resume audio context if suspended (iOS requirement)
+      // Resume if suspended
       if (audioContextRef.current?.state === "suspended") {
-        audioContextRef.current.resume();
+        await audioContextRef.current.resume().catch(console.warn);
+      }
+
+      // 2. "Warm up" Web Speech API for iOS
+      // Standard trick: speak an empty string on first click to unlock it
+      if (window.speechSynthesis) {
+        try {
+          // Some versions of iOS need a real (but short/silent) utterance
+          const utterance = new SpeechSynthesisUtterance("");
+          utterance.volume = 0;
+          window.speechSynthesis.speak(utterance);
+          console.log("SpeechSynthesis warmed up for mobile");
+        } catch (e) {
+          console.warn("SpeechSynthesis warm up failed:", e);
+        }
       }
     };
 
     // Initialize on any user interaction
     const events = ["touchstart", "touchend", "mousedown", "keydown"];
+    const handleInteraction = () => {
+      initAudio();
+      // Only need to do this once
+      events.forEach(event => {
+        document.removeEventListener(event, handleInteraction);
+      });
+    };
+
     events.forEach(event => {
-      document.addEventListener(event, initAudioContext, { once: true });
+      document.addEventListener(event, handleInteraction, { once: true, passive: true });
     });
 
     return () => {
       events.forEach(event => {
-        document.removeEventListener(event, initAudioContext);
+        document.removeEventListener(event, handleInteraction);
       });
     };
-  }, [isMobileDevice]);
+  }, []);
 
   // Speak a single string of text
   const speak = useCallback(
@@ -134,12 +163,18 @@ export function useSpeechSynthesis(
       setIsSpeaking(true);
       setCurrentWordIndex(0);
 
-      // Resume AudioContext on mobile if needed
-      if (isMobileDevice() && audioContextRef.current?.state === "suspended") {
+      // CRITICAL: On iOS, we MUST trigger a synchronous audio action to "claim" the 
+      // audio stack before the asynchronous fetch call below.
+      if (typeof window !== "undefined" && isIOS()) {
         try {
-          await audioContextRef.current.resume();
+          const kick = new Audio();
+          kick.play().catch(() => { });
+
+          if (audioContextRef.current?.state === "suspended") {
+            audioContextRef.current.resume().catch(console.warn);
+          }
         } catch (e) {
-          console.warn("Could not resume AudioContext:", e);
+          console.warn("Audio kick failed:", e);
         }
       }
 

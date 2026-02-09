@@ -55,23 +55,40 @@ export class DailyWinRepository implements IDailyWinRepository {
       if (query.endDate) where.date.lte = query.endDate;
     }
 
+    const limit = Math.min(query.limit || 20, 100);
+    const take = limit + 1; // Fetch one extra to determine hasMore
+
+    // Support both cursor and offset pagination for backward compatibility
+    const findManyArgs: Prisma.DailyWinFindManyArgs = {
+      where,
+      orderBy: { date: 'desc' },
+      take,
+    };
+
+    if (query.cursor) {
+      // Cursor-based pagination (preferred)
+      findManyArgs.cursor = { id: query.cursor };
+      findManyArgs.skip = 1;
+    } else if (query.offset !== undefined) {
+      // Offset pagination (backward compatibility)
+      findManyArgs.skip = query.offset;
+    }
+
     const [wins, total] = await Promise.all([
-      this.prisma.dailyWin.findMany({
-        where,
-        orderBy: { date: 'desc' },
-        skip: query.offset,
-        take: query.limit,
-      }),
-      this.prisma.dailyWin.count({ where }),
+      this.prisma.dailyWin.findMany(findManyArgs),
+      query.cursor ? Promise.resolve(0) : this.prisma.dailyWin.count({ where }), // Skip count for cursor pagination
     ]);
 
+    const hasMore = wins.length > limit;
+    const data = wins.slice(0, limit);
+
     return {
-      data: wins.map(w => this.toDomain(w)),
+      data: data.map(w => this.toDomain(w)),
       pagination: {
-        total,
-        limit: query.limit,
-        offset: query.offset,
-        hasMore: query.offset + wins.length < total,
+        total: query.cursor ? 0 : total, // Total not available in cursor mode
+        limit,
+        offset: query.offset || 0,
+        hasMore,
       },
     };
   }
@@ -124,11 +141,19 @@ export class DailyWinRepository implements IDailyWinRepository {
   }
 
   async getStreak(userId: string): Promise<number> {
-    // Get all wins ordered by date descending
+    // OPTIMIZATION (Phase 7.2.6): Only fetch last 365 days (max possible streak)
+    // This prevents loading ALL wins into memory for users with years of data
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
     const wins = await this.prisma.dailyWin.findMany({
-      where: { userId },
+      where: {
+        userId,
+        date: { gte: oneYearAgo }
+      },
       select: { date: true },
       orderBy: { date: 'desc' },
+      take: 365 // Hard limit - max possible streak
     });
 
     if (wins.length === 0) return 0;
@@ -139,22 +164,30 @@ export class DailyWinRepository implements IDailyWinRepository {
 
     let expectedDate = new Date(today);
 
+    // Check if there's a win today or yesterday (streak is still active)
+    const mostRecentWin = new Date(wins[0].date);
+    mostRecentWin.setHours(0, 0, 0, 0);
+    const daysSinceLastWin = Math.floor((today.getTime() - mostRecentWin.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (daysSinceLastWin > 1) {
+      return 0; // Streak broken - no win today or yesterday
+    }
+
+    // If last win was yesterday, start from yesterday
+    if (daysSinceLastWin === 1) {
+      expectedDate.setDate(expectedDate.getDate() - 1);
+    }
+
+    // Count consecutive days backwards
     for (const win of wins) {
       const winDate = new Date(win.date);
       winDate.setHours(0, 0, 0, 0);
 
-      // Check if this win is for the expected date or the day before expected
-      const diffDays = Math.floor((expectedDate.getTime() - winDate.getTime()) / (1000 * 60 * 60 * 24));
-
-      if (diffDays === 0) {
+      if (winDate.getTime() === expectedDate.getTime()) {
         streak++;
         expectedDate.setDate(expectedDate.getDate() - 1);
-      } else if (diffDays === 1 && streak === 0) {
-        // Allow streak to start from yesterday
-        streak++;
-        expectedDate = new Date(winDate);
-        expectedDate.setDate(expectedDate.getDate() - 1);
-      } else {
+      } else if (winDate.getTime() < expectedDate.getTime()) {
+        // Gap found - streak broken
         break;
       }
     }

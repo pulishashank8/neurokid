@@ -7,8 +7,14 @@ import { ICategoryRepository } from '@/domain/interfaces/repositories/ICategoryR
 import { ITagRepository } from '@/domain/interfaces/repositories/ITagRepository';
 import { IVoteRepository } from '@/domain/interfaces/repositories/IVoteRepository';
 import { IAuditLogRepository } from '@/domain/interfaces/repositories/IAuditLogRepository';
+import { IAuthorizationService } from '@/domain/interfaces/services/IAuthorizationService';
+import { ViewCountService } from './ViewCountService';
 import { ValidationError, NotFoundError, ForbiddenError } from '@/domain/errors';
 import { CursorPaginatedResult } from '@/domain/types';
+import { sanitizationService } from '@/lib/sanitization';
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger({ context: 'PostService' });
 
 @injectable()
 export class PostService implements IPostService {
@@ -18,7 +24,9 @@ export class PostService implements IPostService {
     @inject(TOKENS.CategoryRepository) private categoryRepo: ICategoryRepository,
     @inject(TOKENS.TagRepository) private tagRepo: ITagRepository,
     @inject(TOKENS.VoteRepository) private voteRepo: IVoteRepository,
-    @inject(TOKENS.AuditLogRepository) private auditRepo: IAuditLogRepository
+    @inject(TOKENS.AuditLogRepository) private auditRepo: IAuditLogRepository,
+    @inject(TOKENS.AuthorizationService) private authService: IAuthorizationService,
+    @inject(TOKENS.ViewCountService) private viewCountService: ViewCountService
   ) {}
 
   async createPost(input: CreatePostInput, authorId: string): Promise<FormattedPost> {
@@ -56,8 +64,8 @@ export class PostService implements IPostService {
     }
 
     // Sanitize content
-    const sanitizedTitle = this.sanitizeHtml(input.title.trim());
-    const sanitizedContent = this.sanitizeHtml(input.content);
+    const sanitizedTitle = sanitizationService.sanitizeTitle(input.title.trim());
+    const sanitizedContent = sanitizationService.sanitizeContent(input.content);
 
     // Create post
     const post = await this.postRepo.create({
@@ -79,13 +87,20 @@ export class PostService implements IPostService {
       throw new NotFoundError('Post', id);
     }
 
-    // Check ownership
-    if (post.authorId !== userId) {
-      const user = await this.userRepo.findByIdWithProfile(userId);
-      const isModeratorOrAdmin = user?.user.roles.some(r => r === 'MODERATOR' || r === 'ADMIN');
-      if (!isModeratorOrAdmin) {
-        throw new ForbiddenError('Not authorized to edit this post');
-      }
+    // Check authorization using centralized service
+    const authContext = await this.authService.getAuthContext(userId);
+    if (!authContext) {
+      throw new ForbiddenError('User not found');
+    }
+
+    const resourceContext = await this.authService.getPostResourceContext(id);
+    if (!resourceContext) {
+      throw new NotFoundError('Post', id);
+    }
+
+    const canUpdate = await this.authService.canUpdate(authContext, resourceContext);
+    if (!canUpdate.allowed) {
+      throw new ForbiddenError(canUpdate.reason || 'Not authorized to edit this post');
     }
 
     // Validate if provided
@@ -110,8 +125,8 @@ export class PostService implements IPostService {
     }
 
     await this.postRepo.update(id, {
-      title: input.title ? this.sanitizeHtml(input.title.trim()) : undefined,
-      content: input.content ? this.sanitizeHtml(input.content) : undefined,
+      title: input.title ? sanitizationService.sanitizeTitle(input.title.trim()) : undefined,
+      content: input.content ? sanitizationService.sanitizeContent(input.content) : undefined,
       categoryId: input.categoryId,
       isAnonymous: input.isAnonymous,
       images: input.images,
@@ -140,41 +155,34 @@ export class PostService implements IPostService {
       userVotes = await this.voteRepo.getUserVotesForTargets(currentUserId, 'POST', postIds);
     }
 
-    // Get categories and tags for posts
-    const formattedPosts = await Promise.all(
-      result.data.map(async ({ post, author }) => {
-        const category = await this.categoryRepo.findById(post.categoryId);
-        const tags = await this.tagRepo.findByPostId(post.id);
-
-        return {
-          id: post.id,
-          title: post.title,
-          snippet: post.content.substring(0, 200) + (post.content.length > 200 ? '...' : ''),
-          content: post.content,
-          createdAt: post.createdAt,
-          updatedAt: post.updatedAt,
-          category: category ? { id: category.id, name: category.name, slug: category.slug } : null,
-          tags: tags.map(t => ({ id: t.id, name: t.name, slug: t.slug })),
-          author: post.isAnonymous || !author
-            ? null
-            : {
-                id: author.id,
-                username: author.username,
-                displayName: author.displayName,
-                avatarUrl: author.avatarUrl,
-                verifiedTherapist: author.verifiedTherapist,
-              },
-          voteScore: post.voteScore,
-          commentCount: post.commentCount,
-          viewCount: post.viewCount,
-          isPinned: post.isPinned,
-          isLocked: post.isLocked,
-          isAnonymous: post.isAnonymous,
-          images: post.images,
-          userVote: userVotes.get(post.id),
-        };
-      })
-    );
+    // Format posts - category and tags now come from batch query in repository
+    const formattedPosts = result.data.map(({ post, author, category, tags }) => ({
+      id: post.id,
+      title: post.title,
+      snippet: post.content.substring(0, 200) + (post.content.length > 200 ? '...' : ''),
+      content: post.content,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+      category: category ? { id: category.id, name: category.name, slug: category.slug } : null,
+      tags: tags.map(t => ({ id: t.id, name: t.name, slug: t.slug })),
+      author: post.isAnonymous || !author
+        ? null
+        : {
+            id: author.id,
+            username: author.username,
+            displayName: author.displayName,
+            avatarUrl: author.avatarUrl,
+            verifiedTherapist: author.verifiedTherapist,
+          },
+      voteScore: post.voteScore,
+      commentCount: post.commentCount,
+      viewCount: post.viewCount,
+      isPinned: post.isPinned,
+      isLocked: post.isLocked,
+      isAnonymous: post.isAnonymous,
+      images: post.images,
+      userVote: userVotes.get(post.id),
+    }));
 
     return {
       data: formattedPosts,
@@ -186,8 +194,8 @@ export class PostService implements IPostService {
     const result = await this.postRepo.findByIdWithAuthor(id);
     if (!result) return null;
 
-    // Increment view count
-    await this.postRepo.incrementViewCount(id);
+    // Increment view count using Redis batching
+    await this.viewCountService.incrementViewCount(id, currentUserId);
 
     return this.formatPost(id, currentUserId);
   }
@@ -198,13 +206,20 @@ export class PostService implements IPostService {
       throw new NotFoundError('Post', id);
     }
 
-    // Check ownership or moderator
-    if (post.authorId !== userId) {
-      const user = await this.userRepo.findByIdWithProfile(userId);
-      const isModeratorOrAdmin = user?.user.roles.some(r => r === 'MODERATOR' || r === 'ADMIN');
-      if (!isModeratorOrAdmin) {
-        throw new ForbiddenError('Not authorized to delete this post');
-      }
+    // Check authorization using centralized service
+    const authContext = await this.authService.getAuthContext(userId);
+    if (!authContext) {
+      throw new ForbiddenError('User not found');
+    }
+
+    const resourceContext = await this.authService.getPostResourceContext(id);
+    if (!resourceContext) {
+      throw new NotFoundError('Post', id);
+    }
+
+    const canDelete = await this.authService.canDelete(authContext, resourceContext);
+    if (!canDelete.allowed) {
+      throw new ForbiddenError(canDelete.reason || 'Not authorized to delete this post');
     }
 
     await this.postRepo.delete(id);
@@ -334,9 +349,8 @@ export class PostService implements IPostService {
       throw new NotFoundError('Post', postId);
     }
 
-    const { post, author } = result;
-    const category = await this.categoryRepo.findById(post.categoryId);
-    const tags = await this.tagRepo.findByPostId(post.id);
+    // Category and tags now come from the repository (single query with include)
+    const { post, author, category, tags } = result;
 
     let userVote: number | undefined;
     if (currentUserId) {
@@ -373,12 +387,4 @@ export class PostService implements IPostService {
     };
   }
 
-  private sanitizeHtml(html: string): string {
-    if (!html) return '';
-    return html
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/\s*on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '')
-      .replace(/javascript:[^"']*/gi, '')
-      .replace(/data:text\/html[^"']*/gi, '');
-  }
 }

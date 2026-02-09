@@ -8,7 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { AnimatedMascot, MascotState } from "@/components/ui/AnimatedMascot";
-import { Mail, Eye, EyeOff } from "lucide-react";
+import { CaptchaWidget } from "@/components/captcha";
+import { HoneypotField } from "@/components/security/HoneypotField";
+import { isCaptchaEnabled } from "@/lib/captcha-client";
+import { Mail, Eye, EyeOff, Shield } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -26,6 +29,8 @@ export default function RegisterPage() {
   const [mascotState, setMascotState] = useState<MascotState>("idle");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -63,6 +68,15 @@ export default function RegisterPage() {
         return;
       }
 
+      // Check if CAPTCHA is required
+      const captchaRequired = await isCaptchaEnabled();
+      if (captchaRequired && !captchaToken) {
+        setError("Please complete the CAPTCHA verification");
+        setCaptchaError("CAPTCHA verification required");
+        setIsLoading(false);
+        return;
+      }
+
       // Call registration API
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -73,6 +87,7 @@ export default function RegisterPage() {
           confirmPassword: formData.confirmPassword,
           username: formData.username,
           displayName: formData.displayName,
+          captchaToken,
         }),
       });
 
@@ -161,6 +176,8 @@ export default function RegisterPage() {
         )}
 
         <form onSubmit={handleRegister} className="space-y-5">
+          {/* Honeypot field - invisible to humans, catches bots */}
+          <HoneypotField fieldName="website" label="Website" />
           <div className="animate-slide-up" style={{ animationDelay: '200ms' }}>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 ml-1">
               Email Address
@@ -269,7 +286,34 @@ export default function RegisterPage() {
             {fieldErrors.confirmPassword && <p className="mt-1 ml-1 text-xs font-bold text-rose-500">{fieldErrors.confirmPassword}</p>}
           </div>
 
-          <div className="animate-slide-up" style={{ animationDelay: '450ms' }}>
+          {/* CAPTCHA Widget */}
+          <div className="animate-slide-up" style={{ animationDelay: '440ms' }}>
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-4 h-4 text-gray-500" />
+              <label className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                Security Verification
+              </label>
+            </div>
+            <CaptchaWidget
+              onVerify={(token) => {
+                setCaptchaToken(token);
+                setCaptchaError(null);
+              }}
+              onError={(error) => {
+                setCaptchaError(error);
+                setCaptchaToken(null);
+              }}
+              onExpire={() => {
+                setCaptchaToken(null);
+              }}
+              theme="light"
+            />
+            {captchaError && (
+              <p className="mt-1 ml-1 text-xs font-bold text-rose-500">{captchaError}</p>
+            )}
+          </div>
+
+          <div className="animate-slide-up" style={{ animationDelay: '480ms' }}>
             <Button
               type="submit"
               disabled={isLoading}

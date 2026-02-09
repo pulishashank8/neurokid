@@ -1,8 +1,10 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { createLogger } from '@/lib/logger';
 
 export async function POST() {
+    const logger = createLogger({ context: 'Quality Trigger' });
     try {
         // Try Python Service first (if running)
         try {
@@ -18,7 +20,7 @@ export async function POST() {
             }
         } catch {
             // Python service not available, use TypeScript fallback
-            console.log('[Quality] Python service unavailable, using TypeScript engine');
+            logger.debug('Python service unavailable, using TypeScript engine');
         }
 
         // Fallback to TypeScript-based quality engine
@@ -146,7 +148,7 @@ export async function POST() {
             },
         });
     } catch (error) {
-        console.error("Failed to trigger quality checks:", error);
+        logger.error({ error }, 'Failed to trigger quality checks');
         return NextResponse.json({ success: false, error: 'Failed to run quality checks' }, { status: 500 });
     }
 }

@@ -11,6 +11,8 @@
 import { prisma } from "@/lib/prisma";
 import { FieldEncryption } from "@/lib/encryption";
 import { AuditLogger } from "@/lib/audit";
+import { trackTokenUsage } from "@/lib/ai/token-tracker";
+import { checkCache, cacheResponse } from "@/lib/ai/cache";
 
 export type AIJobStatus = "pending" | "processing" | "completed" | "failed";
 
@@ -28,7 +30,7 @@ export interface AIJob {
   completedAt?: Date;
 }
 
-interface ChatMessage {
+export interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
@@ -112,6 +114,29 @@ export class AIJobQueue {
   }
 
   /**
+   * Get count of pending jobs before a specific job (for estimating wait time)
+   */
+  static async getPendingCountBefore(jobId: string): Promise<number> {
+    const job = await prisma.aIJob.findUnique({
+      where: { id: jobId },
+      select: { createdAt: true },
+    });
+
+    if (!job) return 0;
+
+    const count = await prisma.aIJob.count({
+      where: {
+        status: 'pending',
+        createdAt: {
+          lt: job.createdAt,
+        },
+      },
+    });
+
+    return count;
+  }
+
+  /**
    * Process job asynchronously
    */
   private static async processJob(jobId: string): Promise<void> {
@@ -132,8 +157,23 @@ export class AIJobQueue {
         FieldEncryption.decrypt(job.messages) || "[]"
       );
 
-      // Call AI with circuit breaker
-      const result = await this.callAIWithCircuitBreaker(messages);
+      // Check cache first
+      const cacheCheck = await checkCache(messages);
+      let result: string;
+      let provider: 'groq' | 'gemini' | 'fallback';
+
+      if (cacheCheck.hit && cacheCheck.response) {
+        // Use cached response
+        result = cacheCheck.response;
+        provider = (cacheCheck.provider as 'groq' | 'gemini' | 'fallback') || 'fallback';
+      } else {
+        // Call AI with circuit breaker
+        result = await this.callAIWithCircuitBreaker(messages);
+        provider = this.detectProvider(result);
+
+        // Cache the response
+        await cacheResponse(messages, result, provider);
+      }
 
       // Encrypt result
       const encryptedResult = FieldEncryption.encrypt(result);
@@ -157,6 +197,9 @@ export class AIJobQueue {
           content: result,
         },
       });
+
+      // Track token usage (provider already determined above)
+      await trackTokenUsage(job.userId, jobId, messages, result, provider);
 
       await AuditLogger.log({
         action: "AI_CHAT_COMPLETED",
@@ -201,12 +244,38 @@ export class AIJobQueue {
 
       setTimeout(() => this.processJob(jobId), delay);
     } else {
-      // Final failure
+      // Final failure - move to dead letter queue
+      await this.moveToDeadLetterQueue(job, errorMessage);
+    }
+  }
+
+  /**
+   * Move failed job to dead letter queue after max retries
+   */
+  private static async moveToDeadLetterQueue(
+    job: any,
+    errorMessage: string
+  ): Promise<void> {
+    try {
+      // Create dead letter entry
+      await prisma.aIJobDeadLetter.create({
+        data: {
+          originalJobId: job.id,
+          userId: job.userId,
+          conversationId: job.conversationId,
+          messages: job.messages, // Already encrypted
+          error: errorMessage,
+          retryCount: job.retryCount,
+          failedAt: new Date(),
+        },
+      });
+
+      // Mark original job as failed
       await prisma.aIJob.update({
-        where: { id: jobId },
+        where: { id: job.id },
         data: {
           status: "failed",
-          error: errorMessage,
+          error: `Moved to dead letter queue: ${errorMessage}`,
           completedAt: new Date(),
         },
       });
@@ -216,9 +285,134 @@ export class AIJobQueue {
         userId: job.userId,
         resourceType: "AIConversation",
         resourceId: job.conversationId,
-        metadata: { jobId, error: errorMessage, failed: true },
+        metadata: { jobId: job.id, error: errorMessage, deadLetter: true },
+      });
+    } catch (dlqError) {
+      // If DLQ insertion fails, still mark job as failed
+      console.error("Failed to move job to dead letter queue:", dlqError);
+      
+      await prisma.aIJob.update({
+        where: { id: job.id },
+        data: {
+          status: "failed",
+          error: errorMessage,
+          completedAt: new Date(),
+        },
       });
     }
+  }
+
+  /**
+   * Get dead letter jobs for admin review
+   */
+  static async getDeadLetterJobs(options?: {
+    limit?: number;
+    offset?: number;
+    userId?: string;
+  }): Promise<Array<{
+    id: string;
+    originalJobId: string;
+    userId: string;
+    conversationId: string;
+    error: string;
+    retryCount: number;
+    failedAt: Date;
+    retriedAt?: Date;
+    retried: boolean;
+  }>> {
+    const jobs = await prisma.aIJobDeadLetter.findMany({
+      where: options?.userId ? { userId: options.userId } : undefined,
+      orderBy: { failedAt: 'desc' },
+      take: options?.limit || 50,
+      skip: options?.offset || 0,
+    });
+
+    return jobs.map(job => ({
+      id: job.id,
+      originalJobId: job.originalJobId,
+      userId: job.userId,
+      conversationId: job.conversationId,
+      error: job.error,
+      retryCount: job.retryCount,
+      failedAt: job.failedAt,
+      retriedAt: job.retriedAt || undefined,
+      retried: job.retried,
+    }));
+  }
+
+  /**
+   * Retry a dead letter job
+   */
+  static async retryDeadLetterJob(deadLetterId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const dlqJob = await prisma.aIJobDeadLetter.findUnique({
+        where: { id: deadLetterId },
+      });
+
+      if (!dlqJob) {
+        return { success: false, error: 'Dead letter job not found' };
+      }
+
+      if (dlqJob.retried) {
+        return { success: false, error: 'Job has already been retried' };
+      }
+
+      // Create a new AI job from the dead letter
+      const newJob = await prisma.aIJob.create({
+        data: {
+          userId: dlqJob.userId,
+          conversationId: dlqJob.conversationId,
+          messages: dlqJob.messages,
+          status: 'pending',
+          retryCount: 0,
+        },
+      });
+
+      // Mark dead letter as retried
+      await prisma.aIJobDeadLetter.update({
+        where: { id: deadLetterId },
+        data: {
+          retried: true,
+          retriedAt: new Date(),
+          newJobId: newJob.id,
+        },
+      });
+
+      // Trigger processing
+      this.processJob(newJob.id).catch(error => {
+        console.error(`Failed to start retried job ${newJob.id}:`, error);
+      });
+
+      return { success: true };
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: errorMsg };
+    }
+  }
+
+  /**
+   * Get dead letter queue statistics
+   */
+  static async getDeadLetterStats(): Promise<{
+    total: number;
+    retried: number;
+    pending: number;
+    recentFailures: number; // Last 24 hours
+  }> {
+    const [total, retried, pending, recentFailures] = await Promise.all([
+      prisma.aIJobDeadLetter.count(),
+      prisma.aIJobDeadLetter.count({ where: { retried: true } }),
+      prisma.aIJobDeadLetter.count({ where: { retried: false } }),
+      prisma.aIJobDeadLetter.count({
+        where: {
+          failedAt: {
+            gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
+          },
+        },
+      }),
+    ]);
+
+    return { total, retried, pending, recentFailures };
   }
 
   /**
@@ -385,5 +579,48 @@ export class AIJobQueue {
 
   private static recordSuccess(provider: string): void {
     this.circuitFailures.delete(provider);
+  }
+
+  /**
+   * Detect which provider was used based on response characteristics
+   * This is a heuristic - in production we'd track the actual provider
+   */
+  private static detectProvider(result: string): 'groq' | 'gemini' | 'fallback' {
+    // Check if it's a fallback response
+    if (result.includes('trouble connecting') || 
+        result.includes('technical difficulties') ||
+        result.startsWith("I'm experiencing")) {
+      return 'fallback';
+    }
+    // Default to groq as primary provider
+    return 'groq';
+  }
+
+  /**
+   * Get circuit breaker state for monitoring
+   */
+  static getCircuitState(): {
+    groqOpen: boolean;
+    groqFailures: number;
+    groqLastFailure?: number;
+    geminiOpen: boolean;
+    geminiFailures: number;
+    geminiLastFailure?: number;
+    threshold: number;
+    resetMs: number;
+  } {
+    const groqState = this.circuitFailures.get('groq');
+    const geminiState = this.circuitFailures.get('gemini');
+
+    return {
+      groqOpen: this.isCircuitOpen('groq'),
+      groqFailures: groqState?.count || 0,
+      groqLastFailure: groqState?.lastFailure,
+      geminiOpen: this.isCircuitOpen('gemini'),
+      geminiFailures: geminiState?.count || 0,
+      geminiLastFailure: geminiState?.lastFailure,
+      threshold: this.CIRCUIT_BREAKER_THRESHOLD,
+      resetMs: this.CIRCUIT_BREAKER_RESET_MS,
+    };
   }
 }

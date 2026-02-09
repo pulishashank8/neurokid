@@ -4,15 +4,18 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { CaptchaWidget } from "@/components/captcha";
+import { isCaptchaEnabled } from "@/lib/captcha-client";
+import { Mail, ArrowLeft, CheckCircle, Shield } from "lucide-react";
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
     const [success, setSuccess] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+    const [captchaError, setCaptchaError] = useState<string | null>(null);
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -20,10 +23,19 @@ export default function ForgotPasswordPage() {
         setError(null);
 
         try {
+            // Check if CAPTCHA is required
+            const captchaRequired = await isCaptchaEnabled();
+            if (captchaRequired && !captchaToken) {
+                setError("Please complete the CAPTCHA verification");
+                setCaptchaError("CAPTCHA verification required");
+                setIsLoading(false);
+                return;
+            }
+
             const res = await fetch("/api/auth/forgot-password", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email }),
+                body: JSON.stringify({ email, captchaToken }),
             });
 
             // We ignore response status/error (unless 429) to prevent enumeration,
@@ -113,6 +125,34 @@ export default function ForgotPasswordPage() {
                             </div>
                         </div>
                     </div>
+
+                    {/* CAPTCHA Widget */}
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Shield className="w-4 h-4 text-gray-500" />
+                            <label className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                                Security Verification
+                            </label>
+                        </div>
+                        <CaptchaWidget
+                            onVerify={(token) => {
+                                setCaptchaToken(token);
+                                setCaptchaError(null);
+                            }}
+                            onError={(error) => {
+                                setCaptchaError(error);
+                                setCaptchaToken(null);
+                            }}
+                            onExpire={() => {
+                                setCaptchaToken(null);
+                            }}
+                            theme="light"
+                        />
+                        {captchaError && (
+                            <p className="ml-1 text-xs font-bold text-rose-500">{captchaError}</p>
+                        )}
+                    </div>
+
                     <Button
                         type="submit"
                         disabled={isLoading}

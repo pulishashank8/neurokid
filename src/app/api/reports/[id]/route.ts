@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canModerate } from "@/lib/rbac";
+import { Report, Post, Comment, User, Profile } from "@prisma/client";
+
+// Union type for report target (simplified for API response)
+type ReportTarget = Record<string, unknown> | null;
+
+interface ReportWithReporter extends Report {
+  reporter: {
+    id: string;
+    profile: Profile | null;
+  } | null;
+}
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,7 +27,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     });
     if (!report) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    let target: any = null;
+    let target: ReportTarget = null;
     if (report.targetType === "POST") {
       target = await prisma.post.findUnique({
         where: { id: report.targetId },
@@ -43,7 +54,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       targetId: report.targetId,
       status: report.status,
       createdAt: report.createdAt,
-      reporter: report.reporter ? { id: report.reporter.id, username: (report.reporter.profile as any)?.username ?? null } : null,
+      reporter: report.reporter ? { id: report.reporter.id, username: report.reporter.profile?.username ?? null } : null,
       target,
     };
 
@@ -67,7 +78,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const report = await prisma.report.findUnique({ where: { id } });
     if (!report) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    let updatedReport: any = report;
+    let updatedReport: Report = report;
 
     switch (action) {
       case "DISMISS":

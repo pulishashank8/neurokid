@@ -181,12 +181,12 @@ export default function AACDemoPage() {
       </header>
 
       {/* AAC Board */}
-      <main className="h-[calc(100vh-108px)] overflow-hidden">
+      <div data-testid="aac-board-container" className="h-[calc(100vh-108px)] overflow-hidden">
         <AACBoard 
           onToggleFullscreen={toggleFullscreen} 
           isFullscreen={isFullscreen} 
         />
-      </main>
+      </div>
 
       {/* Login Prompt Modal */}
       {showLoginPrompt && (

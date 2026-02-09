@@ -41,6 +41,16 @@ export interface PostWithAuthor {
     avatarUrl: string | null;
     verifiedTherapist: boolean;
   } | null;
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+  tags: {
+    id: string;
+    name: string;
+    slug: string;
+  }[];
 }
 
 export interface IPostRepository {

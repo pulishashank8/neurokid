@@ -17,6 +17,26 @@ let redisClient: any = null;
 let inMemoryCache = new Map<string, { value: string; expiresAt: number }>();
 
 /**
+ * Non-blocking key scan using SCAN instead of KEYS
+ * KEYS blocks Redis in production with large datasets
+ * SCAN iterates incrementally without blocking
+ */
+async function scanKeys(redis: any, pattern: string): Promise<string[]> {
+  if (!redis) return [];
+
+  const keys: string[] = [];
+  const stream = redis.scanStream({ match: pattern, count: 100 });
+
+  return new Promise((resolve, reject) => {
+    stream.on('data', (resultKeys: string[]) => {
+      keys.push(...resultKeys);
+    });
+    stream.on('end', () => resolve(keys));
+    stream.on('error', reject);
+  });
+}
+
+/**
  * Initialize Redis client lazily (shared with rateLimit.ts)
  */
 async function getRedisClient() {
@@ -119,6 +139,7 @@ export class Cache {
 
   /**
    * Clear all cache entries for this cache instance
+   * Uses SCAN instead of KEYS to avoid blocking Redis
    */
   async clear(): Promise<void> {
     const redis = await getRedisClient();
@@ -126,7 +147,8 @@ export class Cache {
     if (redis) {
       try {
         const pattern = `cache:${this.name}:*`;
-        const keys = await redis.keys(pattern);
+        // Use scanKeys instead of redis.keys() to avoid blocking
+        const keys = await scanKeys(redis, pattern);
         if (keys.length > 0) {
           await redis.del(keys);
         }
@@ -230,13 +252,15 @@ export function getCacheKeyFromRequest(
 /**
  * Invalidate cache patterns (for mutations)
  * Example: invalidatePattern("posts:*") clears all post caches
+ * Uses SCAN instead of KEYS to avoid blocking Redis
  */
 export async function invalidateCachePattern(pattern: string): Promise<void> {
   const redis = await getRedisClient();
 
   if (redis) {
     try {
-      const keys = await redis.keys(pattern);
+      // Use scanKeys instead of redis.keys() to avoid blocking
+      const keys = await scanKeys(redis, pattern);
       if (keys.length > 0) {
         await redis.del(keys);
       }
