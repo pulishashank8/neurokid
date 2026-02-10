@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
+import { rotateUserSessions } from '@/lib/auth/session-rotation';
 
 async function verifyOwnerAuth() {
   const cookieStore = await cookies();
@@ -37,6 +38,9 @@ export async function POST(
       },
     });
 
+    // Rotate sessions to immediately invalidate all existing sessions
+    await rotateUserSessions(id, `User banned: ${reason || 'No reason provided'}`);
+
     return NextResponse.json({ success: true, user });
   } catch (error) {
     console.error('Error banning user:', error);
@@ -63,6 +67,9 @@ export async function DELETE(
         bannedReason: null,
       },
     });
+
+    // Rotate sessions to force re-authentication after unban
+    await rotateUserSessions(id, 'User unbanned');
 
     return NextResponse.json({ success: true, user });
   } catch (error) {

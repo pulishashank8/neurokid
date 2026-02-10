@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { BackButton } from "@/components/ui/BackButton";
 import {
@@ -12,8 +12,30 @@ import {
     Sparkles,
     Trash2,
     PartyPopper,
-    Medal
+    Medal,
+    Filter
 } from "lucide-react";
+
+const DATE_RANGES = [
+    { value: "all", label: "All time" },
+    { value: "7d", label: "Past 7 days" },
+    { value: "30d", label: "Past 30 days" },
+    { value: "90d", label: "Past 3 months" },
+    { value: "1y", label: "Past year" },
+] as const;
+
+type DateRangeValue = (typeof DATE_RANGES)[number]["value"];
+
+function getStartDateForRange(range: DateRangeValue): Date | null {
+    if (range === "all") return null;
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    if (range === "7d") start.setDate(start.getDate() - 7);
+    else if (range === "30d") start.setDate(start.getDate() - 30);
+    else if (range === "90d") start.setDate(start.getDate() - 90);
+    else if (range === "1y") start.setFullYear(start.getFullYear() - 1);
+    return start;
+}
 
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,6 +52,7 @@ export function DailyWinsApp() {
     const [wins, setWins] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isNewOpen, setIsNewOpen] = useState(false);
+    const [dateRange, setDateRange] = useState<DateRangeValue>("all");
 
     // Form state
     const [formData, setFormData] = useState({
@@ -96,6 +119,12 @@ export function DailyWinsApp() {
             default: return 'from-slate-400 to-slate-500';
         }
     };
+
+    const filteredWins = useMemo(() => {
+        const start = getStartDateForRange(dateRange);
+        if (!start) return wins;
+        return wins.filter((w) => new Date(w.date) >= start);
+    }, [wins, dateRange]);
 
     return (
         <div className="min-h-screen bg-[var(--background)] px-4 pt-24 pb-8 sm:px-6 lg:px-8 overflow-hidden relative">
@@ -210,6 +239,30 @@ export function DailyWinsApp() {
                     </Dialog>
                 </header>
 
+                {/* Date range filter */}
+                {!loading && wins.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-2 mb-6">
+                        <Filter className="w-4 h-4 text-[var(--muted)] shrink-0" />
+                        <span className="text-sm font-medium text-[var(--muted)]">Show:</span>
+                        <div className="flex flex-wrap gap-2">
+                            {DATE_RANGES.map((r) => (
+                                <button
+                                    key={r.value}
+                                    type="button"
+                                    onClick={() => setDateRange(r.value)}
+                                    className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-colors touch-manipulation min-h-[44px] sm:min-h-0 ${
+                                        dateRange === r.value
+                                            ? "bg-amber-500 text-white dark:bg-amber-500"
+                                            : "bg-slate-100 dark:bg-white/10 text-[var(--muted)] hover:bg-slate-200 dark:hover:bg-white/20"
+                                    }`}
+                                >
+                                    {r.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Wins List */}
                 <div className="space-y-8 pb-20">
                     {loading ? (
@@ -217,16 +270,20 @@ export function DailyWinsApp() {
                             <div className="w-20 h-20 border-8 border-amber-500/30 border-t-amber-500 rounded-full animate-spin mb-6" />
                             <p className="text-xl font-medium text-[var(--muted)] animate-pulse">Loading amazing moments...</p>
                         </div>
-                    ) : wins.length === 0 ? (
+                    ) : filteredWins.length === 0 ? (
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             className="text-center py-20 px-8 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-3xl border-2 border-amber-100 dark:border-amber-900/30 border-dashed"
                         >
                             <Sparkles className="w-20 h-20 text-amber-400 mx-auto mb-6 animate-pulse" />
-                            <h3 className="text-2xl font-bold mb-3 text-amber-900 dark:text-amber-100">No wins recorded yet</h3>
+                            <h3 className="text-2xl font-bold mb-3 text-amber-900 dark:text-amber-100">
+                                {wins.length === 0 ? "No wins recorded yet" : "No wins in this date range"}
+                            </h3>
                             <p className="text-[var(--muted)] max-w-sm mx-auto mb-8 text-lg">
-                                Every step forward counts. Record your first win today!
+                                {wins.length === 0
+                                    ? "Every step forward counts. Record your first win today!"
+                                    : "Try a different date range to see more wins."}
                             </p>
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
@@ -234,13 +291,13 @@ export function DailyWinsApp() {
                                 onClick={() => setIsNewOpen(true)}
                                 className="inline-flex items-center gap-2 text-amber-600 font-bold bg-amber-100 dark:bg-amber-900/50 px-6 py-3 rounded-xl hover:bg-amber-200 transition-colors"
                             >
-                                Record a win
+                                {wins.length === 0 ? "Record a win" : "Add a win"}
                             </motion.button>
                         </motion.div>
                     ) : (
                         <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2">
                             <AnimatePresence>
-                                {wins.map((win, index) => (
+                                {filteredWins.map((win, index) => (
                                     <motion.div
                                         key={win.id}
                                         initial={{ opacity: 0, y: 50, scale: 0.9 }}

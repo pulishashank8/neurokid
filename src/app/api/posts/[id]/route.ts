@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth.config";
 import { prisma } from "@/lib/prisma";
 import { updatePostSchema } from "@/lib/validations/community";
 import { canModerate } from "@/lib/rbac";
-import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
-import { withApiHandler, getRequestId } from "@/lib/apiHandler";
+import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
+import { withApiHandler, getRequestId } from "@/lib/api";
 import { createLogger } from "@/lib/logger";
 import { sanitizeHtml } from "@/lib/security";
 import { successResponse, errorResponse, forbiddenError, notFoundError, unauthorizedError } from "@/lib/apiResponse";
 import { logSecurityEvent } from "@/lib/securityAudit";
+import { Prisma } from "@prisma/client";
 
 function enforceSafeLinks(html: string): string {
   return html.replace(/<a\s+([^>]*?)>/gi, (match, attrs) => {
@@ -24,10 +25,11 @@ export const GET = withApiHandler(async (
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) => {
+  const logger = createLogger({ context: 'GET /api/posts/[id]' });
   try {
     const { id } = await params;
 
-    console.log(`[GET /api/posts/${id}] Starting request...`);
+    logger.debug({ postId: id }, 'Starting request');
 
     if (!id) {
       return errorResponse("VALIDATION_ERROR", "Post ID missing", 400);
@@ -37,7 +39,7 @@ export const GET = withApiHandler(async (
       return errorResponse("VALIDATION_ERROR", "Invalid ID", 400);
     }
 
-    console.log(`[GET /api/posts/${id}] Fetching from Prisma...`);
+    logger.debug({ postId: id }, 'Fetching from Prisma');
     const post = await prisma.post.findUnique({
       where: { id },
       include: {
@@ -77,11 +79,11 @@ export const GET = withApiHandler(async (
     });
 
     if (!post) {
-      console.log(`[GET /api/posts/${id}] Post not found`);
+      logger.debug({ postId: id }, 'Post not found');
       return notFoundError("Post");
     }
 
-    console.log(`[GET /api/posts/${id}] Post found: ${post.title}`);
+    logger.debug({ postId: id, title: post.title }, 'Post found');
 
     // Format response
     const formattedPost = {
@@ -113,13 +115,17 @@ export const GET = withApiHandler(async (
       isAnonymous: post.isAnonymous,
     };
 
-    console.log(`[GET /api/posts/${id}] Sending response`);
+    logger.debug({ postId: id }, 'Sending response');
     return successResponse(formattedPost);
-  } catch (error: any) {
+  } catch (error) {
     console.error(`[GET /api/posts/FAILED] Error:`, error);
-    console.error(`Stack:`, error.stack);
+    console.error(`Stack:`, error instanceof Error ? error.stack : 'No stack trace');
     return errorResponse("INTERNAL_ERROR", "Internal Server Error", 500);
   }
+}, {
+  method: 'GET',
+  routeName: 'GET /api/posts/[id]',
+  requireAuth: false,
 });
 
 // PATCH /api/posts/[id] - Update post
@@ -164,12 +170,12 @@ export async function PATCH(
 
     const { title, content, categoryId, tagIds, isAnonymous } = validation.data;
 
-    const updateData: any = {};
+    const updateData: Prisma.PostUpdateInput = {};
     if (title) updateData.title = sanitizeHtml(title);
     if (content) {
       updateData.content = sanitizeHtml(enforceSafeLinks(content));
     }
-    if (categoryId) updateData.categoryId = categoryId;
+    if (categoryId) updateData.category = { connect: { id: categoryId } };
     if (isAnonymous !== undefined) updateData.isAnonymous = isAnonymous;
 
     if (tagIds) {

@@ -1823,9 +1823,9 @@ export default function MarketplacePage() {
     }, [searchTerm, selectedCategory]);
 
     return (
-        <div className="min-h-screen bg-[var(--background)] pt-20">
+        <div className="min-h-screen bg-[var(--background)] pt-28">
             {/* Header */}
-            <div className="bg-[var(--surface)] border-b border-[var(--border)] sticky top-20 z-30 shadow-sm">
+            <div className="bg-[var(--surface)] border-b border-[var(--border)] sticky top-28 z-30 shadow-sm">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">

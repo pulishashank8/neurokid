@@ -1,5 +1,8 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PollyClient, SynthesizeSpeechCommand, VoiceId, LanguageCode } from "@aws-sdk/client-polly";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth.config";
+import { rateLimitResponse, RATE_LIMITERS } from "@/lib/rate-limit";
 
 // Split text into chunks at sentence boundaries, respecting max length
 function splitTextIntoChunks(text: string, maxLength: number = 2800): string[] {
@@ -47,6 +50,19 @@ const VOICE_CONFIG: Record<string, { voiceId: string; languageCode?: string }> =
 
 export async function POST(req: NextRequest) {
     try {
+        // Authentication check
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        // Rate limiting
+        const canProceed = await RATE_LIMITERS.aiChat.checkLimit(session.user.id);
+        if (!canProceed) {
+            const retryAfter = await RATE_LIMITERS.aiChat.getRetryAfter(session.user.id);
+            return rateLimitResponse(retryAfter);
+        }
+
         const { text, voice = "Ivy" } = await req.json();
 
         if (!text) {
@@ -62,8 +78,7 @@ export async function POST(req: NextRequest) {
         const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
         const region = process.env.AWS_REGION;
 
-        console.log("Polly Region:", region);
-        console.log("Text length:", text.length);
+        // Debug logging removed - using structured logging in production
 
         if (!accessKey || !secretKey || !region) {
             return new Response(
@@ -82,7 +97,7 @@ export async function POST(req: NextRequest) {
 
         // Split text into chunks to handle Polly's 3000 char limit for neural voices
         const chunks = splitTextIntoChunks(text);
-        console.log(`Processing ${chunks.length} chunks`);
+        // Debug logging removed - using structured logging in production
 
         const audioBuffers: Buffer[] = [];
 
@@ -113,8 +128,9 @@ export async function POST(req: NextRequest) {
                 "Content-Type": "audio/mpeg",
             },
         });
-    } catch (error: any) {
+    } catch (error) {
         console.error("Polly TTS Error:", error);
-        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+        const message = error instanceof Error ? error.message : 'TTS processing failed';
+        return new Response(JSON.stringify({ error: message }), { status: 500 });
     }
 }

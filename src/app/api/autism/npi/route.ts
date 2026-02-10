@@ -1,12 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { rateLimitResponse, RATE_LIMITERS } from "@/lib/rate-limit";
+import { createLogger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
+    const logger = createLogger({ context: 'NPI Proxy' });
     try {
+        // Rate limit by IP to prevent abuse
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+                   request.headers.get('x-real-ip') ||
+                   'anonymous';
+
+        const canProceed = await RATE_LIMITERS.searchProviders.checkLimit(ip);
+        if (!canProceed) {
+            const retryAfter = await RATE_LIMITERS.searchProviders.getRetryAfter(ip);
+            return rateLimitResponse(retryAfter);
+        }
+
         const { searchParams } = new URL(request.url);
         const npiParams = new URLSearchParams(searchParams);
 
         const targetUrl = `https://npiregistry.cms.hhs.gov/api/?${npiParams.toString()}`;
-        console.log('NPI Proxy fetching:', targetUrl);
+        logger.debug({ targetUrl }, 'NPI Proxy fetching');
 
         // Forward the request to NPPES API
         const response = await fetch(targetUrl, {
@@ -17,18 +31,18 @@ export async function GET(request: NextRequest) {
             next: { revalidate: 3600 }
         });
 
-        console.log('NPI Proxy response status:', response.status);
+        logger.debug({ status: response.status }, 'NPI Proxy response');
 
         if (!response.ok) {
             const errorBody = await response.text();
-            console.error('NPPES API Error Body:', errorBody);
+            logger.error({ errorBody, status: response.status }, 'NPPES API Error');
             return NextResponse.json({ error: 'Failed to fetch from NPI Registry', details: errorBody }, { status: response.status });
         }
 
         const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('NPI Proxy Error:', error);
+        logger.error({ error }, 'NPI Proxy Error');
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

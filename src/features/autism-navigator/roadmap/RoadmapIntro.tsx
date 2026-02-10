@@ -35,12 +35,11 @@ export function RoadmapIntro({ onComplete }: RoadmapIntroProps) {
 
     // Fallback: Get all zips for the state if available
     if (selectedStateAbbr) {
-      // @ts-ignore - lookupByState exists in runtime but might be missing in types
+      // @ts-expect-error - lookupByState exists in runtime but might be missing in types
       const stateZips = zipcodes.lookupByState(selectedStateAbbr);
       if (stateZips && stateZips.length > 0) {
         // Sort and deduplicate
-        // @ts-ignore
-        const zips = stateZips.map((z: any) => z.zip);
+        const zips = stateZips.map((z: { zip?: string }) => z.zip);
         return Array.from(new Set(zips)).sort() as string[];
       }
     }

@@ -82,33 +82,33 @@ export class NPIService {
     private static BASE_URL = '/api/autism/npi';
 
     static async searchProviders(zipCode: string, typeCode?: string): Promise<NPIProvider[]> {
+        const trimmedZip = zipCode?.trim();
+        if (!trimmedZip || trimmedZip.length < 3) {
+            return [];
+        }
         try {
             const params = new URLSearchParams({
                 version: '2.1',
-                postal_code: zipCode,
+                postal_code: trimmedZip,
                 limit: '20',
             });
 
             if (typeCode) {
                 params.append('taxonomy_code', typeCode);
             } else {
-                // Search for any of our relevant taxonomies if none specified
-                // Note: API doesn't support multiple taxonomy_code in one call easily as OR
-                // So we default to something general or just use the first match
                 params.append('taxonomy_code', PROVIDER_TYPES.DEVELOPMENTAL_PEDIATRICIAN.code);
             }
 
-            const response = await fetch(`${this.BASE_URL}?${params.toString()}`);
+            const response = await fetch(`${this.BASE_URL}?${params.toString()}`, {
+                signal: AbortSignal.timeout(15000),
+            });
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('NPI Fetch Error:', errorText);
-                throw new Error('Failed to fetch from NPI Registry');
+                return [];
             }
 
             const data: NPISearchResponse = await response.json();
             return data.results || [];
-        } catch (error) {
-            console.error('NPPES API Error:', error);
+        } catch {
             return [];
         }
     }

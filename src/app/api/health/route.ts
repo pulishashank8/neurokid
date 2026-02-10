@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getEnv, isRedisAvailable, isAIEnabled, isProduction, getEmailConfigStatus } from "@/lib/env";
+import { CacheWarmingService } from "@/lib/cache-warming";
 
 /**
  * Enhanced health check endpoint for production monitoring
@@ -9,6 +10,7 @@ import { getEnv, isRedisAvailable, isAIEnabled, isProduction, getEmailConfigStat
  * - Redis availability (optional)
  * - AI features availability (optional)
  * - Environment configuration
+ * - Cache warming status
  * - Memory usage and uptime
  *
  * GET /api/health
@@ -17,7 +19,34 @@ import { getEnv, isRedisAvailable, isAIEnabled, isProduction, getEmailConfigStat
 
 export async function GET(request: NextRequest) {
   const detailed = request.nextUrl.searchParams.get("detailed") === "true";
-  const result: any = {
+  const result: {
+    timestamp: string;
+    status: 'healthy' | 'degraded' | 'unhealthy';
+    uptime: number;
+    environment: string;
+    config?: { ready: boolean };
+    database?: string;
+    error?: string;
+    redis?: string;
+    redisError?: string;
+    aiFeatures?: string;
+    email?: {
+      configured: boolean;
+      from: string | null;
+      warning?: string;
+    };
+    cacheWarming?: {
+      lastWarmAt: string | null;
+      isWarming: boolean;
+      warmedCaches: string[];
+    };
+    memory?: {
+      heapUsedMB: number;
+      heapTotalMB: number;
+      externalMB: number;
+    };
+    timings?: Record<string, number>;
+  } = {
     timestamp: new Date().toISOString(),
     status: "healthy",
     uptime: process.uptime(),
@@ -80,7 +109,17 @@ export async function GET(request: NextRequest) {
       result.email.warning = "Email service not configured";
     }
 
-    // 5. Memory usage
+    // 6. Check cache warming status
+    const cacheWarmingStatus = CacheWarmingService.getStatus();
+    result.cacheWarming = {
+      lastWarmAt: cacheWarmingStatus.lastWarmAt?.toISOString() || null,
+      isWarming: cacheWarmingStatus.isWarming,
+      warmedCaches: cacheWarmingStatus.results
+        .filter((r) => r.status === "success")
+        .map((r) => r.cache),
+    };
+
+    // 7. Memory usage
     if (typeof process !== "undefined" && process.memoryUsage) {
       const mem = process.memoryUsage();
       result.memory = {

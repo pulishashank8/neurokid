@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
+import { authOptions } from "@/lib/auth.config";
+import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "tts-1", // or "tts-1-hd" for higher quality
+        model: "tts-1-hd", // or "tts-1-hd" for higher quality
         input: truncatedText,
         voice: selectedVoice,
         response_format: "mp3",

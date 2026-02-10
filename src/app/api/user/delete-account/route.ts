@@ -1,9 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "@/lib/auth";
-import { dataGovernanceService } from "@/services/dataGovernanceService";
+import { DataDeletionProcessor } from "@/workers/processors/DataDeletionProcessor";
 import { logSecurityEvent } from "@/lib/securityAudit";
 import { successResponse, errorResponse } from "@/lib/apiResponse";
 
+/**
+ * Delete account: removes or anonymizes all user data (GDPR Right to Erasure).
+ * Uses DataDeletionProcessor so posts are anonymized, all other personal data is deleted.
+ */
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession();
@@ -11,27 +15,19 @@ export async function DELETE(request: NextRequest) {
       return errorResponse("UNAUTHORIZED", "Unauthorized", 401);
     }
 
-    const body = await request.json().catch(() => ({}));
-    const deleteType = body.deleteType || 'anonymize';
-
-    if (deleteType === 'complete') {
-      await dataGovernanceService.deleteUserCompletely(session.user.id, session.user.id);
-    } else {
-      await dataGovernanceService.anonymizeUserData(session.user.id, session.user.id);
-    }
+    const processor = new DataDeletionProcessor();
+    await processor.deleteUserData(session.user.id, "USER_REQUEST");
 
     await logSecurityEvent({
-      action: 'ACCOUNT_DELETED',
+      action: "ACCOUNT_DELETED",
       userId: session.user.id,
-      resource: 'user',
+      resource: "user",
       resourceId: session.user.id,
-      details: { deleteType },
+      details: { fullDeletion: true },
     });
 
     return successResponse({
-      message: deleteType === 'complete' 
-        ? "Account permanently deleted" 
-        : "Account data anonymized successfully",
+      message: "Account deleted. You have been signed out.",
     });
   } catch (error) {
     console.error("Delete account error:", error);

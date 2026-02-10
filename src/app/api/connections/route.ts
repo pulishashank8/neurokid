@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { prisma } from "@/lib/prisma";
-import { checkProfileComplete } from "@/lib/auth-utils";
-import { RATE_LIMITERS, rateLimitResponse } from "@/lib/rateLimit";
+import { container, TOKENS } from "@/lib/container";
+import { withApiHandler, AuthenticatedRequest, parseBody } from "@/lib/api";
+import { IConnectionService } from "@/domain/interfaces/services/IConnectionService";
+import { ValidationError } from "@/domain/errors";
+import { registerDependencies } from "@/lib/container-registrations";
 import { z } from "zod";
+import { checkProfileComplete } from "@/lib/auth-utils";
+import { notifyConnectionRequest } from "@/lib/notifications";
+
+// Ensure dependencies are registered
+registerDependencies();
 
 const connectionRequestSchema = z.object({
   receiverId: z.string().min(1).optional(),
@@ -14,266 +19,132 @@ const connectionRequestSchema = z.object({
   message: "Either receiverId or receiverUsername is required"
 });
 
-export async function GET(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+// GET /api/connections - List connections or requests
+export const GET = withApiHandler(
+  async (request: AuthenticatedRequest) => {
+    const connectionService = container.resolve<IConnectionService>(TOKENS.ConnectionService);
 
-    const userId = (session.user as { id: string }).id;
-
-    const canFetch = await RATE_LIMITERS.connectionRequest.checkLimit(userId);
-    if (!canFetch) {
-      const retryAfter = await RATE_LIMITERS.connectionRequest.getRetryAfter(userId);
-      return rateLimitResponse(retryAfter);
-    }
-
-    const isProfileComplete = await checkProfileComplete(userId);
-    if (!isProfileComplete) {
-      return NextResponse.json({ error: "Please complete your profile first" }, { status: 403 });
-    }
-
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get("type") || "all";
-    const LIMIT = 50; // Safety limit for connection lists
+
+    // Check profile complete
+    const isProfileComplete = await checkProfileComplete(request.session.user.id);
+    if (!isProfileComplete) {
+      throw new ValidationError('Please complete your profile first');
+    }
 
     if (type === "pending-received") {
-      const requests = await prisma.connectionRequest.findMany({
-        where: {
-          receiverId: userId,
-          status: "PENDING",
-        },
-        include: {
+      const requests = await connectionService.listReceivedRequests(request.session.user.id);
+      return NextResponse.json({ 
+        requests: requests.map(r => ({
+          id: r.id,
+          message: r.message,
+          createdAt: r.createdAt,
           sender: {
-            include: {
-              profile: true,
-            },
+            id: r.senderId,
+            username: r.senderUsername,
+            displayName: r.senderDisplayName,
+            avatarUrl: r.senderAvatarUrl,
           },
-        },
-        orderBy: { createdAt: "desc" },
-        take: LIMIT,
-      });
-
-      return NextResponse.json({
-        requests: requests
-          .filter((r) => r.sender)
-          .map((r) => ({
-            id: r.id,
-            message: r.message,
-            createdAt: r.createdAt,
-            sender: {
-              id: r.sender!.id,
-              username: r.sender!.profile?.username,
-              displayName: r.sender!.profile?.displayName,
-              avatarUrl: r.sender!.profile?.avatarUrl,
-            },
-          })),
+        }))
       });
     }
 
     if (type === "pending-sent") {
-      const requests = await prisma.connectionRequest.findMany({
-        where: {
-          senderId: userId,
-          status: "PENDING",
-        },
-        include: {
+      const requests = await connectionService.listSentRequests(request.session.user.id);
+      return NextResponse.json({ 
+        requests: requests.map(r => ({
+          id: r.id,
+          message: r.message,
+          createdAt: r.createdAt,
           receiver: {
-            include: {
-              profile: true,
-            },
+            id: r.senderId, // Note: in listSentRequests, sender is current user
+            username: r.senderUsername,
+            displayName: r.senderDisplayName,
+            avatarUrl: r.senderAvatarUrl,
           },
-        },
-        orderBy: { createdAt: "desc" },
-        take: LIMIT,
-      });
-
-      return NextResponse.json({
-        requests: requests
-          .filter((r) => r.receiver)
-          .map((r) => ({
-            id: r.id,
-            message: r.message,
-            createdAt: r.createdAt,
-            receiver: {
-              id: r.receiver!.id,
-              username: r.receiver!.profile?.username,
-              displayName: r.receiver!.profile?.displayName,
-              avatarUrl: r.receiver!.profile?.avatarUrl,
-            },
-          })),
+        }))
       });
     }
 
     if (type === "accepted") {
-      const acceptedRequests = await prisma.connectionRequest.findMany({
-        where: {
-          OR: [
-            { senderId: userId, status: "ACCEPTED" },
-            { receiverId: userId, status: "ACCEPTED" },
-          ],
-        },
-        include: {
-          sender: { include: { profile: true } },
-          receiver: { include: { profile: true } },
-        },
-        orderBy: { createdAt: "desc" }, // responded_at replaced by createdAt of Connection? Or we rely on request createdAt/updatedAt
-        take: LIMIT,
+      const connections = await connectionService.listConnections(request.session.user.id);
+      return NextResponse.json({ 
+        connections: connections.map(c => ({
+          id: c.id,
+          connectedAt: c.connectedAt,
+          user: {
+            id: c.userId,
+            username: c.username,
+            displayName: c.displayName,
+            avatarUrl: c.avatarUrl,
+          },
+        }))
       });
-
-      const connections = acceptedRequests
-        .filter((r) => r.sender && r.receiver)
-        .map((r) => {
-          const otherUser = r.senderId === userId ? r.receiver! : r.sender!;
-          return {
-            id: r.id,
-            // Use updated at if available or created at
-            connectedAt: r.createdAt,
-            user: {
-              id: otherUser.id,
-              username: otherUser.profile?.username,
-              displayName: otherUser.profile?.displayName,
-              avatarUrl: otherUser.profile?.avatarUrl,
-            },
-          };
-        });
-
-      return NextResponse.json({ connections });
     }
 
-    return NextResponse.json({ error: "Invalid type parameter" }, { status: 400 });
-  } catch (error) {
-    console.error("Error fetching connections:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    throw new ValidationError('Invalid type parameter');
+  },
+  {
+    method: 'GET',
+    routeName: 'GET /api/connections',
+    requireAuth: true,
+    rateLimit: 'connectionRequest',
   }
-}
+);
 
-export async function POST(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+// POST /api/connections - Send connection request
+export const POST = withApiHandler(
+  async (request: AuthenticatedRequest) => {
+    const connectionService = container.resolve<IConnectionService>(TOKENS.ConnectionService);
 
-    const senderId = (session.user as { id: string }).id;
-
-    const canRequest = await RATE_LIMITERS.connectionRequest.checkLimit(senderId);
-    if (!canRequest) {
-      const retryAfter = await RATE_LIMITERS.connectionRequest.getRetryAfter(senderId);
-      return rateLimitResponse(retryAfter);
-    }
-
-    const isProfileComplete = await checkProfileComplete(senderId);
+    // Check profile complete
+    const isProfileComplete = await checkProfileComplete(request.session.user.id);
     if (!isProfileComplete) {
-      return NextResponse.json({ error: "Please complete your profile first" }, { status: 403 });
+      throw new ValidationError('Please complete your profile first');
     }
 
-    const body = await request.json();
+    const body = await parseBody<{
+      receiverId?: string;
+      receiverUsername?: string;
+      message?: string;
+    }>(request);
+
+    // Validate input
     const validation = connectionRequestSchema.safeParse(body);
     if (!validation.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: validation.error.errors },
-        { status: 400 }
-      );
+      throw new ValidationError('Invalid input', Object.fromEntries(
+        validation.error.errors.map(e => [e.path.join('.'), e.message])
+      ));
     }
 
     const { receiverId, receiverUsername, message } = validation.data;
 
-    let receiver;
-    if (receiverId) {
-      receiver = await prisma.user.findUnique({
-        where: { id: receiverId },
-        include: { profile: true },
-      });
-    } else if (receiverUsername) {
-      const profile = await prisma.profile.findUnique({
-        where: { username: receiverUsername },
-        include: { user: true },
-      });
-      receiver = profile?.user ? { ...profile.user, profile } : null;
+    // For now, we need receiverId. Username lookup would need to be added to service
+    if (!receiverId) {
+      throw new ValidationError('receiverId is required (receiverUsername not yet supported)');
     }
 
-    if (!receiver) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    const actualReceiverId = receiver.id;
-
-    if (senderId === actualReceiverId) {
-      return NextResponse.json({ error: "Cannot connect with yourself" }, { status: 400 });
-    }
-
-    const isBlocked = await prisma.blockedUser.findFirst({
-      where: {
-        OR: [
-          { blockerId: senderId, blockedId: actualReceiverId },
-          { blockerId: actualReceiverId, blockedId: senderId },
-        ],
-      },
+    const result = await connectionService.sendRequest(request.session.user.id, {
+      receiverId,
+      message,
     });
 
-    if (isBlocked) {
-      return NextResponse.json({ error: "Cannot send connection request" }, { status: 403 });
-    }
-
-    const existingRequest = await prisma.connectionRequest.findFirst({
-      where: {
-        OR: [
-          { senderId, receiverId: actualReceiverId },
-          { senderId: actualReceiverId, receiverId: senderId },
-        ],
-      },
-    });
-
-    if (existingRequest) {
-      if (existingRequest.status === "PENDING") {
-        return NextResponse.json(
-          { error: "A connection request already exists" },
-          { status: 409 }
-        );
-      }
-      if (existingRequest.status === "ACCEPTED") {
-        return NextResponse.json(
-          { error: "You are already connected" },
-          { status: 409 }
-        );
-      }
-      if (existingRequest.status === "DECLINED") {
-        await prisma.connectionRequest.update({
-          where: { id: existingRequest.id },
-          data: {
-            senderId,
-            receiverId: actualReceiverId,
-            message: message?.trim() || null,
-            status: "PENDING",
-            // respondedAt removed, use standard updated/created
-          },
-        });
-
-        return NextResponse.json({ success: true, message: "Connection request sent" });
-      }
-    }
-
-    await prisma.connectionRequest.create({
-      data: {
-        senderId,
-        receiverId: actualReceiverId,
-        message: message?.trim() || null,
-      },
+    void notifyConnectionRequest({
+      requestId: result.id,
+      receiverId,
+      senderId: request.session.user.id,
+      senderUsername: result.senderUsername,
+      senderDisplayName: result.senderDisplayName,
+      message: result.message ?? undefined,
     });
 
     return NextResponse.json({ success: true, message: "Connection request sent" });
-  } catch (error: any) {
-    console.error("Error sending connection request:", error);
-
-    if (error.code === "P2002") {
-      return NextResponse.json(
-        { error: "A connection request already exists" },
-        { status: 409 }
-      );
-    }
-
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  },
+  {
+    method: 'POST',
+    routeName: 'POST /api/connections',
+    requireAuth: true,
+    rateLimit: 'connectionRequest',
   }
-}
+);

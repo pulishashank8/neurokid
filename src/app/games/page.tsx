@@ -358,13 +358,9 @@ export default function GamesPage() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--muted)] hover:text-[var(--text)] transition-colors group"
-          >
-            <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
-            <span>Back</span>
-          </Link>
+          <div className="mb-4">
+            <BackButton fallbackPath="/dashboard" />
+          </div>
 
 
           <div className="flex items-center gap-4 mb-3">

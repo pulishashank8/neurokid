@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth";
-import { dataGovernanceService } from "@/services/dataGovernanceService";
+import { dataGovernanceService } from "@/application/services/DataGovernanceService";
 import { logSecurityEvent } from "@/lib/securityAudit";
 import { successResponse, errorResponse } from "@/lib/apiResponse";
 

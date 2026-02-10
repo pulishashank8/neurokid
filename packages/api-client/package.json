@@ -1,0 +1,56 @@
+{
+  "name": "@neurokind/api-client",
+  "version": "1.0.0",
+  "description": "Official TypeScript/JavaScript client for the NeuroKind API",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/**/*.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "neurokind",
+    "api",
+    "client",
+    "sdk",
+    "autism",
+    "mental-health",
+    "typescript"
+  ],
+  "author": "NeuroKind Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neurokind/api-client"
+  },
+  "bugs": {
+    "url": "https://github.com/neurokind/neurokind/issues"
+  },
+  "homepage": "https://neurokind.com",
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}

@@ -145,6 +145,26 @@ export async function setCached<T>(
   }
 }
 
+/**
+ * Non-blocking key scan using SCAN instead of KEYS
+ * KEYS blocks Redis in production with large datasets
+ * SCAN iterates incrementally without blocking
+ */
+async function scanKeys(pattern: string): Promise<string[]> {
+  if (!isRedisEnabled()) return [];
+
+  const keys: string[] = [];
+  const stream = redis.scanStream({ match: pattern, count: 100 });
+
+  return new Promise((resolve, reject) => {
+    stream.on('data', (resultKeys: string[]) => {
+      keys.push(...resultKeys);
+    });
+    stream.on('end', () => resolve(keys));
+    stream.on('error', reject);
+  });
+}
+
 export async function invalidateCache(
   pattern: string,
   options: CacheOptions = {}
@@ -154,7 +174,8 @@ export async function invalidateCache(
   const fullPattern = `${prefix}:${pattern}`;
 
   try {
-    const keys = await redis.keys(fullPattern);
+    // Use scanKeys instead of redis.keys() to avoid blocking
+    const keys = await scanKeys(fullPattern);
     if (keys.length > 0) {
       await redis.del(...keys);
     }

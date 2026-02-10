@@ -15,11 +15,7 @@ import {
 } from '../helpers/auth';
 import { createMockRequest, parseResponse } from '../helpers/api';
 import { getTestPrisma } from '../helpers/database';
-
-// Mock NextAuth
-vi.mock('next-auth', () => ({
-    getServerSession: vi.fn(),
-}));
+import { setMockSession } from '../setup';
 
 vi.mock('@/app/api/auth/[...nextauth]/route', () => ({
     authOptions: {},
@@ -48,7 +44,7 @@ describe('Moderation API Integration Tests', () => {
 
     describe('POST /api/posts/:id/lock - Lock Post', () => {
         it('should allow moderator to lock a post', async () => {
-            vi.mocked(getServerSession).mockResolvedValue(createMockSession(moderatorUser));
+            setMockSession(createMockSession(moderatorUser));
 
             const request = createMockRequest('POST', `/api/posts/${testPost.id}/lock`, {
                 body: {
@@ -72,7 +68,7 @@ describe('Moderation API Integration Tests', () => {
         });
 
         it('should prevent non-moderator from locking post', async () => {
-            vi.mocked(getServerSession).mockResolvedValue(createMockSession(testUser));
+            setMockSession(createMockSession(testUser));
 
             const request = createMockRequest('POST', `/api/posts/${testPost.id}/lock`);
 
@@ -84,7 +80,7 @@ describe('Moderation API Integration Tests', () => {
         });
 
         it('should fail when not authenticated', async () => {
-            vi.mocked(getServerSession).mockResolvedValue(null);
+            setMockSession(null);
 
             const request = createMockRequest('POST', `/api/posts/${testPost.id}/lock`);
 
@@ -98,7 +94,7 @@ describe('Moderation API Integration Tests', () => {
 
     describe('POST /api/posts/:id/pin - Pin Post', () => {
         it('should allow moderator to pin a post', async () => {
-            vi.mocked(getServerSession).mockResolvedValue(createMockSession(moderatorUser));
+            setMockSession(createMockSession(moderatorUser));
 
             const request = createMockRequest('POST', `/api/posts/${testPost.id}/pin`);
 
@@ -118,7 +114,7 @@ describe('Moderation API Integration Tests', () => {
         });
 
         it('should prevent non-moderator from pinning post', async () => {
-            vi.mocked(getServerSession).mockResolvedValue(createMockSession(testUser));
+            setMockSession(createMockSession(testUser));
 
             const request = createMockRequest('POST', `/api/posts/${testPost.id}/pin`);
 
@@ -132,7 +128,7 @@ describe('Moderation API Integration Tests', () => {
 
     describe('POST /api/mod/actions/remove - Remove Content', () => {
         it('should allow moderator to remove a post', async () => {
-            vi.mocked(getServerSession).mockResolvedValue(createMockSession(moderatorUser));
+            setMockSession(createMockSession(moderatorUser));
 
             const request = createMockRequest('POST', '/api/mod/actions/remove', {
                 body: {
@@ -157,7 +153,7 @@ describe('Moderation API Integration Tests', () => {
         });
 
         it('should prevent non-moderator from removing content', async () => {
-            vi.mocked(getServerSession).mockResolvedValue(createMockSession(testUser));
+            setMockSession(createMockSession(testUser));
 
             const request = createMockRequest('POST', '/api/mod/actions/remove', {
                 body: {
@@ -175,7 +171,7 @@ describe('Moderation API Integration Tests', () => {
         });
 
         it('should create moderation action log', async () => {
-            vi.mocked(getServerSession).mockResolvedValue(createMockSession(moderatorUser));
+            setMockSession(createMockSession(moderatorUser));
 
             const request = createMockRequest('POST', '/api/mod/actions/remove', {
                 body: {
@@ -202,7 +198,7 @@ describe('Moderation API Integration Tests', () => {
 
     describe('POST /api/mod/actions/suspend - Suspend User', () => {
         it('should allow moderator to suspend a user', async () => {
-            vi.mocked(getServerSession).mockResolvedValue(createMockSession(moderatorUser));
+            setMockSession(createMockSession(moderatorUser));
 
             const request = createMockRequest('POST', '/api/mod/actions/suspend', {
                 body: {
@@ -230,7 +226,7 @@ describe('Moderation API Integration Tests', () => {
         });
 
         it('should prevent non-moderator from suspending users', async () => {
-            vi.mocked(getServerSession).mockResolvedValue(createMockSession(testUser));
+            setMockSession(createMockSession(testUser));
 
             const request = createMockRequest('POST', '/api/mod/actions/suspend', {
                 body: {
@@ -248,7 +244,7 @@ describe('Moderation API Integration Tests', () => {
         });
 
         it('should fail with invalid duration', async () => {
-            vi.mocked(getServerSession).mockResolvedValue(createMockSession(moderatorUser));
+            setMockSession(createMockSession(moderatorUser));
 
             const request = createMockRequest('POST', '/api/mod/actions/suspend', {
                 body: {
@@ -290,7 +286,7 @@ describe('Moderation API Integration Tests', () => {
         });
 
         it('should allow moderator to view reports dashboard', async () => {
-            vi.mocked(getServerSession).mockResolvedValue(createMockSession(moderatorUser));
+            setMockSession(createMockSession(moderatorUser));
 
             const request = createMockRequest('GET', '/api/mod/reports');
             const response = await getReports(request);
@@ -302,7 +298,7 @@ describe('Moderation API Integration Tests', () => {
         });
 
         it('should prevent non-moderator from viewing reports', async () => {
-            vi.mocked(getServerSession).mockResolvedValue(createMockSession(testUser));
+            setMockSession(createMockSession(testUser));
 
             const request = createMockRequest('GET', '/api/mod/reports');
             const response = await getReports(request);
@@ -313,7 +309,7 @@ describe('Moderation API Integration Tests', () => {
         });
 
         it('should include report statistics', async () => {
-            vi.mocked(getServerSession).mockResolvedValue(createMockSession(moderatorUser));
+            setMockSession(createMockSession(moderatorUser));
 
             const request = createMockRequest('GET', '/api/mod/reports');
             const response = await getReports(request);

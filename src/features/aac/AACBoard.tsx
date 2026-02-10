@@ -26,14 +26,16 @@ import {
 interface AACBoardProps {
   onToggleFullscreen: () => void;
   isFullscreen: boolean;
+  /** When true, only communication (words/sentence) works; nav and settings are disabled (Guided Access style) */
+  navigationLocked?: boolean;
+  onToggleNavigationLock?: () => void;
 }
 
-export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
+export function AACBoard({ onToggleFullscreen, isFullscreen, navigationLocked = false, onToggleNavigationLock }: AACBoardProps) {
   // State
   const [sentence, setSentence] = useState<AACSentenceWord[]>([]);
   const [activeCategory, setActiveCategory] = useState<AACCategory | "all">("all");
   const [sensoryMode, setSensoryMode] = useState<"vibrant" | "muted">("vibrant");
-  const [isLocked, setIsLocked] = useState(false);
 
   const [isWordEditorOpen, setIsWordEditorOpen] = useState(false);
   const [volume, setVolume] = useState(DEFAULT_SPEECH_CONFIG.volume);
@@ -53,7 +55,7 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
     volume,
   });
 
-  const { playClickSound, playSuccessSound } = useAudioFeedback();
+  const { playClickSound, playSuccessSound, unlockAudio } = useAudioFeedback();
 
   const {
     customWords,
@@ -99,12 +101,9 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
       .slice(0, 4);
   }, [sentence]);
 
-  // Handle word press
+  // Handle word press - always active; navigation lock does not block communication
   const handleWordPress = useCallback(
     (word: AACWord) => {
-      // Don't respond to taps when locked
-      if (isLocked) return;
-
       playClickSound();
 
       // Speak immediately
@@ -113,7 +112,7 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
       // Add word to sentence
       setSentence((prev) => [...prev, { word, spokenAt: new Date() }]);
     },
-    [isLocked, playClickSound, speak]
+    [playClickSound, speak]
   );
 
   // Handle word removal
@@ -134,10 +133,6 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
     setSensoryMode((prev) => (prev === "vibrant" ? "muted" : "vibrant"));
   }, []);
 
-  // Handle lock toggle
-  const handleToggleLock = useCallback(() => {
-    setIsLocked((prev) => !prev);
-  }, []);
 
   // Handle add word
   const handleSaveWord = useCallback(
@@ -183,34 +178,19 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
         </div>
       )}
 
-      {/* Category Tabs */}
+      {/* Category Tabs - disabled when navigation locked so user stays on current page */}
       <div className="px-2 sm:px-4 pb-2 sm:pb-3">
         <AACCategoryTabs
           activeCategory={activeCategory}
           onCategoryChange={setActiveCategory}
           sensoryMode={sensoryMode}
+          disabled={navigationLocked}
         />
       </div>
 
-      {/* Vocabulary Grid */}
+      {/* Vocabulary Grid - always interactive; navigation lock does not block communication */}
       <div className="flex-1 overflow-y-auto px-2 sm:px-4 pb-2 sm:pb-4 relative">
-        {/* Lock Overlay */}
-        {isLocked && (
-          <div className="absolute inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center rounded-xl">
-            <div className="flex flex-col items-center gap-3 text-white">
-              <div className="w-16 h-16 rounded-full bg-red-500/80 flex items-center justify-center animate-pulse">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-              </div>
-              <p className="font-bold text-lg">Screen Locked</p>
-              <p className="text-sm opacity-75">Tap "Unlock" in settings to continue</p>
-            </div>
-          </div>
-        )}
-
-        <div className={`aac-grid ${isLocked ? 'pointer-events-none' : ''}`}>
+        <div className="aac-grid">
           {filteredVocabulary.map((word) => (
             <AACCard
               key={word.id}
@@ -221,19 +201,21 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
           ))}
         </div>
 
-        {/* Empty state */}
+        {/* Empty state - hide Add Word when navigation locked */}
         {filteredVocabulary.length === 0 && !isLoadingCustom && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <span className="text-4xl mb-4">🔍</span>
             <p className="text-[var(--muted)] text-sm sm:text-base">
               No words in this category yet.
             </p>
-            <button
-              onClick={() => setIsWordEditorOpen(true)}
-              className="mt-4 px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-sm font-medium hover:bg-emerald-500/30 transition-colors"
-            >
-              Add your first word
-            </button>
+            {!navigationLocked && (
+              <button
+                onClick={() => setIsWordEditorOpen(true)}
+                className="mt-4 px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-sm font-medium hover:bg-emerald-500/30 transition-colors"
+              >
+                Add your first word
+              </button>
+            )}
           </div>
         )}
 
@@ -245,21 +227,22 @@ export function AACBoard({ onToggleFullscreen, isFullscreen }: AACBoardProps) {
         )}
       </div>
 
-      {/* Control Panel */}
+      {/* Control Panel - when navigation locked, only Unlock is available */}
       <div className="px-2 sm:px-4 pb-2 sm:pb-4">
         <AACControlPanel
           sensoryMode={sensoryMode}
           onToggleSensoryMode={handleToggleSensoryMode}
           onToggleFullscreen={onToggleFullscreen}
           isFullscreen={isFullscreen}
-          isLocked={isLocked}
-          onToggleLock={handleToggleLock}
+          navigationLocked={navigationLocked}
+          onToggleNavigationLock={onToggleNavigationLock}
           volume={volume}
           onVolumeChange={setVolume}
           selectedVoice={selectedVoice}
           availableVoices={availableVoices}
           onVoiceChange={setSelectedVoice}
           onAddWord={() => setIsWordEditorOpen(true)}
+          onUnlockAudio={unlockAudio}
         />
       </div>
 

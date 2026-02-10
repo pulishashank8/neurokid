@@ -7,15 +7,18 @@ interface AACCategoryTabsProps {
   activeCategory: AACCategory | "all";
   onCategoryChange: (category: AACCategory | "all") => void;
   sensoryMode: "vibrant" | "muted";
+  /** When true, category switching is disabled (Guided Access / navigation lock) */
+  disabled?: boolean;
 }
 
 export function AACCategoryTabs({
   activeCategory,
   onCategoryChange,
   sensoryMode,
+  disabled = false,
 }: AACCategoryTabsProps) {
   return (
-    <div className="w-full overflow-x-auto scrollbar-hide py-2">
+    <div className={`w-full overflow-x-auto scrollbar-hide py-2 ${disabled ? "pointer-events-none opacity-70" : ""}`}>
       <div className="flex flex-nowrap gap-2 px-1 min-w-max">
         {AAC_CATEGORIES.map((category) => {
           const isActive = activeCategory === category.id;
@@ -23,7 +26,8 @@ export function AACCategoryTabs({
           return (
             <button
               key={category.id}
-              onClick={() => onCategoryChange(category.id)}
+              onClick={() => !disabled && onCategoryChange(category.id)}
+              disabled={disabled}
               className={`
                 flex items-center gap-1.5 sm:gap-2
                 px-3 sm:px-4 py-2 sm:py-2.5

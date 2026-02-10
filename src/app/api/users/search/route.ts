@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth.config";
 import { prisma } from "@/lib/prisma";
 import { checkProfileComplete } from "@/lib/auth-utils";
-import { RATE_LIMITERS, rateLimitResponse } from "@/lib/rateLimit";
+import { RATE_LIMITERS, rateLimitResponse, getClientIp } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
   try {
@@ -14,10 +14,15 @@ export async function GET(request: Request) {
 
     const userId = (session.user as { id: string }).id;
 
-    const canSearch = await RATE_LIMITERS.userSearch.checkLimit(userId);
-    if (!canSearch) {
-      const retryAfter = await RATE_LIMITERS.userSearch.getRetryAfter(userId);
-      return rateLimitResponse(retryAfter);
+    // Rate limiting: user-based + IP-based protection
+    const ip = getClientIp(request);
+    const userLimit = await RATE_LIMITERS.userSearch.check(userId);
+    if (!userLimit.allowed) {
+      return rateLimitResponse(Math.ceil((userLimit.resetTime.getTime() - Date.now()) / 1000));
+    }
+    const ipLimit = await RATE_LIMITERS.searchUsers.check(ip);
+    if (!ipLimit.allowed) {
+      return rateLimitResponse(Math.ceil((ipLimit.resetTime.getTime() - Date.now()) / 1000));
     }
 
     const isProfileComplete = await checkProfileComplete(userId);

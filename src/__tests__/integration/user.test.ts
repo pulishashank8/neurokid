@@ -15,7 +15,40 @@ vi.mock('@/app/api/auth/[...nextauth]/route', () => ({
     authOptions: {},
 }));
 
-import { getServerSession } from 'next-auth';
+// Mock @/lib/auth
+vi.mock('@/lib/auth', () => ({
+    getServerSession: vi.fn(),
+    authOptions: {},
+}));
+
+// Mock DataDeletionProcessor (used by delete-account)
+const deleteUserDataMock = vi.fn().mockResolvedValue(undefined);
+vi.mock('@/workers/processors/DataDeletionProcessor', () => ({
+    DataDeletionProcessor: vi.fn().mockImplementation(() => ({
+        deleteUserData: deleteUserDataMock,
+    })),
+}));
+
+// Mock logSecurityEvent
+vi.mock('@/lib/securityAudit', async (importOriginal) => {
+    const actual = await importOriginal() as any;
+    return {
+        ...actual,
+        logSecurityEvent: vi.fn().mockResolvedValue(undefined),
+    };
+});
+
+// Mock apiResponse
+vi.mock('@/lib/apiResponse', async (importOriginal) => {
+    const actual = await importOriginal() as any;
+    return {
+        ...actual,
+        successResponse: (data: any) => Response.json({ data }),
+        errorResponse: (code: string, message: string, status: number) => Response.json({ error: message }, { status }),
+    };
+});
+
+import { getServerSession } from '@/lib/auth';
 
 const prisma = getTestPrisma();
 
@@ -260,11 +293,10 @@ describe('User Profile API Integration Tests', () => {
 
     describe('DELETE /api/user/delete-account - Delete Account', () => {
         it('should delete account successfully', async () => {
+            const { DataDeletionProcessor } = await import('@/workers/processors/DataDeletionProcessor');
             vi.mocked(getServerSession).mockResolvedValue(mockSession);
 
-            const request = createMockRequest('DELETE', '/api/user/delete-account', {
-                body: { deleteType: 'complete' },
-            });
+            const request = createMockRequest('DELETE', '/api/user/delete-account');
             const response = await deleteAccount(request);
             const data = await parseResponse(response);
 
@@ -275,12 +307,9 @@ describe('User Profile API Integration Tests', () => {
             expect(response.status).toBe(200);
             expect(data.data.message).toBeDefined();
 
-            // Verify user was deleted
-            const deletedUser = await prisma.user.findUnique({
-                where: { id: testUser.id },
-            });
-
-            expect(deletedUser).toBeNull();
+            // Verify full data deletion processor was used
+            expect(DataDeletionProcessor).toHaveBeenCalled();
+            expect(deleteUserDataMock).toHaveBeenCalledWith(testUser.id, 'USER_REQUEST');
         });
 
         it('should fail when not authenticated', async () => {

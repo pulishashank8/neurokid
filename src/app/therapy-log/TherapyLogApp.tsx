@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { format } from "date-fns";
 import { BackButton } from "@/components/ui/BackButton";
 import {
@@ -14,8 +14,30 @@ import {
     ClipboardList,
     Search,
     Activity,
-    Sparkles
+    Sparkles,
+    Filter
 } from "lucide-react";
+
+const DATE_RANGES = [
+    { value: "all", label: "All time" },
+    { value: "7d", label: "Past 7 days" },
+    { value: "30d", label: "Past 30 days" },
+    { value: "90d", label: "Past 3 months" },
+    { value: "1y", label: "Past year" },
+] as const;
+
+type DateRangeValue = (typeof DATE_RANGES)[number]["value"];
+
+function getStartDateForRange(range: DateRangeValue): Date | null {
+    if (range === "all") return null;
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    if (range === "7d") start.setDate(start.getDate() - 7);
+    else if (range === "30d") start.setDate(start.getDate() - 30);
+    else if (range === "90d") start.setDate(start.getDate() - 90);
+    else if (range === "1y") start.setFullYear(start.getFullYear() - 1);
+    return start;
+}
 
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,6 +55,7 @@ export function TherapyLogApp() {
     const [loading, setLoading] = useState(true);
     const [isNewOpen, setIsNewOpen] = useState(false);
     const [date, setDate] = useState<Date | undefined>(new Date());
+    const [dateRange, setDateRange] = useState<DateRangeValue>("all");
 
     // Form state
     const [formData, setFormData] = useState({
@@ -121,6 +144,12 @@ export function TherapyLogApp() {
         }
     };
 
+    const filteredSessions = useMemo(() => {
+        const start = getStartDateForRange(dateRange);
+        if (!start) return sessions;
+        return sessions.filter((s) => new Date(s.sessionDate) >= start);
+    }, [sessions, dateRange]);
+
     return (
         <div className="min-h-screen bg-[var(--background)] px-4 pt-24 pb-8 sm:px-6 lg:px-8 overflow-hidden relative">
             {/* Ambient backgrounds */}
@@ -133,7 +162,7 @@ export function TherapyLogApp() {
                     <BackButton fallbackPath="/dashboard" />
                 </div>
 
-                <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-12">
+                <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -282,6 +311,30 @@ export function TherapyLogApp() {
                     </Dialog>
                 </header>
 
+                {/* Date range filter */}
+                {!loading && sessions.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-2 mb-6">
+                        <Filter className="w-4 h-4 text-[var(--muted)] shrink-0" />
+                        <span className="text-sm font-medium text-[var(--muted)]">Show:</span>
+                        <div className="flex flex-wrap gap-2">
+                            {DATE_RANGES.map((r) => (
+                                <button
+                                    key={r.value}
+                                    type="button"
+                                    onClick={() => setDateRange(r.value)}
+                                    className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-colors touch-manipulation min-h-[44px] sm:min-h-0 ${
+                                        dateRange === r.value
+                                            ? "bg-blue-600 text-white dark:bg-blue-500"
+                                            : "bg-slate-100 dark:bg-white/10 text-[var(--muted)] hover:bg-slate-200 dark:hover:bg-white/20"
+                                    }`}
+                                >
+                                    {r.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Sessions List */}
                 <div className="space-y-6">
                     {loading ? (
@@ -289,7 +342,7 @@ export function TherapyLogApp() {
                             <div className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-4" />
                             <p className="text-[var(--muted)] animate-pulse">Loading sessions...</p>
                         </div>
-                    ) : sessions.length === 0 ? (
+                    ) : filteredSessions.length === 0 ? (
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -298,9 +351,13 @@ export function TherapyLogApp() {
                             <div className="w-24 h-24 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">
                                 📝
                             </div>
-                            <h3 className="text-2xl font-bold mb-2">No sessions logged yet</h3>
+                            <h3 className="text-2xl font-bold mb-2">
+                                {sessions.length === 0 ? "No sessions logged yet" : "No sessions in this date range"}
+                            </h3>
                             <p className="text-[var(--muted)] max-w-sm mx-auto mb-8 text-lg">
-                                Start tracking your therapy journey by logging your first session.
+                                {sessions.length === 0
+                                    ? "Start tracking your therapy journey by logging your first session."
+                                    : "Try a different date range to see more sessions."}
                             </p>
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
@@ -315,7 +372,7 @@ export function TherapyLogApp() {
                     ) : (
                         <div className="grid gap-6">
                             <AnimatePresence>
-                                {sessions.map((session, index) => (
+                                {filteredSessions.map((session, index) => (
                                     <motion.div
                                         key={session.id}
                                         initial={{ opacity: 0, y: 20 }}

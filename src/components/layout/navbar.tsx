@@ -31,7 +31,10 @@ import {
   MessageSquare,
   Star,
   Sparkles,
-  Map
+  Map,
+  Bell,
+  UserPlus,
+  FileText
 } from "lucide-react";
 
 type SubItem = { href: string; label: string; icon: any; description: string };
@@ -93,7 +96,20 @@ export default function NavBar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [notifications, setNotifications] = useState({ unreadConnectionRequests: 0, unreadMessages: 0, totalUnread: 0 });
+  const [notifications, setNotifications] = useState<{
+    unreadConnectionRequests: number;
+    unreadMessages: number;
+    totalUnread: number;
+    notificationUnreadCount?: number;
+    notifications?: Array<{
+      id: string;
+      type: string;
+      payload: Record<string, unknown>;
+      readAt: string | null;
+      createdAt: string;
+    }>;
+  }>({ unreadConnectionRequests: 0, unreadMessages: 0, totalUnread: 0 });
+  const [notificationOpen, setNotificationOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -109,23 +125,22 @@ export default function NavBar() {
   }, []);
 
   useEffect(() => {
-    if (session?.user) {
-      const fetchNotifications = async () => {
-        try {
-          const res = await fetch("/api/notifications");
-          if (res.ok) {
-            const data = await res.json();
-            setNotifications(data);
-          }
-        } catch (error) {
-          console.error("Error fetching notifications:", error);
+    if (!session?.user) return;
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch("/api/notifications", { signal: AbortSignal.timeout(10000) });
+        if (res.ok) {
+          const data = await res.json();
+          setNotifications(data);
         }
-      };
-      fetchNotifications();
-      const interval = setInterval(fetchNotifications, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [session]);
+      } catch {
+        setNotifications({ unreadConnectionRequests: 0, unreadMessages: 0, totalUnread: 0 });
+      }
+    };
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [session?.user]);
 
   // Check if current page is in auth routes (should hide nav)
   const isAuthPage =
@@ -276,22 +291,119 @@ export default function NavBar() {
               </Link>
 
               {/* Theme Toggle - Premium */}
+              <button
+                onClick={toggleTheme}
+                className="relative inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300 glass-premium hover:shadow-lg group overflow-hidden"
+                aria-label="Toggle theme"
+                title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+              >
+                {/* Animated background */}
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-500/10 to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                {theme === "light" ? (
+                  <Moon className="w-4 h-4 text-slate-600 transition-transform duration-300 group-hover:rotate-12" />
+                ) : (
+                  <Sun className="w-4 h-4 text-amber-400 transition-transform duration-300 group-hover:rotate-45" />
+                )}
+              </button>
+
               {session && (
                 <>
-                  <button
-                    onClick={toggleTheme}
-                    className="relative inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300 glass-premium hover:shadow-lg group overflow-hidden"
-                    aria-label="Toggle theme"
-                    title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
-                  >
-                    {/* Animated background */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-slate-500/10 to-amber-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    {theme === "light" ? (
-                      <Moon className="w-4 h-4 text-slate-600 transition-transform duration-300 group-hover:rotate-12" />
-                    ) : (
-                      <Sun className="w-4 h-4 text-amber-400 transition-transform duration-300 group-hover:rotate-45" />
+                  {/* Notifications bell + pop-out */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setNotificationOpen((o) => !o)}
+                      className="relative flex items-center justify-center w-10 h-10 rounded-xl glass-premium hover:shadow-lg transition-all duration-300"
+                      aria-label={notifications.totalUnread > 0 ? `Notifications, ${notifications.totalUnread} unread` : "Notifications"}
+                    >
+                      <Bell className="w-5 h-5 text-[var(--text)]" />
+                      {notifications.totalUnread > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
+                          {notifications.totalUnread > 9 ? "9+" : notifications.totalUnread}
+                        </span>
+                      )}
+                    </button>
+                    {notificationOpen && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-40"
+                          aria-hidden
+                          onClick={() => setNotificationOpen(false)}
+                        />
+                        <div className="absolute right-0 top-full pt-3 z-50 w-80 sm:w-96">
+                          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-xl overflow-hidden">
+                            <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
+                              <h3 className="text-sm font-bold text-[var(--text)]">Notifications</h3>
+                              {notifications.notificationUnreadCount !== undefined && notifications.notificationUnreadCount > 0 && (
+                                <span className="text-xs text-[var(--muted)]">{notifications.notificationUnreadCount} unread</span>
+                              )}
+                            </div>
+                            <div className="max-h-[70vh] overflow-y-auto">
+                              {notifications.notifications?.length ? (
+                                <ul className="divide-y divide-[var(--border)]">
+                                  {notifications.notifications.map((n) => {
+                                    const payload = n.payload || {};
+                                    const isUnread = !n.readAt;
+                                    let label = "";
+                                    let href = "#";
+                                    let Icon = Bell;
+                                    if (n.type === "NEW_POST") {
+                                      Icon = FileText;
+                                      label = `${(payload.authorUsername as string) || "Someone"} posted: ${(payload.postTitle as string) || "New post"}`;
+                                      href = `/community/${String(payload.postId ?? "")}`;
+                                    } else if (n.type === "MESSAGE") {
+                                      Icon = MessageCircle;
+                                      label = `${(payload.senderUsername as string) || "Someone"} sent a message`;
+                                      if (payload.contentPreview) label += `: ${(payload.contentPreview as string).slice(0, 40)}…`;
+                                      href = `/messages`;
+                                    } else if (n.type === "CONNECTION_REQUEST") {
+                                      Icon = UserPlus;
+                                      label = `${(payload.senderUsername as string) || "Someone"} sent a connection request`;
+                                      href = `/messages`;
+                                    } else {
+                                      label = "New notification";
+                                    }
+                                    return (
+                                      <li key={n.id}>
+                                        <Link
+                                          href={href}
+                                          onClick={() => setNotificationOpen(false)}
+                                          className={`flex items-start gap-3 px-4 py-3 hover:bg-[var(--surface2)] transition-colors ${isUnread ? "bg-emerald-500/5" : ""}`}
+                                        >
+                                          <div className="mt-0.5 p-2 rounded-lg bg-[var(--surface2)] text-[var(--muted)]">
+                                            <Icon className="w-4 h-4" />
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-[var(--text)] line-clamp-2">{label}</p>
+                                            <p className="text-xs text-[var(--muted)] mt-0.5">
+                                              {new Date(n.createdAt).toLocaleDateString(undefined, { dateStyle: "short", timeStyle: "short" })}
+                                            </p>
+                                          </div>
+                                        </Link>
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              ) : (
+                                <div className="px-4 py-8 text-center text-sm text-[var(--muted)]">
+                                  No notifications yet
+                                </div>
+                              )}
+                            </div>
+                            {(notifications.notifications?.length ?? 0) > 0 && (
+                              <Link
+                                href="/settings"
+                                onClick={() => setNotificationOpen(false)}
+                                className="block px-4 py-2 text-center text-xs font-medium text-[var(--primary)] border-t border-[var(--border)] hover:bg-[var(--surface2)]"
+                              >
+                                View all in Settings
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      </>
                     )}
-                  </button>
+                  </div>
 
                   {/* PREMIUM USER MENU */}
                   <div className="relative group/user">
@@ -469,21 +581,21 @@ export default function NavBar() {
               })}
 
               {/* Mobile Theme Toggle + Sign Out */}
-              {session && (
-                <div className="border-t border-[var(--border)] mt-4 pt-4 flex flex-col gap-3">
-                  <button
-                    onClick={toggleTheme}
-                    className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all duration-300 glass-premium hover:shadow-lg text-[var(--text)] w-full"
-                  >
-                    <div className="p-2 rounded-lg bg-[var(--surface2)]">
-                      {theme === "light" ? (
-                        <Moon className="w-5 h-5 text-slate-600" />
-                      ) : (
-                        <Sun className="w-5 h-5 text-amber-400" />
-                      )}
-                    </div>
-                    <span>{theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}</span>
-                  </button>
+              <div className="border-t border-[var(--border)] mt-4 pt-4 flex flex-col gap-3">
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all duration-300 glass-premium hover:shadow-lg text-[var(--text)] w-full"
+                >
+                  <div className="p-2 rounded-lg bg-[var(--surface2)]">
+                    {theme === "light" ? (
+                      <Moon className="w-5 h-5 text-slate-600" />
+                    ) : (
+                      <Sun className="w-5 h-5 text-amber-400" />
+                    )}
+                  </div>
+                  <span>{theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}</span>
+                </button>
+                {session && (
                   <button
                     onClick={() => signOut({ callbackUrl: "/login" })}
                     className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all duration-300 bg-gradient-to-r from-rose-500/10 to-pink-500/10 hover:from-rose-500/20 hover:to-pink-500/20 text-rose-600 dark:text-rose-400 w-full"
@@ -493,8 +605,8 @@ export default function NavBar() {
                     </div>
                     <span>Sign Out</span>
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
         </div>

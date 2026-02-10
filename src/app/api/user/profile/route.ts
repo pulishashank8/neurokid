@@ -2,19 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { updateProfileSchema } from "@/lib/validations/community";
-import { RATE_LIMITERS, rateLimitResponse } from "@/lib/rateLimit";
-import { withApiHandler, getRequestId } from "@/lib/apiHandler";
+import { rateLimitResponse, RateLimits } from "@/lib/rate-limit";
+import { withApiHandler, getRequestId } from "@/lib/api";
 import { createLogger } from "@/lib/logger";
 import { syncUserToFinder } from "@/lib/finder";
+import { sanitizationService } from "@/lib/sanitization";
 
-// SUPER STABLE SANITIZER (No external dependencies)
-function simpleSanitize(html: string): string {
-  if (!html) return "";
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-    .replace(/on\w+="[^"]*"/gi, "")
-    .replace(/javascript:[^"']*/gi, "");
-}
+const RATE_LIMITERS = RateLimits;
 
 // GET /api/user/profile
 export async function GET() {
@@ -65,9 +59,9 @@ export const PUT = withApiHandler(async (request: NextRequest) => {
   }
 
   // Rate limit: 10 profile updates per minute per user
-  const canUpdate = await RATE_LIMITERS.updateProfile.checkLimit(session.user.id);
-  if (!canUpdate) {
-    const retryAfter = await RATE_LIMITERS.updateProfile.getRetryAfter(session.user.id);
+  const rateLimitResult = await RATE_LIMITERS.updateProfile.check(session.user.id);
+  if (!rateLimitResult.allowed) {
+    const retryAfter = Math.ceil((rateLimitResult.resetTime.getTime() - Date.now()) / 1000);
     logger.warn({ userId: session.user.id }, 'Profile update rate limit exceeded');
     return rateLimitResponse(retryAfter);
   }
@@ -90,7 +84,7 @@ export const PUT = withApiHandler(async (request: NextRequest) => {
   const { username, displayName, bio, avatarUrl, location, website } = validation.data;
 
   // Sanitize bio
-  const sanitizedBio = bio ? simpleSanitize(bio) : bio;
+  const sanitizedBio = bio ? sanitizationService.sanitizeContent(bio) : bio;
 
   logger.debug({ userId: session.user.id, username }, 'Updating profile');
 

@@ -11,16 +11,42 @@ import {
 import { createMockRequest, parseResponse } from '../helpers/api';
 import { getTestPrisma } from '../helpers/database';
 
+// Create shared mock for getServerSession using vi.hoisted
+const { mockGetServerSession } = vi.hoisted(() => ({
+  mockGetServerSession: vi.fn(),
+}));
+
 // Mock NextAuth
 vi.mock('next-auth', () => ({
-    getServerSession: vi.fn(),
+    getServerSession: mockGetServerSession,
 }));
 
 vi.mock('@/app/api/auth/[...nextauth]/route', () => ({
     authOptions: {},
 }));
 
-import { getServerSession } from 'next-auth';
+// Mock @/lib/auth with same getServerSession
+vi.mock('@/lib/auth', () => ({
+  getServerSession: mockGetServerSession,
+  authOptions: {},
+}));
+
+// Mock rate limiting to prevent false positives in loop tests
+vi.mock('@/lib/rate-limit', async (importOriginal) => {
+  const actual = await importOriginal() as any;
+  return {
+    ...actual,
+    enforceRateLimit: vi.fn().mockResolvedValue(null),
+    RATE_LIMITERS: {
+      report: {
+        checkLimit: vi.fn().mockResolvedValue(true),
+        getRetryAfter: vi.fn().mockResolvedValue(0),
+      },
+    },
+  };
+});
+
+import { getServerSession } from '@/lib/auth';
 
 const prisma = getTestPrisma();
 

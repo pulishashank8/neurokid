@@ -6,10 +6,9 @@ import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import {
   Users, Stethoscope, Brain, ClipboardCheck, ArrowRight,
-  Heart, Wind, ClipboardList, Sparkles, Quote, ShoppingBag, Mail, Star, Gamepad2,
-  MessageSquare, Volume2, Map
+  Heart, Wind, ClipboardList, Sparkles, Quote, ShoppingBag, Mail, Star,   Gamepad2,
+  Volume2, Map
 } from "lucide-react";
-import dynamic from "next/dynamic";
 import { PlayfulBackground } from "@/components/animations/PlayfulBackground";
 
 
@@ -116,22 +115,21 @@ export default function DashboardPage() {
   }, [status, router]);
 
   useEffect(() => {
-    if (status === "authenticated") {
-      const fetchNotifications = async () => {
-        try {
-          const res = await fetch("/api/notifications");
-          if (res.ok) {
-            const data = await res.json();
-            setNotifications(data);
-          }
-        } catch (error) {
-          console.error("Error fetching notifications:", error);
+    if (status !== "authenticated") return;
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch("/api/notifications", { signal: AbortSignal.timeout(10000) });
+        if (res.ok) {
+          const data = await res.json();
+          setNotifications(data);
         }
-      };
-      fetchNotifications();
-      const interval = setInterval(fetchNotifications, 30000);
-      return () => clearInterval(interval);
-    }
+      } catch {
+        setNotifications({ unreadConnectionRequests: 0, unreadMessages: 0, totalUnread: 0 });
+      }
+    };
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
   }, [status]);
 
   if (status === "loading" || !mounted) {

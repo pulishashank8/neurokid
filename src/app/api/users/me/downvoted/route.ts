@@ -1,0 +1,152 @@
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { VoteType, PostStatus } from "@prisma/client";
+
+interface PostWithRelations {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+  voteScore: number;
+  isAnonymous: boolean;
+  isPinned: boolean;
+  isLocked: boolean;
+  status: PostStatus;
+  images: string[];
+  category: { id: string; name: string; slug: string };
+  tags: { id: string; name: string; slug: string }[];
+  author: {
+    id: string;
+    profile: { username: string; avatarUrl: string | null } | null;
+  } | null;
+  _count: { comments: number };
+}
+
+interface FormattedPost {
+  id: string;
+  title: string;
+  snippet: string;
+  createdAt: Date;
+  voteScore: number;
+  commentCount: number;
+  isAnonymous: boolean;
+  isPinned: boolean;
+  isLocked: boolean;
+  status: PostStatus;
+  images: string[];
+  category: { id: string; name: string; slug: string };
+  tags: { id: string; name: string; slug: string }[];
+  author: { id: string; username: string; avatarUrl: string | null };
+}
+
+/** GET /api/users/me/downvoted — current user's disliked posts (session-based, no username needed) */
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+
+    const votes = await prisma.vote.findMany({
+      where: {
+        userId,
+        targetType: VoteType.POST,
+        value: -1,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      select: { targetId: true },
+    });
+
+    const postIds = votes.map((v) => v.targetId);
+
+    if (postIds.length === 0) {
+      return NextResponse.json({ posts: [] });
+    }
+
+    const [likeCounts, dislikeCounts] = await Promise.all([
+      prisma.vote.groupBy({
+        by: ["targetId"],
+        where: { targetType: VoteType.POST, targetId: { in: postIds }, value: 1 },
+        _count: { id: true },
+      }),
+      prisma.vote.groupBy({
+        by: ["targetId"],
+        where: { targetType: VoteType.POST, targetId: { in: postIds }, value: -1 },
+        _count: { id: true },
+      }),
+    ]);
+    const likeMap = new Map(likeCounts.map((r) => [r.targetId, r._count.id]));
+    const dislikeMap = new Map(dislikeCounts.map((r) => [r.targetId, r._count.id]));
+
+    const posts = await prisma.post.findMany({
+      where: {
+        id: { in: postIds },
+        status: "ACTIVE",
+      },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        createdAt: true,
+        voteScore: true,
+        isAnonymous: true,
+        isPinned: true,
+        isLocked: true,
+        status: true,
+        images: true,
+        category: { select: { id: true, name: true, slug: true } },
+        tags: { select: { id: true, name: true, slug: true } },
+        author: {
+          select: {
+            id: true,
+            profile: { select: { username: true, avatarUrl: true } },
+          },
+        },
+        _count: { select: { comments: true } },
+      },
+    });
+
+    const formattedPosts = posts.map((post: PostWithRelations) => ({
+      id: post.id,
+      title: post.title,
+      snippet: post.content.substring(0, 200) + (post.content.length > 200 ? "..." : ""),
+      createdAt: post.createdAt,
+      voteScore: post.voteScore,
+      likeCount: likeMap.get(post.id) ?? 0,
+      dislikeCount: dislikeMap.get(post.id) ?? 0,
+      commentCount: post._count.comments,
+      isAnonymous: post.isAnonymous,
+      isPinned: post.isPinned,
+      isLocked: post.isLocked,
+      status: post.status,
+      images: post.images || [],
+      category: post.category,
+      tags: post.tags || [],
+      author:
+        post.isAnonymous || !post.author
+          ? { id: "anonymous", username: "Anonymous", avatarUrl: null }
+          : {
+              id: post.author.id,
+              username: post.author.profile?.username || "Unknown",
+              avatarUrl: post.author.profile?.avatarUrl || null,
+            },
+    }));
+
+    const orderedPosts = postIds
+      .map((id) => formattedPosts.find((p) => p.id === id))
+      .filter((p): p is FormattedPost => p !== undefined);
+
+    return NextResponse.json({ posts: orderedPosts });
+  } catch (error) {
+    console.error("Error fetching my downvoted posts:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch disliked posts" },
+      { status: 500 }
+    );
+  }
+}

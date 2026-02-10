@@ -9,17 +9,11 @@ import {
 } from '../helpers/auth';
 import { createMockRequest, parseResponse } from '../helpers/api';
 import { getTestPrisma } from '../helpers/database';
-
-// Mock NextAuth
-vi.mock('next-auth', () => ({
-  getServerSession: vi.fn(),
-}));
+import { setMockSession } from '../setup';
 
 vi.mock('@/app/api/auth/[...nextauth]/route', () => ({
   authOptions: {},
 }));
-
-import { getServerSession } from 'next-auth';
 
 const prisma = getTestPrisma();
 
@@ -42,7 +36,7 @@ describe('Posts API Integration Tests', () => {
 
   describe('POST /api/posts - Create Post', () => {
     it('should create a new post successfully', async () => {
-      vi.mocked(getServerSession).mockResolvedValue(mockSession);
+      setMockSession(mockSession);
 
       const request = createMockRequest('POST', '/api/posts', {
         body: {
@@ -71,7 +65,7 @@ describe('Posts API Integration Tests', () => {
     });
 
     it('should create an anonymous post', async () => {
-      vi.mocked(getServerSession).mockResolvedValue(mockSession);
+      setMockSession(mockSession);
 
       const request = createMockRequest('POST', '/api/posts', {
         body: {
@@ -87,11 +81,11 @@ describe('Posts API Integration Tests', () => {
 
       expect(response.status).toBe(201);
       expect(data.isAnonymous).toBe(true);
-      expect(data.author.username).toBe('Anonymous');
+      expect(data.author).toBeNull();
     });
 
     it('should fail when user is not authenticated', async () => {
-      vi.mocked(getServerSession).mockResolvedValue(null);
+      setMockSession(null);
 
       const request = createMockRequest('POST', '/api/posts', {
         body: {
@@ -109,7 +103,7 @@ describe('Posts API Integration Tests', () => {
     });
 
     it('should fail with invalid data (missing title)', async () => {
-      vi.mocked(getServerSession).mockResolvedValue(mockSession);
+      setMockSession(mockSession);
 
       const request = createMockRequest('POST', '/api/posts', {
         body: {
@@ -126,7 +120,7 @@ describe('Posts API Integration Tests', () => {
     });
 
     it('should sanitize malicious HTML content', async () => {
-      vi.mocked(getServerSession).mockResolvedValue(mockSession);
+      setMockSession(mockSession);
 
       const request = createMockRequest('POST', '/api/posts', {
         body: {
@@ -294,7 +288,7 @@ describe('Posts API Integration Tests', () => {
 
   describe('PATCH /api/posts/:id - Update Post', () => {
     it('should update post by author', async () => {
-      vi.mocked(getServerSession).mockResolvedValue(mockSession);
+      setMockSession(mockSession);
 
       const post = await createTestPost(testUser.id, testCategory.id, {
         title: 'Original Title',
@@ -324,7 +318,7 @@ describe('Posts API Integration Tests', () => {
 
     it('should fail when user is not the author', async () => {
       const anotherUser = await createTestUser('another@example.com', 'password', 'another');
-      vi.mocked(getServerSession).mockResolvedValue(createMockSession(anotherUser));
+      setMockSession(createMockSession(anotherUser));
 
       const post = await createTestPost(testUser.id, testCategory.id, {
         title: 'Original Title',
@@ -345,7 +339,7 @@ describe('Posts API Integration Tests', () => {
     });
 
     it('should fail when not authenticated', async () => {
-      vi.mocked(getServerSession).mockResolvedValue(null);
+      setMockSession(null);
 
       const post = await createTestPost(testUser.id, testCategory.id, {
         title: 'Original Title',
@@ -368,7 +362,7 @@ describe('Posts API Integration Tests', () => {
 
   describe('DELETE /api/posts/:id - Soft Delete Post', () => {
     it('should soft delete post by author', async () => {
-      vi.mocked(getServerSession).mockResolvedValue(mockSession);
+      setMockSession(mockSession);
 
       const post = await createTestPost(testUser.id, testCategory.id, {
         title: 'Post to Delete',
@@ -390,7 +384,7 @@ describe('Posts API Integration Tests', () => {
     });
 
     it('should fail to delete when not authenticated', async () => {
-      vi.mocked(getServerSession).mockResolvedValue(null);
+      setMockSession(null);
 
       const post = await createTestPost(testUser.id, testCategory.id, {
         title: 'Post to Delete',
@@ -407,7 +401,7 @@ describe('Posts API Integration Tests', () => {
 
     it('should fail to delete another users post', async () => {
       const anotherUser = await createTestUser('another2@example.com', 'password', 'another2');
-      vi.mocked(getServerSession).mockResolvedValue(createMockSession(anotherUser));
+      setMockSession(createMockSession(anotherUser));
 
       const post = await createTestPost(testUser.id, testCategory.id, {
         title: 'Post to Delete',

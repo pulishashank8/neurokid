@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import bcryptjs from "bcryptjs";
-import { withApiHandler, getRequestId } from "@/lib/apiHandler";
+import { withApiHandler, getRequestId } from "@/lib/api";
 import { createLogger } from "@/lib/logger";
 import { z } from "zod";
-import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
+import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 // Validator for reset password
 const ResetPasswordSchema = z.object({
@@ -27,14 +27,27 @@ export const POST = withApiHandler(async (request: NextRequest) => {
     const requestId = getRequestId(request);
     const logger = createLogger({ requestId });
 
-    // Rate limiting
-    const ip = getClientIp(request);
-    const canProceed = await RATE_LIMITERS.resetPassword.checkLimit(ip);
-    if (!canProceed) {
-        const retryAfter = await RATE_LIMITERS.resetPassword.getRetryAfter(ip);
-        logger.warn({ ip }, 'Reset password rate limit exceeded');
-        return rateLimitResponse(retryAfter);
+    // Multi-layer rate limiting for brute force protection
+    // 1. Global rate limit (DDoS protection)
+    const globalLimit = await RATE_LIMITERS.resetPasswordGlobal.check('global');
+    if (!globalLimit.allowed) {
+        logger.warn('Reset password global rate limit exceeded');
+        return NextResponse.json(
+            { error: 'Service temporarily unavailable. Please try again later.' },
+            { status: 503 }
+        );
     }
+
+    // 2. IP-based rate limit
+    const ip = getClientIp(request);
+    const ipLimit = await RATE_LIMITERS.resetPassword.check(ip);
+    if (!ipLimit.allowed) {
+        logger.warn({ ip }, 'Reset password IP rate limit exceeded');
+        return rateLimitResponse(Math.ceil((ipLimit.resetTime.getTime() - Date.now()) / 1000));
+    }
+
+    // 3. Token-specific rate limit (prevents brute forcing tokens)
+    // We'll check this after parsing the token from the body
 
     let body;
     try {
@@ -49,6 +62,14 @@ export const POST = withApiHandler(async (request: NextRequest) => {
     }
 
     const { token, password } = parsed.data;
+    
+    // 3. Token-specific rate limit (prevents brute forcing tokens)
+    const tokenLimit = await RATE_LIMITERS.resetPasswordToken.check(token.substring(0, 16));
+    if (!tokenLimit.allowed) {
+        logger.warn({ tokenPrefix: token.substring(0, 8) }, 'Reset password token rate limit exceeded');
+        return rateLimitResponse(Math.ceil((tokenLimit.resetTime.getTime() - Date.now()) / 1000));
+    }
+    
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
     // Verify token
@@ -72,11 +93,14 @@ export const POST = withApiHandler(async (request: NextRequest) => {
     // Update password
     const hashedPassword = await bcryptjs.hash(password, 10);
 
-    // Transaction: Update password and mark token used
+    // Transaction: Update password, mark token used, and increment session version
     await prisma.$transaction([
         prisma.user.update({
             where: { id: dbToken.userId },
-            data: { hashedPassword },
+            data: { 
+                hashedPassword,
+                sessionVersion: { increment: 1 }, // Force re-authentication
+            },
         }),
         prisma.passwordResetToken.update({
             where: { id: dbToken.id },
@@ -84,10 +108,15 @@ export const POST = withApiHandler(async (request: NextRequest) => {
         }),
     ]);
 
-    // Optionally delete all other tokens for this user for security
-    // await prisma.passwordResetToken.deleteMany({ where: { userId: dbToken.userId, id: { not: dbToken.id } } });
+    // Delete all other reset tokens for this user for security
+    await prisma.passwordResetToken.deleteMany({ 
+        where: { 
+            userId: dbToken.userId, 
+            id: { not: dbToken.id } 
+        } 
+    });
 
-    logger.info({ userId: dbToken.userId }, "Password reset successful");
+    logger.info({ userId: dbToken.userId }, "Password reset successful - sessions rotated");
 
     return NextResponse.json({ ok: true });
 }, { method: 'POST', routeName: '/api/auth/reset-password' });

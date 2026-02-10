@@ -31,8 +31,10 @@ interface Post {
     id: string;
     username: string;
     avatarUrl: string | null;
-  };
+  } | null;
   voteScore: number;
+  likeCount?: number;
+  dislikeCount?: number;
   commentCount: number;
   isPinned?: boolean;
   isLocked?: boolean;
@@ -63,7 +65,7 @@ export function PostCard({
       {showActions && (
         <div className="absolute top-4 right-4 z-20">
           <ActionMenu
-            isOwner={session?.user?.id === post.author.id}
+            isOwner={session?.user?.id === post.author?.id}
             resourceName="Post"
             onEdit={() => router.push(`/community/${post.id}/edit`)}
             onDelete={async () => {
@@ -82,11 +84,14 @@ export function PostCard({
       )}
 
       <div className="relative flex">
-        <div className="hidden sm:flex flex-col items-center gap-1 p-4 bg-[var(--surface2)]/50 border-r border-[var(--border)]/50">
+        <div className="hidden sm:flex flex-col items-center justify-center gap-0.5 py-4 px-3 md:px-4 bg-[var(--surface2)]/50 border-r border-[var(--border)]/50 min-w-[4.5rem]">
           <VoteButtons
             targetType="POST"
             targetId={post.id}
             initialScore={post.voteScore}
+            initialLikeCount={post.likeCount}
+            initialDislikeCount={post.dislikeCount}
+            layout="vertical"
           />
         </div>
 
@@ -158,7 +163,7 @@ export function PostCard({
                 <span className="font-medium text-sm text-[var(--muted)] italic">
                   Anonymous
                 </span>
-              ) : (
+              ) : post.author ? (
                 <Link
                   href={`/user/${encodeURIComponent(post.author.username)}`}
                   className="font-medium text-sm text-[var(--text)] hover:text-[var(--primary)] hover:underline transition-colors"
@@ -166,6 +171,10 @@ export function PostCard({
                 >
                   {post.author.username}
                 </Link>
+              ) : (
+                <span className="font-medium text-sm text-[var(--muted)] italic">
+                  Unknown author
+                </span>
               )}
             </div>
 
@@ -216,11 +225,14 @@ export function PostCard({
                 <span className="hidden sm:inline text-xs">comments</span>
               </Link>
 
-              <div className="sm:hidden">
+              <div className="sm:hidden flex items-center">
                 <VoteButtons
                   targetType="POST"
                   targetId={post.id}
                   initialScore={post.voteScore}
+                  initialLikeCount={post.likeCount}
+                  initialDislikeCount={post.dislikeCount}
+                  layout="horizontal"
                 />
               </div>
             </div>

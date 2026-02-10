@@ -6,6 +6,7 @@ interface UseAudioFeedbackReturn {
   playClickSound: () => void;
   playSuccessSound: () => void;
   playErrorSound: () => void;
+  unlockAudio: () => void;
   isSupported: boolean;
 }
 
@@ -18,17 +19,72 @@ export function useAudioFeedback(): UseAudioFeedbackReturn {
     if (!isSupported) return null;
 
     if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      try {
+        const AudioContextClass = window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+
+        if (AudioContextClass) {
+          audioContextRef.current = new AudioContextClass();
+        }
+      } catch (e) {
+        console.error("Failed to create AudioContext:", e);
+        return null;
+      }
     }
+
+    const ctx = audioContextRef.current;
+    if (!ctx) return null;
 
     // Resume context if suspended (browsers require user interaction)
-    if (audioContextRef.current.state === "suspended") {
-      audioContextRef.current.resume();
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(e => console.warn("Failed to resume AudioContext:", e));
     }
 
-    return audioContextRef.current;
+    return ctx;
   }, [isSupported]);
+
+  // Robust unlock for iOS/Safari
+  const unlockAudio = useCallback(() => {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    // Play a silent buffer to unlock audio
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+
+    if (source.start) {
+      source.start(0);
+    } else {
+      (source as any).noteOn(0);
+    }
+
+    console.log("Audio unlocked via silent buffer");
+  }, [getAudioContext]);
+
+  // Listen for first interaction to unlock
+  useEffect(() => {
+    if (typeof window === "undefined" || !isSupported) return;
+
+    const handleInteraction = () => {
+      unlockAudio();
+      // Remove listeners once unlocked
+      window.removeEventListener("touchstart", handleInteraction);
+      window.removeEventListener("mousedown", handleInteraction);
+      window.removeEventListener("keydown", handleInteraction);
+    };
+
+    window.addEventListener("touchstart", handleInteraction, { passive: true });
+    window.addEventListener("mousedown", handleInteraction, { passive: true });
+    window.addEventListener("keydown", handleInteraction, { passive: true });
+
+    return () => {
+      window.removeEventListener("touchstart", handleInteraction);
+      window.removeEventListener("mousedown", handleInteraction);
+      window.removeEventListener("keydown", handleInteraction);
+    };
+  }, [unlockAudio, isSupported]);
 
   // Play a simple beep/click sound
   const playClickSound = useCallback(() => {
@@ -131,6 +187,7 @@ export function useAudioFeedback(): UseAudioFeedbackReturn {
     playClickSound,
     playSuccessSound,
     playErrorSound,
+    unlockAudio,
     isSupported,
   };
 }

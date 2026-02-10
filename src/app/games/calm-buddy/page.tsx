@@ -476,7 +476,7 @@ function EmotionMatchGame({ soundEnabled }: { soundEnabled: boolean }) {
     const checkMatch = (selected: string) => {
         if (selected === currentEmotion.name) {
             setScore(prev => prev + 1);
-            setCurrentEmotion(emotions[Math.floor(Math.random() * emotions.length)]);
+            setCurrentEmotion(() => emotions[Math.floor(Math.random() * emotions.length)]);
         }
     };
 

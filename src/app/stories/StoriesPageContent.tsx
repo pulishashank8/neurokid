@@ -32,9 +32,9 @@ export function StoriesPageContent() {
 
   // If logged in, show the full stories & rhymes interface
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-purple-950/20 dark:to-[var(--background)] pt-24">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white dark:from-purple-950/20 dark:to-[var(--background)] pt-28">
       {/* Header - positioned below main navbar */}
-      <header className="sticky top-20 z-30 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/10">
+      <header className="sticky top-28 z-30 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Left: Back button & Title */}

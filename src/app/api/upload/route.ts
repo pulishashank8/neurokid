@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth.config";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { join } from "path";
 import { v4 as uuidv4 } from "uuid";
-import { rateLimitResponse, RATE_LIMITERS } from "@/lib/rateLimit";
+import { rateLimitResponse, RATE_LIMITERS } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
     try {
@@ -33,13 +33,14 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate file type (security: prevent upload of executable files)
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        // NOTE: SVG removed due to XSS vulnerability (can contain embedded scripts)
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
-            return NextResponse.json({ error: "Invalid file type. Only images are allowed." }, { status: 400 });
+            return NextResponse.json({ error: "Invalid file type. Only JPG, PNG, GIF, and WebP images are allowed." }, { status: 400 });
         }
 
         // Additional security: validate file extension
-        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
         const fileName = file.name.toLowerCase();
         const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
         if (!hasValidExtension) {

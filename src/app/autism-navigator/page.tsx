@@ -32,7 +32,7 @@ const RoadmapIntroOptimized = lazy(() =>
 // Skeleton loading component for initial load
 function InitialSkeleton() {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950">
+    <div className="min-h-screen flex flex-col bg-[var(--background)]">
       <div className="fixed inset-0 dot-pattern opacity-30 pointer-events-none" />
       <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 pt-20">
         <div className="w-full max-w-xl relative z-10 space-y-8">
@@ -84,7 +84,7 @@ function InitialSkeleton() {
 // Dashboard skeleton for when returning to the main view
 function DashboardSkeleton() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 pb-20 pt-24">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--text)] pb-20 pt-24">
       <div className="fixed top-0 left-0 w-full h-[500px] bg-gradient-to-b from-emerald-500/5 to-transparent pointer-events-none" />
       <main className="container max-w-6xl mx-auto px-4 sm:px-6 relative z-10 space-y-8">
         {/* Header Skeleton */}

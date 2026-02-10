@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { ProviderSpecialty } from "@prisma/client";
+import { ProviderSpecialty, Prisma } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const limitParam = searchParams.get("limit");
     const limit = Math.min(limitParam ? parseInt(limitParam) : 50, 100); // Default 50, max 100
 
-    const where: any = {};
+    const where: Prisma.ProviderWhereInput = {};
 
     if (city) {
       where.city = city;
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       where.isVerified = true;
     }
 
-    let orderBy: any = undefined;
+    let orderBy: Prisma.ProviderOrderByWithRelationInput = { name: "asc" };
     if (sortBy === "rating") {
       orderBy = { rating: "desc" };
     } else {

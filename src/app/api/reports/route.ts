@@ -6,11 +6,12 @@ import { canModerate } from "@/lib/rbac";
 import {
   RATE_LIMITERS,
   rateLimitResponse,
-} from "@/lib/rateLimit";
+} from "@/lib/rate-limit";
 import {
   checkDuplicateReport,
   blockDuplicateReport,
 } from "@/lib/redis";
+import { Prisma, ReportStatus, ReportReason } from "@prisma/client";
 
 // GET /api/reports - List reports with optional status filter + pagination
 export async function GET(request: NextRequest) {
@@ -28,9 +29,9 @@ export async function GET(request: NextRequest) {
     const skip = Number.parseInt(request.nextUrl.searchParams.get("skip") || "0", 10);
     const take = Math.min(Number.parseInt(request.nextUrl.searchParams.get("take") || "20", 10), 100);
 
-    const where: any = {};
-    if (status && ["OPEN", "UNDER_REVIEW", "RESOLVED", "DISMISSED"].includes(status)) {
-      where.status = status;
+    const where: Prisma.ReportWhereInput = {};
+    if (status && Object.values(ReportStatus).includes(status as ReportStatus)) {
+      where.status = status as ReportStatus;
     }
 
     const [reports, total] = await Promise.all([
@@ -107,8 +108,9 @@ export async function POST(request: NextRequest) {
     let { targetType, targetId, reason, description } = validation.data;
 
     // Map reasons to DB enums if needed
-    if (reason === "MISINFORMATION") (reason as any) = "MISINFO";
-    if (reason === "INAPPROPRIATE") (reason as any) = "INAPPROPRIATE_CONTENT";
+    let reportReason: ReportReason = reason as ReportReason;
+    if (reason === "MISINFORMATION") reportReason = ReportReason.MISINFO;
+    if (reason === "INAPPROPRIATE") reportReason = ReportReason.INAPPROPRIATE_CONTENT;
 
     // Verify target exists
     if (targetType === "POST") {
@@ -180,7 +182,7 @@ export async function POST(request: NextRequest) {
         reporterId: session.user.id,
         targetType,
         targetId,
-        reason: reason as any,
+        reason: reportReason,
         description: description || null,
         status: "OPEN",
       },

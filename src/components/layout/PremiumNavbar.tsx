@@ -104,23 +104,22 @@ export default function PremiumNavbar() {
   }, []);
 
   useEffect(() => {
-    if (session?.user) {
-      const fetchNotifications = async () => {
-        try {
-          const res = await fetch("/api/notifications");
-          if (res.ok) {
-            const data = await res.json();
-            setNotifications(data);
-          }
-        } catch (error) {
-          console.error("Error fetching notifications:", error);
+    if (!session?.user) return;
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch("/api/notifications", { signal: AbortSignal.timeout(10000) });
+        if (res.ok) {
+          const data = await res.json();
+          setNotifications(data);
         }
-      };
-      fetchNotifications();
-      const interval = setInterval(fetchNotifications, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [session]);
+      } catch {
+        setNotifications({ unreadConnectionRequests: 0, unreadMessages: 0, totalUnread: 0 });
+      }
+    };
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [session?.user]);
 
   const isAuthPage = pathname?.startsWith("/login") || pathname?.startsWith("/register");
 

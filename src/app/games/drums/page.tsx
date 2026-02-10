@@ -58,6 +58,7 @@ export default function DrumsPage() {
             const data = buffer.getChannelData(0);
 
             for (let i = 0; i < bufferSize; i++) {
+                // eslint-disable-next-line react-hooks/purity -- noise buffer; runs only in playDrum (event handler)
                 data[i] = Math.random() * 2 - 1;
             }
 

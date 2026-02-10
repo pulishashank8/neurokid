@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { motion } from "framer-motion";
 import { AACWord } from "@/lib/types/aac";
 
@@ -11,7 +12,7 @@ interface AACCardProps {
   size?: "sm" | "md" | "lg";
 }
 
-export function AACCard({
+export const AACCard = memo(function AACCard({
   word,
   onPress,
   sensoryMode,
@@ -48,7 +49,8 @@ export function AACCard({
       onClick={() => onPress(word)}
       className={`
         relative aspect-square rounded-2xl sm:rounded-3xl
-        backdrop-blur-xl bg-white/10 dark:bg-white/5
+        bg-white/10 dark:bg-white/5
+        lg:backdrop-blur-xl
         border border-white/20 dark:border-white/10
         flex flex-col items-center justify-center
         ${sizeClasses[size]}
@@ -64,6 +66,7 @@ export function AACCard({
         focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2
       `}
       aria-label={`Say ${word.audioText || word.label}`}
+      data-testid="aac-card"
     >
       {/* Symbol/Emoji */}
       <span
@@ -93,4 +96,4 @@ export function AACCard({
       )}
     </motion.button>
   );
-}
+});

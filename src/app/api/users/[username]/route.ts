@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth.config";
 import { prisma } from "@/lib/prisma";
-import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
+import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function GET(
   request: NextRequest,

@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth.config";
 import { prisma } from "@/lib/prisma";
 import { FieldEncryption } from "@/lib/encryption";
 import { z } from "zod";
-import { RateLimits, enforceRateLimit } from "@/lib/rate-limit";
-import { getClientIp } from "@/lib/api-handler";
+import { RateLimits, enforceRateLimit, getClientIp } from "@/lib/rate-limit";
 import { createLogger } from "@/lib/logger";
 
 // Validation schema for emergency card fields

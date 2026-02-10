@@ -170,7 +170,7 @@ async function main() {
     // ============================================================================
     console.log('👤 Creating admin user...');
 
-    const adminPassword = await bcrypt.hash('admin123', 10);
+    const adminPassword = await bcrypt.hash('admin@123', 10);
     
     const adminUser = await prisma.user.upsert({
       where: { email: 'admin@neurokid.local' },
@@ -872,7 +872,7 @@ What strategies have worked for your family? Would love to hear what you've trie
     console.log(`   - ${glossaryTerms.length} glossary terms created`);
     console.log('   - 7 catalog datasets created');
     console.log('\n💡 Test login credentials:');
-    console.log('   Admin: admin@neurokid.local / admin123');
+    console.log('   Admin: admin@neurokid.local / admin@123');
     console.log('   Moderator: moderator@neurokid.local / moderator123');
     console.log('   Parent: parent@neurokid.local / parent123');
     console.log('   Therapist: therapist@neurokid.local / therapist123');

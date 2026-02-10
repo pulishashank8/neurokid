@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { sendPasswordResetEmail } from "@/lib/mailer";
-import { withApiHandler, getRequestId } from "@/lib/apiHandler";
-import { RATE_LIMITERS, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
+import { withApiHandler, getRequestId } from "@/lib/api";
+import { RATE_LIMITERS, checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit";
 import { createLogger } from "@/lib/logger";
 import { verifyCaptcha } from "@/lib/captcha";
 
@@ -41,17 +41,24 @@ export const POST = withApiHandler(async (request: NextRequest) => {
         return NextResponse.json({ error: "Email required" }, { status: 400 });
     }
 
-    // Rate Limiting
-    // 1. Cooldown
+    // Rate Limiting - Multi-layer protection
+    // 1. Per-email cooldown (prevents spamming single email)
     const cooldown = await checkRateLimit(RATE_LIMITERS.forgotPassword, email);
     if (!cooldown.allowed) {
         return rateLimitResponse(cooldown.retryAfterSeconds || 60);
     }
 
-    // 2. Daily limit
+    // 2. Daily limit per email
     const daily = await checkRateLimit(RATE_LIMITERS.forgotPasswordDaily, email);
     if (!daily.allowed) {
         return rateLimitResponse(daily.retryAfterSeconds || 86400);
+    }
+
+    // 3. IP-based limit (prevents enumeration attacks from single source)
+    const ip = getClientIp(request);
+    const ipLimit = await checkRateLimit(RATE_LIMITERS.forgotPasswordIp, ip);
+    if (!ipLimit.allowed) {
+        return rateLimitResponse(ipLimit.retryAfterSeconds || 300);
     }
 
     // Find user

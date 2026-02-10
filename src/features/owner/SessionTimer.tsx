@@ -12,8 +12,13 @@ export default function SessionTimer() {
   const [timeLeft, setTimeLeft] = useState(SESSION_DURATION);
   const [showWarning, setShowWarning] = useState(false);
   const [initialized, setInitialized] = useState(false);
-  const lastActivityRefresh = useRef(Date.now());
-  const lastActivity = useRef(Date.now());
+  const lastActivityRefresh = useRef(0);
+  const lastActivity = useRef(0);
+
+  useEffect(() => {
+    lastActivityRefresh.current = Date.now();
+    lastActivity.current = Date.now();
+  }, []);
 
   const logout = useCallback(async () => {
     try {

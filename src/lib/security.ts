@@ -222,34 +222,14 @@ export function escapeHtml(text: string): string {
 /**
  * Sanitize HTML content - Strip dangerous tags but allow safe formatting
  * Use this for rich text content like posts and comments
+ * 
+ * @deprecated Use sanitizationService.sanitizeContent() from @/lib/sanitization instead
  */
 export function sanitizeHtml(html: string): string {
-  if (typeof html !== 'string') return '';
-  
-  // Remove script tags and their content
-  let sanitized = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-  
-  // Remove event handlers (onclick, onerror, etc.)
-  sanitized = sanitized.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '');
-  sanitized = sanitized.replace(/\s*on\w+\s*=\s*[^\s>]*/gi, '');
-  
-  // Remove javascript: URLs
-  sanitized = sanitized.replace(/javascript:/gi, '');
-  
-  // Remove data: URLs in src attributes (potential XSS vector)
-  sanitized = sanitized.replace(/src\s*=\s*["']?data:/gi, 'src="');
-  
-  // Remove style tags
-  sanitized = sanitized.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
-  
-  // Remove iframe, object, embed tags
-  sanitized = sanitized.replace(/<(iframe|object|embed|form|input|button)[^>]*>/gi, '');
-  sanitized = sanitized.replace(/<\/(iframe|object|embed|form|input|button)>/gi, '');
-  
-  // Remove base tags
-  sanitized = sanitized.replace(/<base\b[^>]*>/gi, '');
-  
-  return sanitized;
+  // Delegate to the new sanitization service (dynamic import to avoid circular deps)
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- intentional to avoid circular dependency
+  const { sanitizationService } = require('./sanitization');
+  return sanitizationService.sanitizeContent(html);
 }
 
 /**

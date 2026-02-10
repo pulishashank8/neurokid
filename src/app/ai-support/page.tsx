@@ -17,6 +17,7 @@ export default function AiSupportPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState<"chat" | "stories">("chat");
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -39,23 +40,32 @@ export default function AiSupportPage() {
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login?callbackUrl=/ai-support");
+    } else if (status === "authenticated" && activeTab === "chat") {
+      // Fetch latest conversation history
+      fetchHistory();
     }
-  }, [status, router]);
+  }, [status, router, activeTab]);
 
-  if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[var(--background)]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent"></div>
-          <p className="text-[var(--muted)] animate-pulse">Initializing AI...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!session) {
-    return null;
-  }
+  const fetchHistory = async () => {
+    try {
+      const res = await fetch("/api/ai/chat/history?limit=20");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.conversations && json.conversations.length > 0) {
+          const latest = json.conversations[0];
+          setConversationId(latest.id);
+          if (latest.messages && latest.messages.length > 0) {
+            setMessages(latest.messages.map((m: any) => ({
+              role: m.role,
+              content: m.content
+            })));
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch history", error);
+    }
+  };
 
   async function send() {
     if (!input.trim()) return;
@@ -69,9 +79,17 @@ export default function AiSupportPage() {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [...messages, userMsg] }),
+        body: JSON.stringify({
+          messages: [...messages, userMsg],
+          conversationId: conversationId,
+        }),
       });
       const json = await res.json();
+
+      if (json.conversationId) {
+        setConversationId(json.conversationId);
+      }
+
       const assistantMsg: Message = {
         role: "assistant",
         content: json.reply,
@@ -98,7 +116,7 @@ export default function AiSupportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--background)] pt-24 pb-12 sm:pt-28 relative overflow-hidden">
+    <div className="min-h-screen bg-[var(--background)] pt-32 pb-12 sm:pt-36 relative overflow-hidden">
       <div className="max-w-5xl mx-auto px-4 md:px-6 lg:px-8 mb-4 relative z-20">
         <BackButton fallbackPath="/care-compass" />
       </div>

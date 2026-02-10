@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { Prisma, DataSensitivity } from '@prisma/client';
 
 const querySchema = z.object({
   sensitivity: z.enum(['PUBLIC', 'INTERNAL', 'SENSITIVE', 'PII', 'PHI']).optional(),
@@ -26,8 +27,7 @@ export async function GET(request: NextRequest) {
     const query = querySchema.parse(searchParams);
 
     // Build where clause
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {};
+    const where: Prisma.DatasetWhereInput = {};
 
     if (query.sensitivity) {
       where.sensitivity = query.sensitivity;

@@ -16,9 +16,9 @@ const statuses: { value: StepStatus; label: string; icon: React.ReactNode }[] = 
 
 export function StepStatusSelector({ currentStatus, onStatusChange }: StepStatusSelectorProps) {
   return (
-    <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/50">
-      <span className="text-sm font-medium text-slate-400 mr-2">Status:</span>
-      <div className="flex gap-1">
+    <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl bg-[var(--surface2)] border border-[var(--border)]">
+      <span className="text-sm font-medium text-[var(--muted)] mr-1">Status:</span>
+      <div className="flex flex-wrap gap-1.5">
         {statuses.map(({ value, label, icon }) => (
           <Button
             key={value}
@@ -27,9 +27,9 @@ export function StepStatusSelector({ currentStatus, onStatusChange }: StepStatus
             onClick={() => onStatusChange(value)}
             className={cn(
               'gap-1.5 text-xs',
-              currentStatus === value && value === 'completed' && 'bg-emerald-600 hover:bg-emerald-500',
-              currentStatus === value && value === 'in_progress' && 'bg-emerald-600/80 hover:bg-emerald-500/80',
-              currentStatus !== value && 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              currentStatus === value && value === 'completed' && 'bg-emerald-600 hover:bg-emerald-500 text-white',
+              currentStatus === value && value === 'in_progress' && 'bg-emerald-600/80 hover:bg-emerald-500/80 text-white',
+              currentStatus !== value && 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'
             )}
           >
             {icon}
