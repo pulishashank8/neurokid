@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
@@ -115,14 +116,14 @@ export function RoadmapStep({
             {/* Action Buttons: Premium Style */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {step.id === 1 && (
-                <Button className="h-auto py-4 px-6 justify-start gap-4 bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 rounded-2xl group transition-all" asChild>
-                  <a href="/screening">
-                    <div className="p-2 rounded-xl bg-white/20 group-hover:scale-110 transition-transform"><Search className="w-5 h-5" /></div>
+                <Button className="h-auto py-4 px-6 justify-start gap-4 bg-emerald-600 hover:bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 rounded-2xl group transition-all border-0" asChild>
+                  <Link href="/screening" className="text-white">
+                    <div className="p-2 rounded-xl bg-white/20 group-hover:scale-110 transition-transform"><Search className="w-5 h-5 text-white" /></div>
                     <div className="text-left">
-                      <p className="text-xs font-black uppercase tracking-widest opacity-80">Phase 1</p>
-                      <p className="text-base font-bold">Start M-CHAT-R/F</p>
+                      <p className="text-xs font-black uppercase tracking-widest text-white/90">Phase 1</p>
+                      <p className="text-base font-bold text-white">Start M-CHAT-R/F</p>
                     </div>
-                  </a>
+                  </Link>
                 </Button>
               )}
 
@@ -150,11 +151,11 @@ export function RoadmapStep({
               )}
 
               {step.id === 3 && (
-                <Button className="h-auto py-4 px-6 justify-start gap-4 bg-emerald-600 hover:bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 rounded-2xl group transition-all !text-white border-none" asChild>
-                  <a href={ResourceFinder.getMedicaidLink(location.state)} target="_blank">
-                    <div className="p-2 rounded-xl bg-white/20 group-hover:scale-110 transition-transform"><ShieldCheck className="w-5 h-5 text-white" /></div>
+                <Button className="h-auto py-4 px-6 justify-start gap-4 bg-emerald-600 hover:bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 rounded-2xl group transition-all border-none [&_a]:text-white" asChild>
+                  <a href={ResourceFinder.getMedicaidLink(location.state)} target="_blank" className="text-white">
+                    <div className="p-2 rounded-xl bg-white/25 group-hover:scale-110 transition-transform"><ShieldCheck className="w-5 h-5 text-white" /></div>
                     <div className="text-left">
-                      <p className="text-xs font-black uppercase tracking-widest text-emerald-100">Government</p>
+                      <p className="text-xs font-black uppercase tracking-widest text-white">Government</p>
                       <p className="text-base font-extrabold text-white">{location.state} Medicaid</p>
                     </div>
                   </a>
@@ -237,12 +238,12 @@ export function RoadmapStep({
               <IntegratedProviderSearch zipCode={location.zipCode} />
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+              <div className="space-y-4 min-w-0">
                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-[var(--muted)]">Compassionate Guidance</h4>
                 <EmotionalSupport message={step.emotionalSupport || "One step at a time. You've got this."} onJoinCommunity={onJoinCommunity} />
               </div>
-              <div className="space-y-4">
+              <div className="space-y-4 min-w-0">
                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-[var(--muted)]">Important Note</h4>
                 <WhatItDoesNot content={step.whatItDoesNot} />
               </div>

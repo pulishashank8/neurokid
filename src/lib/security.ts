@@ -226,7 +226,8 @@ export function escapeHtml(text: string): string {
  * @deprecated Use sanitizationService.sanitizeContent() from @/lib/sanitization instead
  */
 export function sanitizeHtml(html: string): string {
-  // Delegate to the new sanitization service
+  // Delegate to the new sanitization service (dynamic import to avoid circular deps)
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- intentional to avoid circular dependency
   const { sanitizationService } = require('./sanitization');
   return sanitizationService.sanitizeContent(html);
 }

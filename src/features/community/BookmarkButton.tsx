@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Bookmark } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -15,6 +16,7 @@ export function BookmarkButton({
   initialBookmarked = false,
   onToggle,
 }: BookmarkButtonProps) {
+  const queryClient = useQueryClient();
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
   const [isLoading, setIsLoading] = useState(false);
   const [showPop, setShowPop] = useState(false);
@@ -43,6 +45,8 @@ export function BookmarkButton({
       const data = await response.json();
       setBookmarked(data.bookmarked);
       onToggle?.(data.bookmarked);
+      // Refresh Saved tab so it shows/hides this post
+      queryClient.invalidateQueries({ queryKey: ["saved-posts"] });
 
       toast.success(data.message, {
         style: {

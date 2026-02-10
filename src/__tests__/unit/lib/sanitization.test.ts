@@ -1,4 +1,8 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// Use real implementation for this unit test file
+vi.unmock('@/lib/sanitization');
+
 import {
   sanitizationService,
   sanitizeHtml,

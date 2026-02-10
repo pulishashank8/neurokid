@@ -92,6 +92,37 @@ export class VoteRepository implements IVoteRepository {
     return { up, down };
   }
 
+  async getCountsByTargets(
+    targetType: 'POST' | 'COMMENT',
+    targetIds: string[]
+  ): Promise<Map<string, { likeCount: number; dislikeCount: number }>> {
+    if (targetIds.length === 0) return new Map();
+    const [likesGroup, dislikesGroup] = await Promise.all([
+      this.prisma.vote.groupBy({
+        by: ['targetId'],
+        where: { targetType, targetId: { in: targetIds }, value: 1 },
+        _count: { id: true },
+      }),
+      this.prisma.vote.groupBy({
+        by: ['targetId'],
+        where: { targetType, targetId: { in: targetIds }, value: -1 },
+        _count: { id: true },
+      }),
+    ]);
+    const map = new Map<string, { likeCount: number; dislikeCount: number }>();
+    for (const id of targetIds) {
+      map.set(id, { likeCount: 0, dislikeCount: 0 });
+    }
+    for (const row of likesGroup) {
+      map.set(row.targetId, { ...map.get(row.targetId)!, likeCount: row._count.id });
+    }
+    for (const row of dislikesGroup) {
+      const cur = map.get(row.targetId)!;
+      map.set(row.targetId, { ...cur, dislikeCount: row._count.id });
+    }
+    return map;
+  }
+
   private toDomain(vote: PrismaVote): Vote {
     return {
       id: vote.id,

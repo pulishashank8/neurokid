@@ -45,6 +45,8 @@ export const POST = withApiHandler(
       success: true,
       voteScore: result.voteScore,
       userVote: result.userVote,
+      likeCount: result.likeCount,
+      dislikeCount: result.dislikeCount,
     });
   },
   {

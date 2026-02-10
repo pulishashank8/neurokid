@@ -64,6 +64,7 @@ model User {
   reports                    Report[]                  @relation("ReporterUser")
   createdResources           Resource[]
   savedResources             SavedResource[]
+  savedStaticResources       SavedStaticResource[]
   screeningResults           ScreeningResult[]
   searchQueries              SearchQuery[]
   sensitiveAccessLogs        SensitiveAccessLog[]
@@ -649,6 +650,17 @@ model SavedResource {
   @@index([resourceId])
 }
 
+model SavedStaticResource {
+  id          String   @id @default(cuid())
+  userId      String
+  resourceKey String   // e.g. "static-0", "static-1" for static fallback resources
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, resourceKey])
+  @@index([userId])
+}
+
 model DataOwner {
   id           String    @id @default(cuid())
   teamName     String    @unique @db.VarChar(100)
@@ -1230,6 +1242,7 @@ enum ProviderClaimStatus {
 }
 
 enum NotificationType {
+  NEW_POST
   POST_COMMENT
   COMMENT_REPLY
   POST_LIKE

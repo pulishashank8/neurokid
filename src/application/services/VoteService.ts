@@ -66,9 +66,12 @@ export class VoteService implements IVoteService {
       await invalidateCache('posts:*', { prefix: 'posts' });
     }
 
+    const counts = await this.voteRepository.countByTarget(targetType, targetId);
     return {
       voteScore: updatedVoteScore,
       userVote: value,
+      likeCount: counts.up,
+      dislikeCount: counts.down,
     };
   }
 
@@ -109,9 +112,12 @@ export class VoteService implements IVoteService {
       await invalidateCache('posts:*', { prefix: 'posts' });
     }
 
+    const counts = await this.voteRepository.countByTarget(targetType, targetId);
     return {
       voteScore: updatedVoteScore,
       userVote: 0,
+      likeCount: counts.up,
+      dislikeCount: counts.down,
     };
   }
 

@@ -336,6 +336,10 @@ npm run dev
 
 Visit http://localhost:3000
 
+**Local admin login (development):**
+- **Email:** `admin@neurokid.local`
+- **Password:** `admin@123`
+
 ### Key Commands
 ```bash
 npm run dev              # Start dev server

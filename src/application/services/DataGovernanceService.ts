@@ -266,10 +266,11 @@ export class DataGovernanceService {
   }
 }
 
-// Factory function for non-DI usage
+// Factory function for non-DI usage (dynamic require to avoid circular deps)
 export function getDataGovernanceService(): DataGovernanceService {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy DI container load
   const { container, TOKENS } = require('@/lib/container');
-  return (container as any).resolve(TOKENS.DataGovernanceService);
+  return container.resolve(TOKENS.DataGovernanceService) as DataGovernanceService;
 }
 
 // Singleton instance for non-DI usage (lazy loaded)

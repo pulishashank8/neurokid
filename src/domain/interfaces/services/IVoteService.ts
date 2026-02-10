@@ -10,6 +10,8 @@ export interface Vote {
 export interface VoteResult {
   voteScore: number;
   userVote: number;
+  likeCount?: number;
+  dislikeCount?: number;
 }
 
 export interface IVoteService {

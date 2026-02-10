@@ -30,6 +30,21 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-explicit-any": "off",
     },
   },
+  // Scripts and tooling (Node, often use require)
+  {
+    files: ["scripts/**", "fix-tests.js", "test-db.js", "tests/**", "**/__tests__/**/setup*.ts", "**/__tests__/**/setup-*.ts", "**/__tests__/**/screening.test.tsx"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/ban-ts-comment": "off",
+    },
+  },
+  // Example files may use @ts-nocheck for documentation
+  {
+    files: ["**/*.example.ts", "**/*.example.tsx"],
+    rules: {
+      "@typescript-eslint/ban-ts-comment": "off",
+    },
+  },
   {
     files: ["prisma/seed.{js,mjs,ts}"],
     rules: {

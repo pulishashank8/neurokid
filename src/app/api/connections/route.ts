@@ -6,6 +6,7 @@ import { ValidationError } from "@/domain/errors";
 import { registerDependencies } from "@/lib/container-registrations";
 import { z } from "zod";
 import { checkProfileComplete } from "@/lib/auth-utils";
+import { notifyConnectionRequest } from "@/lib/notifications";
 
 // Ensure dependencies are registered
 registerDependencies();
@@ -124,9 +125,18 @@ export const POST = withApiHandler(
       throw new ValidationError('receiverId is required (receiverUsername not yet supported)');
     }
 
-    await connectionService.sendRequest(request.session.user.id, {
+    const result = await connectionService.sendRequest(request.session.user.id, {
       receiverId,
       message,
+    });
+
+    void notifyConnectionRequest({
+      requestId: result.id,
+      receiverId,
+      senderId: request.session.user.id,
+      senderUsername: result.senderUsername,
+      senderDisplayName: result.senderDisplayName,
+      message: result.message ?? undefined,
     });
 
     return NextResponse.json({ success: true, message: "Connection request sent" });

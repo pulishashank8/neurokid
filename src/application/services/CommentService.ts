@@ -182,6 +182,8 @@ export class CommentService implements ICommentService {
       replyCount,
       isAnonymous: comment.isAnonymous,
       userVote: userVotes.get(comment.id),
+      postId: comment.postId,
+      parentCommentId: comment.parentCommentId ?? undefined,
     }));
 
     return {
@@ -321,6 +323,8 @@ export class CommentService implements ICommentService {
       replyCount: result.replyCount,
       isAnonymous: result.comment.isAnonymous,
       userVote,
+      postId: result.comment.postId,
+      parentCommentId: result.comment.parentCommentId ?? undefined,
     };
   }
 }

@@ -16,6 +16,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { generateNonce, createCSPHeader } from "./src/lib/nonce";
 import { checkUserAgent } from "./src/lib/security/user-agent";
+import { apiVersionMiddleware } from "./src/middleware/api-version";
 
 // Security configuration
 const SECURITY_CONFIG = {
@@ -23,10 +24,10 @@ const SECURITY_CONFIG = {
   hstsMaxAge: 31536000,
   hstsIncludeSubdomains: true,
   hstsPreload: true,
-  
+
   // Reporting endpoints
   reportUri: '/api/csp-report',
-  
+
   // Feature policies
   permissionsPolicy: {
     camera: '()',
@@ -44,8 +45,8 @@ const SECURITY_CONFIG = {
 
 // Size limits by route pattern
 const SIZE_LIMITS: { pattern: RegExp; limit: number }[] = [
-  { pattern: /\/api\/v1\/(therapy-sessions|emergency-cards)/, limit: 1024 * 1024 }, // 1MB for PHI
-  { pattern: /\/api\/v1\/ai\/chat/, limit: 512 * 1024 }, // 512KB for AI
+  { pattern: /\/api\/(therapy-sessions|emergency-cards)/, limit: 1024 * 1024 }, // 1MB for PHI
+  { pattern: /\/api\/ai\/chat/, limit: 512 * 1024 }, // 512KB for AI
   { pattern: /\/api\/.*\/upload/, limit: 10 * 1024 * 1024 }, // 10MB for uploads
   { pattern: /\/api\//, limit: 512 * 1024 }, // 512KB default for API
 ];
@@ -56,7 +57,7 @@ export async function middleware(request: NextRequest) {
   // 1. User-Agent validation - block known bad bots early
   const userAgent = request.headers.get('user-agent');
   const uaCheck = checkUserAgent(userAgent);
-  
+
   if (!uaCheck.allowed) {
     console.warn('[MIDDLEWARE] Blocked bad user agent:', {
       ua: userAgent?.substring(0, 100),
@@ -91,7 +92,7 @@ export async function middleware(request: NextRequest) {
   const nonce = generateNonce();
 
   // Security Headers - OWASP Recommended
-  
+
   // 1. X-Frame-Options - Prevent clickjacking
   response.headers.set("X-Frame-Options", "DENY");
 
@@ -126,7 +127,8 @@ export async function middleware(request: NextRequest) {
   response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
 
   // 9. Cross-Origin Embedder Policy (COEP) - Control embedding
-  response.headers.set("Cross-Origin-Embedder-Policy", "require-corp");
+  // Using unsafe-none instead of require-corp to avoid breaking embedded content
+  response.headers.set("Cross-Origin-Embedder-Policy", "unsafe-none");
 
   // 10. Origin-Agent-Cluster - Enable origin-keyed agent clusters
   response.headers.set("Origin-Agent-Cluster", "?1");
@@ -176,11 +178,11 @@ export async function middleware(request: NextRequest) {
       "report-uri": SECURITY_CONFIG.reportUri,
       "report-to": "csp-endpoint",
     };
-    
+
     const csp = Object.entries(cspDirectives)
       .map(([key, value]) => value ? `${key} ${value}` : key)
       .join("; ");
-    
+
     response.headers.set("Content-Security-Policy", csp);
 
     // Store nonce in cookie for server components to access
@@ -197,8 +199,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // Prevent caching of sensitive data
-  if (request.nextUrl.pathname.includes("/api/v1/therapy") ||
-    request.nextUrl.pathname.includes("/api/v1/emergency")) {
+  if (request.nextUrl.pathname.includes("/api/therapy") ||
+    request.nextUrl.pathname.includes("/api/emergency")) {
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     response.headers.set("Pragma", "no-cache");
     response.headers.set("Expires", "0");

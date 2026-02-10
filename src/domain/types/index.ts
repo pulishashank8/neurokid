@@ -14,6 +14,7 @@ export type TherapyType = 'ABA' | 'OCCUPATIONAL' | 'SPEECH' | 'BEHAVIORAL' | 'PL
 export type AACCategory = 'CORE' | 'FOOD' | 'SENSORY' | 'EMERGENCY' | 'SOCIAL' | 'ACTIONS' | 'CUSTOM';
 
 export type NotificationType =
+  | 'NEW_POST'
   | 'POST_COMMENT'
   | 'COMMENT_REPLY'
   | 'POST_LIKE'

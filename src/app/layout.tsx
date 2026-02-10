@@ -8,6 +8,7 @@ import { ProfileGuard } from "@/components/shared/ProfileGuard";
 import SessionTracker from "@/components/shared/SessionTracker";
 import { OrganizationSchema, SoftwareAppSchema } from "@/components/seo/SchemaMarkup";
 import { RoutePrefetcher } from "@/components/navigation/RoutePrefetcher";
+import { CookieConsent } from "@/components/compliance/CookieConsent";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,7 +20,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const dynamic = 'force-dynamic';
+// Removed force-dynamic from root layout for better performance
+// Individual pages can override with their own dynamic config
 export const runtime = 'nodejs';
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://neurokid.help';
@@ -140,6 +142,7 @@ export default function RootLayout({
             <main className="min-h-screen">
               {children}
             </main>
+            <CookieConsent />
             <Analytics />
           </ProfileGuard>
         </SessionProvider>

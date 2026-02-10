@@ -23,10 +23,9 @@ export function generateNonce(): string {
   if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
     crypto.getRandomValues(array);
   } else {
-    // Fallback for environments without Web Crypto
-    for (let i = 0; i < array.length; i++) {
-      array[i] = Math.floor(Math.random() * 256);
-    }
+    // CRITICAL: Web Crypto MUST be available for security
+    // Do not fall back to Math.random() as it's not cryptographically secure
+    throw new Error('Web Crypto API is not available - cannot generate secure nonce');
   }
   return btoa(String.fromCharCode(...array));
 }

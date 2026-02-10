@@ -92,8 +92,9 @@ export async function GET(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Only the profile owner can see their liked posts (private, like Instagram)
     if (session.user.id !== user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden. You can only view your own liked posts." }, { status: 403 });
     }
 
     const votes = await prisma.vote.findMany({
@@ -112,6 +113,21 @@ export async function GET(
     if (postIds.length === 0) {
       return NextResponse.json({ posts: [] });
     }
+
+    const [likeCounts, dislikeCounts] = await Promise.all([
+      prisma.vote.groupBy({
+        by: ["targetId"],
+        where: { targetType: VoteType.POST, targetId: { in: postIds }, value: 1 },
+        _count: { id: true },
+      }),
+      prisma.vote.groupBy({
+        by: ["targetId"],
+        where: { targetType: VoteType.POST, targetId: { in: postIds }, value: -1 },
+        _count: { id: true },
+      }),
+    ]);
+    const likeMap = new Map(likeCounts.map((r) => [r.targetId, r._count.id]));
+    const dislikeMap = new Map(dislikeCounts.map((r) => [r.targetId, r._count.id]));
 
     const posts = await prisma.post.findMany({
       where: {
@@ -161,12 +177,14 @@ export async function GET(
     });
 
     // Format posts to match PostCard expectations
-    const formattedPosts = posts.map((post: PostWithRelations): FormattedPost => ({
+    const formattedPosts = posts.map((post: PostWithRelations) => ({
       id: post.id,
       title: post.title,
       snippet: post.content.substring(0, 200) + (post.content.length > 200 ? "..." : ""),
       createdAt: post.createdAt,
       voteScore: post.voteScore,
+      likeCount: likeMap.get(post.id) ?? 0,
+      dislikeCount: dislikeMap.get(post.id) ?? 0,
       commentCount: post._count.comments,
       isAnonymous: post.isAnonymous,
       isPinned: post.isPinned,

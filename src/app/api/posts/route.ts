@@ -11,6 +11,8 @@ import { IPostService } from '@/domain/interfaces/services/IPostService';
 import { ValidationError } from '@/domain/errors';
 import { registerDependencies } from '@/lib/container-registrations';
 import { enforceRateLimit, getClientIp } from '@/lib/rate-limit';
+import { notifyNewPost } from '@/lib/notifications';
+import { prisma } from '@/lib/prisma';
 
 // Ensure dependencies are registered
 registerDependencies();
@@ -100,6 +102,25 @@ export const POST = withApiHandler(
       },
       request.session.user.id
     );
+
+    // Notify all other users about the new post (fire-and-forget)
+    const authorId = request.session.user.id;
+    let authorUsername: string | undefined;
+    try {
+      const profile = await prisma.profile.findUnique({
+        where: { userId: authorId },
+        select: { username: true },
+      });
+      authorUsername = profile?.username;
+    } catch {
+      // ignore
+    }
+    void notifyNewPost({
+      postId: post.id,
+      postTitle: body.title,
+      authorId,
+      authorUsername,
+    });
 
     return NextResponse.json(post, { status: 201 });
   },

@@ -10,6 +10,7 @@
  * - Multi-layer protection for sensitive endpoints
  */
 
+import type { Redis } from "ioredis";
 import { getEnv, isRedisAvailable } from "@/lib/env";
 import { NextResponse } from "next/server";
 
@@ -80,7 +81,7 @@ class MemoryRateLimitStore {
 }
 
 const memoryStore = new MemoryRateLimitStore();
-let redisClient: any = null;
+let redisClient: Redis | null = null;
 
 async function getRedisClient() {
   if (redisClient) return redisClient;
@@ -188,7 +189,7 @@ export class RateLimiter {
   }
 
   private async checkRedis(
-    redis: any,
+    redis: Redis,
     key: string,
     windowMs: number
   ): Promise<RateLimitResult> {

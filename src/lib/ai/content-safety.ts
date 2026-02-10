@@ -90,7 +90,7 @@ export async function checkPerspectiveAPI(
         requestedAttributes: ATTRIBUTES.reduce((acc, attr) => {
           acc[attr] = {};
           return acc;
-        }, {} as Record<string, {}>),
+        }, {} as Record<string, Record<string, unknown>>),
         doNotStore: true, // Don't store user content
       }),
     });

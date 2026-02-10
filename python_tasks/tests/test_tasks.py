@@ -61,10 +61,10 @@ class TestDatabaseTasks:
         assert result == 5
         mock_session.execute.assert_called()
 
-@pytest.mark.asyncio
 class TestNotificationTasks:
     """Test notification tasks"""
-    
+
+    @pytest.mark.asyncio
     @patch('tasks.notifications.get_session')
     @patch('tasks.notifications.NotificationRepository')
     async def test_send_pending_emails(self, MockRepo, mock_get_session):

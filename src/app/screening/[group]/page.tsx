@@ -263,7 +263,8 @@ export default function ScreeningFlowPage() {
               <button
                 onClick={handleNext}
                 type="button"
-                className="rounded-lg bg-[var(--primary)] px-5 py-2 text-sm font-semibold text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] transition-all min-h-[44px]"
+                disabled={answers[index] === null}
+                className="rounded-lg bg-[var(--primary)] px-5 py-2 text-sm font-semibold text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] transition-all min-h-[44px] disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed"
               >
                 Next
               </button>
@@ -271,7 +272,8 @@ export default function ScreeningFlowPage() {
               <button
                 onClick={computeScore}
                 type="button"
-                className="rounded-lg bg-[var(--primary)] px-5 py-2 text-sm font-semibold text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] transition-all min-h-[44px] shadow-lg shadow-[var(--primary)]/20"
+                disabled={answers[index] === null}
+                className="rounded-lg bg-[var(--primary)] px-5 py-2 text-sm font-semibold text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] transition-all min-h-[44px] shadow-lg shadow-[var(--primary)]/20 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed"
               >
                 See Results
               </button>

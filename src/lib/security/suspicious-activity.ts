@@ -83,10 +83,15 @@ export async function recordLoginEvent(event: LoginEvent): Promise<void> {
   }
   
   // Also store in database for permanent record
+  // Generate cryptographically secure session token
+  const randomBytes = new Uint8Array(32);
+  crypto.getRandomValues(randomBytes);
+  const secureToken = `sess_${Date.now()}_${Buffer.from(randomBytes).toString('base64url').substring(0, 16)}`;
+
   await prisma.userSession.create({
     data: {
       userId: event.userId,
-      sessionToken: `sess_${Date.now()}_${Math.random().toString(36).substring(2)}`,
+      sessionToken: secureToken,
       ipAddress: event.ipAddress.substring(0, 50),
       userAgent: event.userAgent?.substring(0, 255),
     },

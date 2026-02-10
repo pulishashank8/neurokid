@@ -19,6 +19,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { BackButton } from "@/components/ui/BackButton";
+import toast from "react-hot-toast";
 
 type Resource = {
   id: string;
@@ -51,6 +52,13 @@ const CATEGORY_OPTIONS = [
   ...Object.entries(CATEGORY_CONFIG).map(([key, cfg]) => ({ label: cfg.label, value: key }))
 ];
 
+/** Format save count for display: 1000 → "1K", 1500 → "1.5K", 1200000 → "1.2M" */
+function formatCompactCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
+  return String(n);
+}
+
 function ResourcesContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
@@ -63,12 +71,25 @@ function ResourcesContent() {
   const [loading, setLoading] = useState(true);
   const [showSavedOnly, setShowSavedOnly] = useState(initialSaved);
 
+  const fetchSavedIds = async () => {
+    if (!session?.user) return;
+    try {
+      const res = await fetch("/api/resources/save");
+      const data = await res.json();
+      if (data.savedIds) setSavedIds(new Set(data.savedIds));
+    } catch {
+      // keep existing savedIds
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         const [resResponse, savedResponse] = await Promise.all([
-          fetch("/api/resources"),
+          showSavedOnly && session
+            ? fetch("/api/resources?savedOnly=1")
+            : fetch("/api/resources"),
           session ? fetch("/api/resources/save") : Promise.resolve(null)
         ]);
 
@@ -91,7 +112,17 @@ function ResourcesContent() {
     };
 
     fetchData();
-  }, [session]);
+  }, [session, showSavedOnly]);
+
+  const handleShowSavedOnly = () => {
+    const next = !showSavedOnly;
+    setShowSavedOnly(next);
+    if (next) {
+      setSelectedCategory("ALL");
+      setSearch("");
+      fetchSavedIds();
+    }
+  };
 
   const toggleSave = async (e: React.MouseEvent, resourceId: string) => {
     e.preventDefault();
@@ -110,6 +141,10 @@ function ResourcesContent() {
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        toast.error(data.error || "Could not save. Please try again.");
+        return;
+      }
       if (data.saved !== undefined) {
         setSavedIds((prev) => {
           const next = new Set(prev);
@@ -131,6 +166,7 @@ function ResourcesContent() {
       }
     } catch (error) {
       console.error("Error toggling save:", error);
+      toast.error("Could not save. Please try again.");
     }
   };
 
@@ -170,7 +206,14 @@ function ResourcesContent() {
             </div>
             <div className="flex gap-4">
               <button
-                onClick={() => setShowSavedOnly(!showSavedOnly)}
+                type="button"
+                onClick={() => {
+                  if (!session?.user && !showSavedOnly) {
+                    toast.error("Sign in to see your saved resources.");
+                    return;
+                  }
+                  handleShowSavedOnly();
+                }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all font-medium text-sm ${showSavedOnly
                   ? "bg-rose-50 border-rose-200 text-rose-600 shadow-sm"
                   : "bg-[var(--surface)] border-[var(--border)] text-[var(--muted)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
@@ -178,6 +221,11 @@ function ResourcesContent() {
               >
                 <Heart className={`w-4 h-4 ${showSavedOnly ? "fill-current" : ""}`} />
                 {showSavedOnly ? "Showing Saved" : "Saved Resources"}
+                {savedIds.size > 0 && (
+                  <span className="ml-1 min-w-[1.25rem] rounded-full bg-rose-100 px-1.5 py-0.5 text-xs font-bold text-rose-600">
+                    {savedIds.size}
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -224,8 +272,19 @@ function ResourcesContent() {
 
         <div className="mb-6 flex items-center justify-between">
           <div className="text-sm text-[var(--muted)]">
-            Found <span className="font-bold text-[var(--text)]">{filtered.length}</span> resources
-            {selectedCategory !== "ALL" && <span> in <span className="text-[var(--primary)]">{CATEGORY_CONFIG[selectedCategory]?.label}</span></span>}
+            {showSavedOnly ? (
+              <>
+                Showing <span className="font-bold text-[var(--text)]">{filtered.length}</span> saved resource{filtered.length !== 1 ? "s" : ""}
+                {savedIds.size > 0 && filtered.length === 0 && selectedCategory !== "ALL" && (
+                  <span> — try &quot;All Categories&quot; to see all saved</span>
+                )}
+              </>
+            ) : (
+              <>
+                Found <span className="font-bold text-[var(--text)]">{filtered.length}</span> resources
+                {selectedCategory !== "ALL" && <span> in <span className="text-[var(--primary)]">{CATEGORY_CONFIG[selectedCategory]?.label}</span></span>}
+              </>
+            )}
           </div>
         </div>
 
@@ -255,7 +314,9 @@ function ResourcesContent() {
                       {cfg.label}
                     </span>
                     <button
+                      type="button"
                       onClick={(e) => toggleSave(e, resource.id)}
+                      aria-label={isSaved ? "Unsave resource" : "Save resource"}
                       className={`p-2 rounded-lg transition-all ${isSaved
                         ? "bg-rose-50 text-rose-500 shadow-inner"
                         : "bg-[var(--surface2)] text-[var(--muted)] hover:bg-rose-50 hover:text-rose-500"
@@ -265,9 +326,22 @@ function ResourcesContent() {
                     </button>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold text-[var(--text)] group-hover:text-[var(--primary)] transition-colors leading-snug mb-2">
-                      {resource.title}
-                    </h3>
+                    {resource.link ? (
+                      <a
+                        href={resource.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 rounded-lg -m-1 p-1"
+                      >
+                        <h3 className="text-lg font-bold text-[var(--text)] group-hover:text-[var(--primary)] transition-colors leading-snug mb-2">
+                          {resource.title}
+                        </h3>
+                      </a>
+                    ) : (
+                      <h3 className="text-lg font-bold text-[var(--text)] leading-snug mb-2">
+                        {resource.title}
+                      </h3>
+                    )}
                     <p className="text-sm text-[var(--muted)] line-clamp-3 leading-relaxed mb-4">
                       {resource.content || "No detailed description available."}
                     </p>
@@ -281,7 +355,7 @@ function ResourcesContent() {
                       {resource._count && (
                         <span className="flex items-center gap-1">
                           <Heart className="w-3 h-3 fill-rose-500 text-rose-500" />
-                          {resource._count.savedBy}
+                          {formatCompactCount(resource._count.savedBy)}
                         </span>
                       )}
                     </div>
@@ -308,10 +382,16 @@ function ResourcesContent() {
               {showSavedOnly ? <Heart className="h-8 w-8" /> : <Search className="h-8 w-8" />}
             </div>
             <h3 className="text-lg font-bold text-[var(--text)]">
-              {showSavedOnly ? "No saved resources yet" : "No resources found"}
+              {showSavedOnly
+                ? (session?.user ? "No saved resources yet" : "Sign in to see saved resources")
+                : "No resources found"}
             </h3>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              {showSavedOnly ? "Start liking resources to see them here." : "Try adjusting your search."}
+              {showSavedOnly
+                ? (session?.user
+                  ? "Click the heart on any resource to save it, then you’ll see it here."
+                  : "Sign in to save resources and view them in one place.")
+                : "Try adjusting your search or category."}
             </p>
           </div>
         )}

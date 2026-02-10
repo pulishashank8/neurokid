@@ -1,5 +1,5 @@
 import { injectable } from 'tsyringe';
-import { createCipheriv, createDecipheriv, randomBytes, scrypt, timingSafeEqual } from 'crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes, scrypt, timingSafeEqual } from 'crypto';
 import { promisify } from 'util';
 import { IEncryptionService } from '@/domain/interfaces/services/IEncryptionService';
 
@@ -105,8 +105,6 @@ export class EncryptionService implements IEncryptionService {
   }
 
   hashToken(token: string): string {
-    // Use a simple hash for tokens (they're already high-entropy)
-    const { createHash } = require('crypto');
     return createHash('sha256').update(token).digest('hex');
   }
 }

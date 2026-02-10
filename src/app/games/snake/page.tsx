@@ -18,6 +18,7 @@ export default function SnakeGamePage() {
     const [gameStarted, setGameStarted] = useState(false);
     const boardRef = useRef<HTMLDivElement>(null);
 
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization -- interval-driven game loop
     const moveSnake = useCallback(() => {
         if (gameOver || !gameStarted) return;
 

@@ -1,5 +1,9 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import withBundleAnalyzer from "@next/bundle-analyzer";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Bundle analyzer - run with ANALYZE=true npm run build
 const bundleAnalyzer = withBundleAnalyzer({
@@ -8,11 +12,9 @@ const bundleAnalyzer = withBundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable turbopack to silence webpack warning
-  // turbopack: {},
-  experimental: {
-    serverComponentsExternalPackages: ['ioredis'],
-  },
+  // Ensure Turbopack uses project root (avoids multiple-lockfile warning)
+  turbopack: { root: __dirname },
+  // Note: ioredis is on Next default serverExternalPackages; Turbopack shows resolve warnings but build succeeds
   allowedDevOrigins: [
     'https://*.replit.dev',
     'https://*.janeway.replit.dev',

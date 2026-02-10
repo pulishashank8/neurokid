@@ -137,13 +137,14 @@ export class TherapySessionRepository {
     limit: number;
     offset: number;
   }): Promise<{ data: TherapySession[]; pagination: { total: number; limit: number; offset: number } }> {
-    const sessions = await this.findByUserId(query.userId, query);
-    const total = await this.countByUserId(query.userId, {
+    const filters: TherapySessionFilters = {
       childName: query.childName,
-      therapyType: query.therapyType as any,
+      therapyType: query.therapyType as TherapySessionFilters["therapyType"],
       startDate: query.startDate,
       endDate: query.endDate,
-    });
+    };
+    const sessions = await this.findByUserId(query.userId, { ...filters, limit: query.limit, offset: query.offset });
+    const total = await this.countByUserId(query.userId, filters);
 
     return {
       data: sessions,

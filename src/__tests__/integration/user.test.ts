@@ -21,20 +21,13 @@ vi.mock('@/lib/auth', () => ({
     authOptions: {},
 }));
 
-// Mock dataGovernanceService
-vi.mock('@/application/services/DataGovernanceService', async (importOriginal) => {
-    const actual = await importOriginal() as any;
-    return {
-        ...actual,
-        dataGovernanceService: {
-            exportUserData: vi.fn(),
-            deleteUserCompletely: vi.fn().mockResolvedValue(undefined),
-            anonymizeUserData: vi.fn().mockResolvedValue(undefined),
-            getDataRetentionStats: vi.fn(),
-            cleanupOldAuditLogs: vi.fn(),
-        },
-    };
-});
+// Mock DataDeletionProcessor (used by delete-account)
+const deleteUserDataMock = vi.fn().mockResolvedValue(undefined);
+vi.mock('@/workers/processors/DataDeletionProcessor', () => ({
+    DataDeletionProcessor: vi.fn().mockImplementation(() => ({
+        deleteUserData: deleteUserDataMock,
+    })),
+}));
 
 // Mock logSecurityEvent
 vi.mock('@/lib/securityAudit', async (importOriginal) => {
@@ -300,12 +293,10 @@ describe('User Profile API Integration Tests', () => {
 
     describe('DELETE /api/user/delete-account - Delete Account', () => {
         it('should delete account successfully', async () => {
-            const { dataGovernanceService } = await import('@/application/services/DataGovernanceService');
+            const { DataDeletionProcessor } = await import('@/workers/processors/DataDeletionProcessor');
             vi.mocked(getServerSession).mockResolvedValue(mockSession);
 
-            const request = createMockRequest('DELETE', '/api/user/delete-account', {
-                body: { deleteType: 'complete' },
-            });
+            const request = createMockRequest('DELETE', '/api/user/delete-account');
             const response = await deleteAccount(request);
             const data = await parseResponse(response);
 
@@ -316,11 +307,9 @@ describe('User Profile API Integration Tests', () => {
             expect(response.status).toBe(200);
             expect(data.data.message).toBeDefined();
 
-            // Verify the service was called with correct params
-            expect(vi.mocked(dataGovernanceService.deleteUserCompletely)).toHaveBeenCalledWith(
-                testUser.id,
-                testUser.id
-            );
+            // Verify full data deletion processor was used
+            expect(DataDeletionProcessor).toHaveBeenCalled();
+            expect(deleteUserDataMock).toHaveBeenCalledWith(testUser.id, 'USER_REQUEST');
         });
 
         it('should fail when not authenticated', async () => {

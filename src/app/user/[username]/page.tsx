@@ -30,6 +30,13 @@ interface Post {
 
 type TabType = "posts" | "likes" | "saved";
 
+/** Format count for display: 1000 → "1K", 1.5K, 1M (same as resources and community) */
+function formatCompactCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
+  return String(n);
+}
+
 export default function UserProfilePage({
   params,
 }: {
@@ -253,7 +260,7 @@ export default function UserProfilePage({
                 <span>{post._count.comments} comments</span>
               )}
               {post.upvotes !== undefined && (
-                <span>{post.upvotes} upvotes</span>
+                <span>{formatCompactCount(post.upvotes)} upvotes</span>
               )}
             </div>
           </Link>

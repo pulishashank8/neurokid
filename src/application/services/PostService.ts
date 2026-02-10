@@ -148,15 +148,21 @@ export class PostService implements IPostService {
       authorId: input.authorId,
     });
 
-    // Get user votes if logged in
+    // Get user votes and like/dislike counts
+    const postIds = result.data.map(p => p.post.id);
     let userVotes = new Map<string, number>();
-    if (currentUserId && result.data.length > 0) {
-      const postIds = result.data.map(p => p.post.id);
+    let voteCounts = new Map<string, { likeCount: number; dislikeCount: number }>();
+    if (currentUserId && postIds.length > 0) {
       userVotes = await this.voteRepo.getUserVotesForTargets(currentUserId, 'POST', postIds);
+    }
+    if (postIds.length > 0) {
+      voteCounts = await this.voteRepo.getCountsByTargets('POST', postIds);
     }
 
     // Format posts - category and tags now come from batch query in repository
-    const formattedPosts = result.data.map(({ post, author, category, tags }) => ({
+    const formattedPosts = result.data.map(({ post, author, category, tags }) => {
+      const counts = voteCounts.get(post.id) ?? { likeCount: 0, dislikeCount: 0 };
+      return {
       id: post.id,
       title: post.title,
       snippet: post.content.substring(0, 200) + (post.content.length > 200 ? '...' : ''),
@@ -175,6 +181,8 @@ export class PostService implements IPostService {
             verifiedTherapist: author.verifiedTherapist,
           },
       voteScore: post.voteScore,
+      likeCount: counts.likeCount,
+      dislikeCount: counts.dislikeCount,
       commentCount: post.commentCount,
       viewCount: post.viewCount,
       isPinned: post.isPinned,
@@ -182,7 +190,8 @@ export class PostService implements IPostService {
       isAnonymous: post.isAnonymous,
       images: post.images,
       userVote: userVotes.get(post.id),
-    }));
+    };
+    });
 
     return {
       data: formattedPosts,
@@ -358,6 +367,8 @@ export class PostService implements IPostService {
       userVote = vote?.value;
     }
 
+    const counts = await this.voteRepo.countByTarget('POST', postId);
+
     return {
       id: post.id,
       title: post.title,
@@ -377,6 +388,8 @@ export class PostService implements IPostService {
             verifiedTherapist: author.verifiedTherapist,
           },
       voteScore: post.voteScore,
+      likeCount: counts.up,
+      dislikeCount: counts.down,
       commentCount: post.commentCount,
       viewCount: post.viewCount,
       isPinned: post.isPinned,

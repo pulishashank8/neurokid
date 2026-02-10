@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth.config";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@supabase/supabase-js";
+import { notifyMessage } from "@/lib/notifications";
 
 // Initialize Supabase Client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -258,6 +259,33 @@ export async function POST(
         createdAt: true,
         imageUrl: true
       }
+    });
+
+    // Notify other participant(s) about the new message
+    const conversationWithParticipants = await prisma.conversation.findUnique({
+      where: { id: conversationId },
+      select: {
+        participants: { select: { userId: true } },
+      },
+    });
+    const recipientIds = conversationWithParticipants?.participants.map((p) => p.userId) ?? [];
+    let senderUsername: string | undefined;
+    try {
+      const profile = await prisma.profile.findUnique({
+        where: { userId },
+        select: { username: true },
+      });
+      senderUsername = profile?.username ?? undefined;
+    } catch {
+      // ignore
+    }
+    void notifyMessage({
+      conversationId,
+      messageId: message.id,
+      senderId: userId,
+      recipientIds,
+      contentPreview: content.trim() || undefined,
+      senderUsername,
     });
 
     // We don't need to manually update conversation updated_at because 

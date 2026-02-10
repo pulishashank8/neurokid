@@ -481,6 +481,15 @@ export default function Home() {
         {/* FOOTER */}
         <footer className="py-8 border-t border-slate-200 dark:border-white/5 px-6">
           <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
+
+            <div className="flex flex-wrap justify-center gap-6 mb-6 text-sm text-slate-500 dark:text-slate-400 font-medium">
+              <Link href="/privacy" className="hover:text-emerald-500 transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-emerald-500 transition-colors">Terms of Service</Link>
+              <Link href="/cookies" className="hover:text-emerald-500 transition-colors">Cookie Policy</Link>
+              <Link href="/disclaimer" className="hover:text-emerald-500 transition-colors">Medical Disclaimer</Link>
+              <Link href="/crisis" className="hover:text-rose-500 transition-colors">Crisis Support</Link>
+            </div>
+
             <p className="text-[10px] text-slate-400 dark:text-slate-600 max-w-xl leading-relaxed uppercase tracking-wider mb-2">
               Disclaimer: NeuroKid is a personal project created for educational purposes.
               Content provided is not a substitute for professional medical advice.

@@ -57,11 +57,13 @@ export async function GET(request: NextRequest) {
     async start(controller) {
       let isClosed = false;
       let pollInterval: NodeJS.Timeout;
+      let safetyTimeout: NodeJS.Timeout;
 
       const closeStream = () => {
         if (!isClosed) {
           isClosed = true;
           clearInterval(pollInterval);
+          clearTimeout(safetyTimeout);
           controller.close();
         }
       };
@@ -128,7 +130,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Close stream after 2 minutes (safety timeout)
-      setTimeout(() => {
+      safetyTimeout = setTimeout(() => {
         if (!isClosed) {
           controller.enqueue(encoder.encode(`event: timeout\ndata: {"message": "Stream timeout"}\n\n`));
           closeStream();

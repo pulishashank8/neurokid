@@ -33,13 +33,14 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate file type (security: prevent upload of executable files)
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        // NOTE: SVG removed due to XSS vulnerability (can contain embedded scripts)
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
-            return NextResponse.json({ error: "Invalid file type. Only images are allowed." }, { status: 400 });
+            return NextResponse.json({ error: "Invalid file type. Only JPG, PNG, GIF, and WebP images are allowed." }, { status: 400 });
         }
 
         // Additional security: validate file extension
-        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
         const fileName = file.name.toLowerCase();
         const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
         if (!hasValidExtension) {

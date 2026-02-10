@@ -5,15 +5,16 @@ import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
+import { Download, Trash2, Shield, FileText, Lock, AlertTriangle, Settings } from "lucide-react";
 
-type Tab = "profile" | "security" | "subscription" | "help";
+type Tab = "profile" | "security" | "subscription" | "privacy" | "help";
 
 export default function SettingsPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState<Tab>("profile");
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Profile state
   const [profileData, setProfileData] = useState({
     displayName: "",
@@ -21,7 +22,7 @@ export default function SettingsPage() {
     location: "",
   });
   const [isSavingProfile, setIsSavingProfile] = useState(false);
-  
+
   // Password state
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -29,11 +30,11 @@ export default function SettingsPage() {
     confirmPassword: "",
   });
   const [isSavingPassword, setIsSavingPassword] = useState(false);
-  
+
   // Delete account state
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   // Contact form state
   const [contactData, setContactData] = useState({
     name: "",
@@ -41,6 +42,37 @@ export default function SettingsPage() {
     message: "",
   });
   const [isSendingMessage, setIsSendingMessage] = useState(false);
+
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportStatus, setExportStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+
+  const handleExportData = async () => {
+    setIsExporting(true);
+    setExportStatus(null);
+    try {
+      const response = await fetch("/api/user/export-data");
+      if (!response.ok) throw new Error("Export failed");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `neurokid-data-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      setExportStatus({ type: 'success', message: "Data exported successfully" });
+      toast.success("Data download started");
+    } catch (error) {
+      console.error(error);
+      setExportStatus({ type: 'error', message: "Failed to export data" });
+      toast.error("Failed to export data");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -105,7 +137,7 @@ export default function SettingsPage() {
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast.error("Passwords do not match");
       return;
@@ -178,7 +210,7 @@ export default function SettingsPage() {
     e.preventDefault();
 
     const formspreeEndpoint = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT;
-    
+
     if (typeof formspreeEndpoint !== "string" || !formspreeEndpoint) {
       toast.error("Support form not configured");
       return;
@@ -236,41 +268,46 @@ export default function SettingsPage() {
         <div className="flex gap-2 border-b border-[var(--border)] mb-6 sm:mb-8 overflow-x-auto">
           <button
             onClick={() => setActiveTab("profile")}
-            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors min-h-[44px] ${
-              activeTab === "profile"
-                ? "border-[var(--primary)] text-[var(--primary)]"
-                : "border-transparent text-[var(--muted)] hover:text-[var(--text)]"
-            }`}
+            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors min-h-[44px] ${activeTab === "profile"
+              ? "border-[var(--primary)] text-[var(--primary)]"
+              : "border-transparent text-[var(--muted)] hover:text-[var(--text)]"
+              }`}
           >
             Profile
           </button>
           <button
             onClick={() => setActiveTab("security")}
-            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors min-h-[44px] ${
-              activeTab === "security"
-                ? "border-[var(--primary)] text-[var(--primary)]"
-                : "border-transparent text-[var(--muted)] hover:text-[var(--text)]"
-            }`}
+            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors min-h-[44px] ${activeTab === "security"
+              ? "border-[var(--primary)] text-[var(--primary)]"
+              : "border-transparent text-[var(--muted)] hover:text-[var(--text)]"
+              }`}
           >
             Login & Security
           </button>
           <button
             onClick={() => setActiveTab("subscription")}
-            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors min-h-[44px] ${
-              activeTab === "subscription"
-                ? "border-[var(--primary)] text-[var(--primary)]"
-                : "border-transparent text-[var(--muted)] hover:text-[var(--text)]"
-            }`}
+            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors min-h-[44px] ${activeTab === "subscription"
+              ? "border-[var(--primary)] text-[var(--primary)]"
+              : "border-transparent text-[var(--muted)] hover:text-[var(--text)]"
+              }`}
           >
             Subscription
           </button>
           <button
+            onClick={() => setActiveTab("privacy")}
+            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors min-h-[44px] ${activeTab === "privacy"
+              ? "border-[var(--primary)] text-[var(--primary)]"
+              : "border-transparent text-[var(--muted)] hover:text-[var(--text)]"
+              }`}
+          >
+            Privacy & Data
+          </button>
+          <button
             onClick={() => setActiveTab("help")}
-            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors min-h-[44px] ${
-              activeTab === "help"
-                ? "border-[var(--primary)] text-[var(--primary)]"
-                : "border-transparent text-[var(--muted)] hover:text-[var(--text)]"
-            }`}
+            className={`px-4 py-2 font-medium text-sm whitespace-nowrap border-b-2 transition-colors min-h-[44px] ${activeTab === "help"
+              ? "border-[var(--primary)] text-[var(--primary)]"
+              : "border-transparent text-[var(--muted)] hover:text-[var(--text)]"
+              }`}
           >
             Help & Support
           </button>
@@ -429,6 +466,132 @@ export default function SettingsPage() {
                     >
                       {isDeleting ? "Deleting..." : "Delete My Account"}
                     </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Privacy Tab */}
+          {activeTab === "privacy" && (
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-xl font-semibold text-[var(--text)] mb-4">Data Privacy & Rights</h2>
+                <p className="text-[var(--muted)] mb-6">
+                  Manage your personal data and exercise your privacy rights under GDPR and CCPA.
+                </p>
+
+                <div className="grid gap-6">
+                  {/* Data Export */}
+                  <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="p-2 bg-blue-500/10 rounded-lg text-blue-600 dark:text-blue-400">
+                        <Download className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-medium text-[var(--text)] mb-2">Export Your Data</h3>
+                        <p className="text-sm text-[var(--muted)] mb-4">
+                          Download a copy of all your personal data, including profile information, posts, logs, and settings in JSON format.
+                        </p>
+                        <Button
+                          onClick={handleExportData}
+                          disabled={isExporting}
+                          variant="outline"
+                          className="flex items-center gap-2"
+                        >
+                          {isExporting ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                              Exporting...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="w-4 h-4" />
+                              Download My Data
+                            </>
+                          )}
+                        </Button>
+                        {exportStatus && (
+                          <p className={`mt-2 text-sm ${exportStatus.type === 'success' ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                            {exportStatus.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Privacy Policy Link */}
+                  <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="p-2 bg-purple-500/10 rounded-lg text-purple-600 dark:text-purple-400">
+                        <FileText className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-medium text-[var(--text)] mb-2">Privacy Policy</h3>
+                        <p className="text-sm text-[var(--muted)] mb-4">
+                          Read our privacy policy to understand how we collect, use, and protect your data.
+                        </p>
+                        <Button
+                          variant="outline"
+                          onClick={() => router.push('/privacy')}
+                          className="flex items-center gap-2"
+                        >
+                          <Shield className="w-4 h-4" />
+                          View Privacy Policy
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cookie Settings */}
+                  <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="p-2 bg-amber-500/10 rounded-lg text-amber-600 dark:text-amber-400">
+                        <Lock className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-medium text-[var(--text)] mb-2">Cookie Preferences</h3>
+                        <p className="text-sm text-[var(--muted)] mb-4">
+                          Manage your cookie settings and consent preferences.
+                        </p>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            // Clear cookie consent to trigger banner again
+                            localStorage.removeItem("cookie-consent-v1");
+                            window.location.reload();
+                          }}
+                          className="flex items-center gap-2"
+                        >
+                          <Settings className="w-4 h-4" />
+                          Reset Cookie Consent
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Data Deletion */}
+                  <div className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="p-2 bg-red-500/10 rounded-lg text-red-600 dark:text-red-400">
+                        <Trash2 className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-medium text-[var(--text)] mb-2">Delete Account & Data</h3>
+                        <p className="text-sm text-[var(--muted)] mb-4">
+                          Permanently delete your account and remove your data from our servers.
+                        </p>
+                        <Button
+                          variant="destructive"
+                          onClick={() => setActiveTab("security")}
+                          className="flex items-center gap-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Go to Delete Account
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

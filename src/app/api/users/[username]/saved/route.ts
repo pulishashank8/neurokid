@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { PostStatus } from "@prisma/client";
+import { PostStatus, VoteType } from "@prisma/client";
 
 interface BookmarkWithPost {
   post: {
@@ -64,8 +64,9 @@ export async function GET(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    // Only the profile owner can see their saved posts (private, like Instagram)
     if (session.user.id !== user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden. You can only view your own saved posts." }, { status: 403 });
     }
 
     const bookmarks = await prisma.bookmark.findMany({
@@ -123,13 +124,34 @@ export async function GET(
       },
     });
 
-    // Format posts to match PostCard expectations
+    const postIds = bookmarks.map((b) => b.post.id);
+    const [likeCounts, dislikeCounts] =
+      postIds.length > 0
+        ? await Promise.all([
+            prisma.vote.groupBy({
+              by: ["targetId"],
+              where: { targetType: VoteType.POST, targetId: { in: postIds }, value: 1 },
+              _count: { id: true },
+            }),
+            prisma.vote.groupBy({
+              by: ["targetId"],
+              where: { targetType: VoteType.POST, targetId: { in: postIds }, value: -1 },
+              _count: { id: true },
+            }),
+          ])
+        : [[], []];
+    const likeMap = new Map(likeCounts.map((r) => [r.targetId, r._count.id]));
+    const dislikeMap = new Map(dislikeCounts.map((r) => [r.targetId, r._count.id]));
+
+    // Format posts to match PostCard expectations (with like/dislike counts)
     const posts = bookmarks.map((b: BookmarkWithPost) => ({
       id: b.post.id,
       title: b.post.title,
       snippet: b.post.content.substring(0, 200) + (b.post.content.length > 200 ? "..." : ""),
       createdAt: b.post.createdAt,
       voteScore: b.post.voteScore,
+      likeCount: likeMap.get(b.post.id) ?? 0,
+      dislikeCount: dislikeMap.get(b.post.id) ?? 0,
       commentCount: b.post._count.comments,
       isAnonymous: b.post.isAnonymous,
       isPinned: b.post.isPinned,

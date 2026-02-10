@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
 
     // Require OWNER role
-    if (!session?.user?.roles?.includes('OWNER' as any)) {
+    if (!(session?.user?.roles as string[] | undefined)?.includes('OWNER')) {
       return NextResponse.json(
         { error: 'Unauthorized - OWNER role required' },
         { status: 403 }

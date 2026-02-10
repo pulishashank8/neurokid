@@ -39,6 +39,8 @@ export interface FormattedPost {
   tags: Array<{ id: string; name: string; slug: string }>;
   author: { id: string; username: string; displayName: string; avatarUrl: string | null; verifiedTherapist: boolean } | null;
   voteScore: number;
+  likeCount?: number;
+  dislikeCount?: number;
   commentCount: number;
   viewCount: number;
   isPinned: boolean;

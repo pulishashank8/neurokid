@@ -280,6 +280,7 @@ function MessagesContent() {
   const [loading, setLoading] = useState(true);
   const [connectionMessage, setConnectionMessage] = useState("");
   const [showConnectionModal, setShowConnectionModal] = useState<string | null>(null);
+  const [sendingConnectionRequest, setSendingConnectionRequest] = useState(false);
   const [otherUser, setOtherUser] = useState<{ id: string; username: string; displayName: string; avatarUrl?: string; lastActiveAt?: string } | null>(null);
 
   // File Upload State
@@ -552,11 +553,14 @@ function MessagesContent() {
 
 
   const sendConnectionRequest = async (userId: string) => {
+    if (sendingConnectionRequest) return;
+    setSendingConnectionRequest(true);
     try {
+      const message = connectionMessage.trim() || undefined;
       const res = await fetch("/api/connections", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ receiverId: userId, message: connectionMessage }),
+        body: JSON.stringify({ receiverId: userId, ...(message != null && { message }) }),
       });
 
       if (res.ok) {
@@ -567,10 +571,23 @@ function MessagesContent() {
         fetchPendingRequests();
       } else {
         const data = await res.json();
-        toast.error(data.error || "Failed to send request");
+        const friendlyMessage =
+          data.message ||
+          (res.status === 409
+            ? "You already have a pending request with this user, or you're already connected."
+            : data.error) ||
+          "Failed to send request";
+        toast.error(friendlyMessage);
+        if (res.status === 409) {
+          setShowConnectionModal(null);
+          setConnectionMessage("");
+          fetchPendingRequests();
+        }
       }
     } catch {
       toast.error("Failed to send request");
+    } finally {
+      setSendingConnectionRequest(false);
     }
   };
 
@@ -1116,10 +1133,12 @@ function MessagesContent() {
                 Cancel
               </button>
               <button
+                type="button"
+                disabled={sendingConnectionRequest}
                 onClick={() => sendConnectionRequest(showConnectionModal)}
-                className="flex-1 py-3.5 bg-gradient-to-r from-emerald-400 to-teal-400 text-white rounded-2xl font-semibold hover:shadow-lg hover:shadow-emerald-400/30 transform hover:-translate-y-0.5 transition-all duration-300"
+                className="flex-1 py-3.5 bg-gradient-to-r from-emerald-400 to-teal-400 text-white rounded-2xl font-semibold hover:shadow-lg hover:shadow-emerald-400/30 transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-60 disabled:pointer-events-none"
               >
-                Send Request
+                {sendingConnectionRequest ? "Sending…" : "Send Request"}
               </button>
             </div>
           </div>

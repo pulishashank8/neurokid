@@ -73,6 +73,47 @@ export class DataDeletionProcessor {
           },
         });
 
+        // 9b. Delete connection requests (sender or receiver)
+        await tx.connectionRequest.deleteMany({
+          where: {
+            OR: [{ senderId: userId }, { receiverId: userId }],
+          },
+        });
+
+        // 9c. Delete blocked-user records (user is blocker or blocked)
+        await tx.blockedUser.deleteMany({
+          where: {
+            OR: [{ blockerId: userId }, { blockedId: userId }],
+          },
+        });
+
+        // 9d. Delete saved resources (knowledge base)
+        await tx.savedResource.deleteMany({
+          where: { userId },
+        });
+        await tx.savedStaticResource.deleteMany({
+          where: { userId },
+        });
+
+        // 9e. Delete AAC vocabulary (user custom symbols)
+        await tx.aACVocabulary.deleteMany({
+          where: { userId },
+        });
+
+        // 9f. Delete conversation participants and related tokens
+        await tx.conversationParticipant.deleteMany({
+          where: { userId },
+        });
+        await tx.passwordResetToken.deleteMany({
+          where: { userId },
+        });
+        await tx.emailVerificationToken.deleteMany({
+          where: { userId },
+        });
+        await tx.emailVerification.deleteMany({
+          where: { userId },
+        });
+
         // 10. Delete notifications
         await tx.notification.deleteMany({
           where: { userId },

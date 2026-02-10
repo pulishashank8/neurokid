@@ -21,6 +21,8 @@ export interface FormattedComment {
   replyCount: number;
   isAnonymous: boolean;
   userVote?: number;
+  postId?: string;
+  parentCommentId?: string | null;
 }
 
 export interface ICommentService {
