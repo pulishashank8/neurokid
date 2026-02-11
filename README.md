@@ -152,4 +152,12 @@ See `.env.example` for the full list.
 
 ---
 
+## About Me
+
+Hi, I'm **Shashank Puli**, the creator of NeuroKid. I built this platform because I believe every family navigating autism deserves support, clarity, and community. I'm passionate about technology and care deeply about making a meaningful difference for neurodivergent children and their parents.
+
+If you'd like to connect or have feedback: [pulishashank8@gmail.com](mailto:pulishashank8@gmail.com)
+
+---
+
 **Built by Shashank Puli for autism families worldwide.**
