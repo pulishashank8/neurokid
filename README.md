@@ -1,8 +1,10 @@
-# NeuroKid
+# NeuroKid — End-to-End Autism Support
 
 **An evidence-based platform empowering families navigating autism spectrum disorder.**
 
 NeuroKid is a production-ready web application that supports parents, caregivers, and families with autistic children. It brings together community support, professional care resources, and interactive tools in one seamless experience.
+
+🔗 **Repository:** [github.com/pulishashank8/Neurokid-End-to-end-autism-support](https://github.com/pulishashank8/Neurokid-End-to-end-autism-support)
 
 ---
 
@@ -66,7 +68,7 @@ neurokind/
 1. **Clone and install**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/pulishashank8/Neurokid-End-to-end-autism-support.git
    cd neurokind
    npm install
    ```
