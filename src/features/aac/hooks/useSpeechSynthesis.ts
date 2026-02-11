@@ -91,7 +91,6 @@ export function useSpeechSynthesis(
           const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
           if (AudioContext) {
             audioContextRef.current = new AudioContext();
-            console.log("Audio context initialized for mobile");
           }
         } catch (e) {
           console.warn("Could not create AudioContext:", e);
@@ -211,7 +210,6 @@ export function useSpeechSynthesis(
               audioRef.current = null;
 
               // Fallback to browser TTS on error
-              console.log("Falling back to browser TTS due to audio error");
             };
 
             try {
@@ -227,8 +225,8 @@ export function useSpeechSynthesis(
             }
           }
         }
-      } catch (error) {
-        console.log("OpenAI TTS unavailable, falling back to browser TTS", error);
+      } catch {
+        // OpenAI TTS unavailable, fall through to browser TTS
       }
 
       // Fallback to browser speech synthesis

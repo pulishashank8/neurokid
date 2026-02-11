@@ -25,7 +25,6 @@ import {
   MessageCircle,
   Star,
   Gamepad2,
-  Home,
   Sparkles,
   Map,
 } from "lucide-react";
@@ -169,26 +168,8 @@ export default function PremiumNavbar() {
               </span>
             </Link>
 
-            {/* Desktop Menu */}
+            {/* Desktop Menu - NeuroKid logo = home, no separate Home link */}
             <div className="hidden lg:flex items-center gap-1">
-              <Link href="/">
-                <motion.span
-                  className={`
-                    relative px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300
-                    flex items-center gap-2
-                    ${pathname === "/"
-                      ? "text-[#F59E0B] bg-[#FEF3C7] dark:bg-[#F59E0B]/20"
-                      : "text-[#6B7280] hover:text-[#1F2937] dark:hover:text-white hover:bg-[#F3F4F6] dark:hover:bg-white/10"
-                    }
-                  `}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Home className="w-4 h-4" />
-                  Home
-                </motion.span>
-              </Link>
-
               {NAV_GROUPS.map((group) => {
                 const isActive = group.items.some(item => pathname === item.href);
                 const hasNotification = group.label === "Community" && notifications.totalUnread > 0;
@@ -485,21 +466,7 @@ export default function PremiumNavbar() {
               <span>Get Help Now</span>
             </Link>
 
-            <Link
-              href="/"
-              className={`
-                flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all duration-200 mb-1
-                ${pathname === "/"
-                  ? "bg-gradient-to-r from-[#F59E0B] to-[#EC4899] text-white shadow-md"
-                  : "text-[#1F2937] dark:text-white hover:bg-[#F3F4F6] dark:hover:bg-white/5"
-                }
-              `}
-              onClick={() => setMobileOpen(false)}
-            >
-              <Home className="w-5 h-5" />
-              Home
-            </Link>
-
+            {/* NeuroKid logo = home; no separate Home in mobile menu */}
             {NAV_GROUPS.map((group, groupIndex) => (
               <motion.div 
                 key={group.label} 

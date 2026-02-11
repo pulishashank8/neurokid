@@ -18,7 +18,6 @@ export async function POST() {
             }
         } catch {
             // Python service not available, use TypeScript fallback
-            console.log('[Quality] Python service unavailable, using TypeScript engine');
         }
 
         // Fallback to TypeScript-based quality engine

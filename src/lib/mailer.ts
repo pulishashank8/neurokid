@@ -8,7 +8,6 @@ export async function sendVerificationEmail(email: string, token: string): Promi
 
   if (!resendApiKey) {
     console.warn('RESEND_API_KEY is not set. Skipping email sending.');
-    console.log(`Verification URL for ${email}: ${appUrl}/verify-email?token=${token}`);
     return;
   }
 
@@ -16,7 +15,6 @@ export async function sendVerificationEmail(email: string, token: string): Promi
   const verificationUrl = `${appUrl}/verify-email?token=${token}`;
 
   try {
-    console.log(`Attempting to send verification email to: ${email} from: ${emailFrom}`);
     const { data, error } = await resend.emails.send({
       from: `NeuroKid <${emailFrom}>`,
       to: email,
@@ -153,7 +151,6 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
 
   if (!resendApiKey) {
     console.warn('RESEND_API_KEY is not set. Skipping email sending.');
-    console.log(`Reset URL for ${email}: ${appUrl}/reset-password?token=${token}`);
     return;
   }
 
@@ -161,7 +158,6 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
   const resetUrl = `${appUrl}/reset-password?token=${token}`;
 
   try {
-    console.log(`Attempting to send password reset email to: ${email} from: ${emailFrom}`);
     const { data, error } = await resend.emails.send({
       from: `NeuroKid <${emailFrom}>`,
       to: email,

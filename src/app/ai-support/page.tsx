@@ -69,21 +69,62 @@ export default function AiSupportPage() {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [...messages, userMsg] }),
+        credentials: "include",
+        body: JSON.stringify({
+          conversationType: "support",
+          messages: [...messages, userMsg],
+        }),
       });
       const json = await res.json();
-      const assistantMsg: Message = {
-        role: "assistant",
-        content: json.reply,
-      };
-      setMessages((m) => [...m, assistantMsg]);
+
+      if (!res.ok) {
+        const msg = res.status === 401
+          ? "Session expired. Please refresh the page and log in again."
+          : res.status === 500
+            ? "Server error. Please try again, or log out and back in."
+            : json.message || json.error || "Failed to send message";
+        setMessages((m) => [...m, { role: "assistant", content: msg }]);
+        return;
+      }
+
+      const jobId = json.jobId;
+      if (!jobId) {
+        setMessages((m) => [...m, { role: "assistant", content: "Invalid response from server. Please try again." }]);
+        return;
+      }
+
+      const maxAttempts = 60;
+      const pollInterval = 1500;
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const pollRes = await fetch(`/api/ai/jobs/${jobId}`, { credentials: "include" });
+        const pollData = await pollRes.json();
+
+        if (!pollRes.ok) {
+          const pollMsg = pollRes.status === 401
+            ? "Session expired. Please refresh the page and log in again."
+            : pollData.error || pollData.message || "Failed to get response.";
+          setMessages((m) => [...m, { role: "assistant", content: pollMsg }]);
+          return;
+        }
+
+        if (pollData.status === "completed" && pollData.result) {
+          setMessages((m) => [...m, { role: "assistant", content: pollData.result }]);
+          return;
+        }
+
+        if (pollData.status === "failed") {
+          setMessages((m) => [...m, { role: "assistant", content: pollData.error || "Response failed. Please try again." }]);
+          return;
+        }
+
+        await new Promise((r) => setTimeout(r, pollInterval));
+      }
+
+      setMessages((m) => [...m, { role: "assistant", content: "Response is taking too long. Please try again." }]);
     } catch {
       setMessages((m) => [
         ...m,
-        {
-          role: "assistant",
-          content: "I apologize, but I'm having trouble connecting right now. Please try again in a moment.",
-        },
+        { role: "assistant", content: "I apologize, but I'm having trouble connecting right now. Please try again in a moment." },
       ]);
     } finally {
       setLoading(false);
@@ -171,7 +212,7 @@ export default function AiSupportPage() {
                   {/* Bubble */}
                   <div className={`max-w-[85%] sm:max-w-[75%] px-5 py-3.5 rounded-2xl shadow-sm text-sm sm:text-base leading-relaxed ${m.role === "assistant"
                     ? "bg-[var(--surface2)] text-[var(--text)] rounded-tl-none border border-[var(--border)]"
-                    : "bg-[var(--primary)] text-white rounded-tr-none"
+                    : "bg-emerald-800 text-white rounded-tr-none font-semibold [text-shadow:0_0_1px_rgba(0,0,0,0.2)]"
                     }`}>
                     <p className="whitespace-pre-wrap">{m.content}</p>
                   </div>
@@ -220,7 +261,7 @@ export default function AiSupportPage() {
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Ask anything..."
-                    className="w-full pl-4 sm:pl-5 pr-12 py-3 sm:py-4 bg-[var(--background)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] outline-none shadow-sm transition-all text-sm sm:text-base text-[var(--text)] placeholder:text-[var(--muted)] font-medium"
+                    className="w-full pl-4 sm:pl-5 pr-12 py-3 sm:py-4 bg-[var(--background)] border border-[var(--border)] rounded-2xl focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] outline-none shadow-sm transition-all text-sm sm:text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 font-semibold"
                     disabled={loading}
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">

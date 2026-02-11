@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth";
 import { TherapySessionService } from "@/services/therapy-session.service";
-import { withApiHandler } from "@/lib/api-handler";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { NotFoundError } from "@/domain/errors";
 import { z } from "zod";
 

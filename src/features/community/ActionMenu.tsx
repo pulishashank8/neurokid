@@ -90,7 +90,6 @@ export function ActionMenu({ onEdit, onDelete, isOwner, resourceName = "Item" }:
                             <button
                                 onClick={() => {
                                     setShowDeleteConfirm(true);
-                                    // setIsOpen(false); // Wait until confirm action closes it or the confirm modal takes over
                                 }}
                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-left"
                             >

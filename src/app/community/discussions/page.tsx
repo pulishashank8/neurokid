@@ -4,13 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
-import { MessageSquare, Plus, Search, Sparkles, TrendingUp, Flame, Folder, LayoutGrid, User, Heart, Bookmark } from "lucide-react";
+import { MessageSquare, Plus, Search, Sparkles, TrendingUp, Flame, Folder, LayoutGrid, User, Heart, Bookmark, ThumbsDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PostCard } from "@/features/community/PostCard";
 import { PostCardSkeleton } from "@/features/community/LoadingSkeletons";
 import { BackButton } from "@/components/ui/BackButton";
 
-type FeedFilter = "all" | "my-posts" | "my-likes" | "saved";
+type FeedFilter = "all" | "my-posts" | "my-likes" | "my-dislikes" | "saved";
 
 interface Post {
   id: string;
@@ -33,7 +33,10 @@ interface Post {
     username: string;
     avatarUrl: string | null;
   };
-  voteScore: number;
+  voteScore?: number;
+  likeCount?: number;
+  dislikeCount?: number;
+  userVote?: number;
   commentCount: number;
   isPinned?: boolean;
   isLocked?: boolean;
@@ -61,21 +64,6 @@ export default function CommunityDiscussionsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [feedFilter, setFeedFilter] = useState<FeedFilter>("all");
-
-  // Fetch user profile to get username
-  const { data: profileData } = useQuery({
-    queryKey: ["my-profile", session?.user?.id],
-    queryFn: async () => {
-      const res = await fetch("/api/user/profile");
-      if (!res.ok) return null;
-      const json = await res.json();
-      return json.profile || json;
-    },
-    enabled: !!session?.user?.id,
-  });
-
-  // Get username from profile for API calls
-  const username = profileData?.username;
 
   // Fetch all posts
   const { data: postsData, isLoading, error } = useQuery({
@@ -106,30 +94,40 @@ export default function CommunityDiscussionsPage() {
     enabled: feedFilter === "my-posts" && !!session?.user?.id,
   });
 
-  // Fetch user's liked posts
+  // Fetch user's liked posts (uses session - no username needed)
   const { data: likedPostsData, isLoading: likedPostsLoading } = useQuery({
-    queryKey: ["liked-posts", username],
+    queryKey: ["liked-posts", session?.user?.id],
     queryFn: async () => {
-      if (!username) return [];
-      const res = await fetch(`/api/users/${encodeURIComponent(username)}/upvoted`);
+      const res = await fetch("/api/me/upvoted");
       if (!res.ok) return [];
       const json = await res.json();
       return json.posts || [];
     },
-    enabled: feedFilter === "my-likes" && !!username,
+    enabled: feedFilter === "my-likes" && !!session?.user?.id,
   });
 
-  // Fetch user's saved posts
-  const { data: savedPostsData, isLoading: savedPostsLoading } = useQuery({
-    queryKey: ["saved-posts", username],
+  // Fetch user's disliked posts (uses session - no username needed)
+  const { data: dislikedPostsData, isLoading: dislikedPostsLoading } = useQuery({
+    queryKey: ["disliked-posts", session?.user?.id],
     queryFn: async () => {
-      if (!username) return [];
-      const res = await fetch(`/api/users/${encodeURIComponent(username)}/saved`);
+      const res = await fetch("/api/me/downvoted");
       if (!res.ok) return [];
       const json = await res.json();
       return json.posts || [];
     },
-    enabled: feedFilter === "saved" && !!username,
+    enabled: feedFilter === "my-dislikes" && !!session?.user?.id,
+  });
+
+  // Fetch user's saved posts (uses session - no username needed)
+  const { data: savedPostsData, isLoading: savedPostsLoading } = useQuery({
+    queryKey: ["saved-posts", session?.user?.id],
+    queryFn: async () => {
+      const res = await fetch("/api/me/saved");
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.posts || [];
+    },
+    enabled: feedFilter === "saved" && !!session?.user?.id,
   });
 
   // Determine which posts to show based on filter
@@ -139,6 +137,8 @@ export default function CommunityDiscussionsPage() {
         return Array.isArray(myPostsData) ? myPostsData : [];
       case "my-likes":
         return Array.isArray(likedPostsData) ? likedPostsData : [];
+      case "my-dislikes":
+        return Array.isArray(dislikedPostsData) ? dislikedPostsData : [];
       case "saved":
         return Array.isArray(savedPostsData) ? savedPostsData : [];
       default:
@@ -152,6 +152,8 @@ export default function CommunityDiscussionsPage() {
         return myPostsLoading;
       case "my-likes":
         return likedPostsLoading;
+      case "my-dislikes":
+        return dislikedPostsLoading;
       case "saved":
         return savedPostsLoading;
       default:
@@ -214,8 +216,8 @@ export default function CommunityDiscussionsPage() {
           <div className="flex-1">
             {/* Feed Filter Tabs (My Posts, Likes, Saved) */}
             {session?.user && (
-              <div className="mb-4">
-                <div className="flex flex-wrap gap-2">
+              <div className="mb-4 overflow-x-auto">
+                <div className="flex flex-wrap gap-2 min-w-0">
                   <button
                     onClick={() => setFeedFilter("all")}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
@@ -242,12 +244,23 @@ export default function CommunityDiscussionsPage() {
                     onClick={() => setFeedFilter("my-likes")}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
                       feedFilter === "my-likes"
-                        ? "bg-pink-500 text-white shadow-md"
+                        ? "bg-emerald-500 text-white shadow-md"
                         : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
                     }`}
                   >
                     <Heart className="w-4 h-4" />
                     My Likes
+                  </button>
+                  <button
+                    onClick={() => setFeedFilter("my-dislikes")}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                      feedFilter === "my-dislikes"
+                        ? "bg-red-500 text-white shadow-md"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                    }`}
+                  >
+                    <ThumbsDown className="w-4 h-4" />
+                    My Dislikes
                   </button>
                   <button
                     onClick={() => setFeedFilter("saved")}
@@ -266,8 +279,8 @@ export default function CommunityDiscussionsPage() {
 
             {/* Sort Tabs - only show for "all" filter */}
             {feedFilter === "all" && (
-              <div className="mb-6">
-                <div className="flex gap-2 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 w-fit">
+              <div className="mb-6 overflow-x-auto">
+                <div className="flex gap-2 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 w-fit min-w-0">
                   {sortOptions.map((option) => {
                     const Icon = option.icon;
                     return (
@@ -304,18 +317,21 @@ export default function CommunityDiscussionsPage() {
                 <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4">
                   {feedFilter === "my-posts" && <User className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
                   {feedFilter === "my-likes" && <Heart className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
+                  {feedFilter === "my-dislikes" && <ThumbsDown className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
                   {feedFilter === "saved" && <Bookmark className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
                   {feedFilter === "all" && <MessageSquare className="w-8 h-8 text-slate-400 dark:text-slate-500" />}
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
                   {feedFilter === "my-posts" && "You haven't posted yet"}
                   {feedFilter === "my-likes" && "No liked posts yet"}
+                  {feedFilter === "my-dislikes" && "No disliked posts yet"}
                   {feedFilter === "saved" && "No saved posts yet"}
                   {feedFilter === "all" && "No discussions yet"}
                 </h3>
                 <p className="text-slate-600 dark:text-slate-400 mb-6">
                   {feedFilter === "my-posts" && "Share your thoughts with the community!"}
-                  {feedFilter === "my-likes" && "Posts you upvote will appear here."}
+                  {feedFilter === "my-likes" && "Posts you like (thumbs up) will appear here."}
+                  {feedFilter === "my-dislikes" && "Posts you dislike (thumbs down) will appear here."}
                   {feedFilter === "saved" && "Bookmark posts to find them easily later."}
                   {feedFilter === "all" && "Be the first to start a conversation!"}
                 </p>

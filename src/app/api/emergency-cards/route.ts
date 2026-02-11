@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { FieldEncryption } from "@/lib/encryption";
 import { z } from "zod";
 import { RateLimits, enforceRateLimit } from "@/lib/rate-limit";
-import { getClientIp } from "@/lib/api-handler";
+import { getClientIp } from "@/lib/api/api-handler";
 import { createLogger } from "@/lib/logger";
 
 // Validation schema for emergency card fields

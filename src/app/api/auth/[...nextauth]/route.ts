@@ -21,8 +21,8 @@ export const authOptions: NextAuthOptions = {
     warn(code) {
       console.warn(`[next-auth] ${code}`);
     },
-    debug(code, metadata) {
-      console.log(`[next-auth] ${code}:`, metadata);
+    debug() {
+      // No-op: suppress debug output
     },
   },
   // No adapter needed when using JWT strategy

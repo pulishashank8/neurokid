@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import bcryptjs from "bcryptjs";
-import { withApiHandler, getRequestId } from "@/lib/apiHandler";
+import { withApiHandler, getRequestId } from "@/lib/api/apiHandler";
 import { createLogger } from "@/lib/logger";
 import { z } from "zod";
 import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
@@ -83,9 +83,6 @@ export const POST = withApiHandler(async (request: NextRequest) => {
             data: { usedAt: new Date() },
         }),
     ]);
-
-    // Optionally delete all other tokens for this user for security
-    // await prisma.passwordResetToken.deleteMany({ where: { userId: dbToken.userId, id: { not: dbToken.id } } });
 
     logger.info({ userId: dbToken.userId }, "Password reset successful");
 

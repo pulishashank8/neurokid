@@ -7,7 +7,7 @@ import {
   getClientIp,
   rateLimitResponse,
 } from "@/lib/rateLimit";
-import { withApiHandler, getRequestId } from "@/lib/apiHandler";
+import { withApiHandler, getRequestId } from "@/lib/api/apiHandler";
 import { createLogger } from "@/lib/logger";
 import crypto from "crypto";
 import { sendVerificationEmail } from "@/lib/mailer";
@@ -97,8 +97,8 @@ export const POST = withApiHandler(async (request: NextRequest) => {
   // Hash password
   const hashedPassword = await bcryptjs.hash(password, 10);
 
-  // In development, auto-verify users to skip email verification
-  const isDevelopment = process.env.NODE_ENV !== 'production';
+  // In development (but not test), auto-verify users to skip email verification
+  const isDevelopment = process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test';
 
   // Create user with profile
   const user = await prisma.user.create({

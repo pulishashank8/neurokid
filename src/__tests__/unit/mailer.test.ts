@@ -54,20 +54,14 @@ describe('Mailer', () => {
                 .rejects.toThrow('Failed to send verification email');
         });
 
-        it('should log and return if RESEND_API_KEY is missing', async () => {
-            // We must reset modules again to change env var effectively if we want the module to see it as changed
-            // although we fixed mailer.ts to read it dynamically, so simple delete works?
-            // Yes, because we read process.env.RESEND_API_KEY inside the function now.
-
+        it('should warn and return if RESEND_API_KEY is missing', async () => {
             delete process.env.RESEND_API_KEY;
-            const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
             const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => { });
 
             await sendVerificationEmail('user@example.com', 'token123');
 
             expect(mockSend).not.toHaveBeenCalled();
             expect(consoleWarn).toHaveBeenCalledWith(expect.stringContaining('RESEND_API_KEY is not set'));
-            expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Verification URL for user@example.com'));
         });
     });
 
@@ -84,16 +78,14 @@ describe('Mailer', () => {
             }));
         });
 
-        it('should log and return if RESEND_API_KEY is missing for reset', async () => {
+        it('should warn and return if RESEND_API_KEY is missing for reset', async () => {
             delete process.env.RESEND_API_KEY;
-            const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => { });
             const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => { });
 
             await sendPasswordResetEmail('forgot@example.com', 'resetToken456');
 
             expect(mockSend).not.toHaveBeenCalled();
             expect(consoleWarn).toHaveBeenCalledWith(expect.stringContaining('RESEND_API_KEY is not set'));
-            expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Reset URL for forgot@example.com'));
         });
     });
 });

@@ -1,100 +1,27 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import {
     BookOpen,
     Sparkles,
     Play,
     Pause,
-    RotateCcw,
     Volume2,
     Music,
-    Crown,
-    Gamepad2,
-    Moon,
-    Sun,
-    VolumeX,
     Send,
     Loader2,
     Dice5,
     Grid,
     X,
-    Youtube,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Heart,
+    Filter
 } from "lucide-react";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 import { useSpeechSynthesis } from "@/features/aac/hooks/useSpeechSynthesis";
-
-interface Rhyme {
-    id: string;
-    title: string;
-    text: string;
-    icon: string;
-    youtubeId?: string; // Optional ID for verified videos
-}
-
-// Verified list of Popular Rhymes with working YouTube IDs (Cocomelon, Super Simple Songs, etc.)
-const POPULAR_RHYMES: Rhyme[] = [
-    // --- English Rhymes ---
-    { id: "wheels-bus", title: "Wheels on the Bus", text: "The wheels on the bus go round and round...", icon: "🚌", youtubeId: "e_04ZrNroTo" },
-    { id: "twinkle", title: "Twinkle Twinkle Little Star", text: "Twinkle, twinkle, little star...", icon: "⭐", youtubeId: "yCjJyiqpAuU" },
-    { id: "five-ducks", title: "Five Little Ducks", text: "Five little ducks went out one day...", icon: "🦆", youtubeId: "LrAtBtQnvCE" }, // Updated
-    { id: "old-mac", title: "Old MacDonald Had a Farm", text: "Old MacDonald had a farm...", icon: "👨‍🌾", youtubeId: "FQ-lfN6WHG0" },
-    { id: "itsy-bitsy", title: "Itsy Bitsy Spider", text: "The itsy bitsy spider...", icon: "🕷️", youtubeId: "w_lCi8U49mY" },
-    { id: "baa-baa", title: "Baa Baa Black Sheep", text: "Baa, baa, black sheep...", icon: "🐑", youtubeId: "MR5XSOdjKMA" },
-    { id: "humpty", title: "Humpty Dumpty", text: "Humpty Dumpty sat on a wall...", icon: "🥚", youtubeId: "nrv495corBc" },
-    { id: "london-bridge", title: "London Bridge", text: "London Bridge is falling down...", icon: "🌉", youtubeId: "Ser69-nsRNs" },
-    { id: "row-boat", title: "Row Row Row Your Boat", text: "Row, row, row your boat...", icon: "🚣", youtubeId: "7otAJa3jui8" },
-    { id: "mary-lamb", title: "Mary Had a Little Lamb", text: "Mary had a little lamb...", icon: "🐑", youtubeId: "aTrtKikAW6E" },
-    { id: "johny-papa", title: "Johny Johny Yes Papa", text: "Johny, Johny. Yes, Papa?...", icon: "👦", youtubeId: "9uZBKyLk-Ho" },
-    { id: "abc", title: "ABC Song", text: "A-B-C-D-E-F-G...", icon: "🔤", youtubeId: "75p-N9YKqNo" },
-    { id: "head-shoulders", title: "Head Shoulders Knees Noes", text: "Head, shoulders, knees and toes...", icon: "🧘", youtubeId: "h4eueDYPTIg" },
-    { id: "happy", title: "If You're Happy", text: "If you're happy and you know it...", icon: "👏", youtubeId: "71hqRT9U0wg" },
-    { id: "ants", title: "The Ants Go Marching", text: "The ants go marching one by one...", icon: "🐜", youtubeId: "F54jC9dz1KE" },
-    { id: "five-monkeys", title: "Five Little Monkeys", text: "Five little monkeys jumping on the bed...", icon: "🐵", youtubeId: "0j6AZhZFb7A" },
-    { id: "rain", title: "Rain Rain Go Away", text: "Rain, rain, go away...", icon: "🌧️", youtubeId: "Zu6o23Pu0Do" }, // Updated
-    { id: "finger-family", title: "Finger Family", text: "Daddy finger, daddy finger...", icon: "🖐️", youtubeId: "G6k7dChBaJ8" },
-    { id: "baby-shark", title: "Baby Shark", text: "Baby shark, doo doo doo doo doo doo...", icon: "🦈", youtubeId: "XqZsoesa55w" },
-    { id: "bingo", title: "Bingo", text: "There was a farmer had a dog...", icon: "🐶", youtubeId: "2E0hHjSwdW4" }, // Added
-    { id: "go-away", title: "Go Away!", text: "Go away, big green monster...", icon: "🧟", youtubeId: "uXz8RnTn5Xw" }, // Added
-    { id: "jingle-bells", title: "Jingle Bells", text: "Jingle bells, jingle bells...", icon: "🔔", youtubeId: "SvVrs6jkc_w" }, // Added
-    { id: "clap-hands", title: "Clap Your Hands", text: "Clap your hands...", icon: "👏", youtubeId: "tWe93wO0VmE" }, // Added
-    { id: "fruits", title: "Fruits Name", text: "Apple, Orange, Banana...", icon: "🍎", youtubeId: "7Abj-_IecBw" }, // Added
-    { id: "wild-animals", title: "Wild Animals", text: "Lion, Tiger, Bear...", icon: "🦁", youtubeId: "si6FLGyvxW8" }, // Added
-    { id: "phonics", title: "Phonics Song", text: "A is for Apple...", icon: "🅰️", youtubeId: "zAax3z5uQ2k" }, // Added
-
-    // --- Hindi Rhymes ---
-    { id: "machli-jal", title: "Machli Jal Ki Rani (Hindi)", text: "Machli jal ki rani hai...", icon: "🐟", youtubeId: "1CwiL64PVlg" },
-
-    // --- Telugu Rhymes ---
-    { id: "chitti-chilakamma", title: "Chitti Chilakamma (Telugu)", text: "Chitti chilakamma...", icon: "🦜", youtubeId: "gAP4HPfvLqY" },
-    { id: "aakasamlo", title: "Aakasamlo Oka Tara (Telugu)", text: "Aakasamlo oka tara...", icon: "⭐", youtubeId: "0F6WRYemPRE" },
-    { id: "cheema", title: "Cheema Cheema (Telugu)", text: "Cheema cheema...", icon: "🐜", youtubeId: "9YJtZNkjv38" },
-    { id: "bujji-papa", title: "Bujji Bujji Papa (Telugu)", text: "Bujji bujji papa...", icon: "👶", youtubeId: "2kUaylNjr4M" },
-    { id: "enugamma", title: "Enugamma Enugu (Telugu)", text: "Enugamma enugu...", icon: "🐘", youtubeId: "ubspZnidcak" }, // Updated
-    { id: "aksharamala", title: "Telugu Aksharamala (Telugu)", text: "A Aa E Ee...", icon: "🅰️", youtubeId: "rf34i5n3kcA" }, // Added
-    { id: "chitti-miriyalu", title: "Chitti Chitti Miriyalu (Telugu)", text: "Chitti chitti miriyalu...", icon: "🌶️", youtubeId: "V0i9uGDJluw" }, // Added
-    { id: "veeri-veeri", title: "Veeri Veeri Gummadi (Telugu)", text: "Veeri veeri gummadi...", icon: "🎃", youtubeId: "G1VW0NRHtMc" }, // Added
-
-    // --- Tamil Rhymes ---
-    { id: "kanna-kanna", title: "Kanna Kanna (Tamil)", text: "Kanna kanna...", icon: "👦", youtubeId: "jkjkmOCkMqs" },
-    { id: "nila-nila", title: "Nila Nila Odi Vaa (Tamil)", text: "Nila nila odi vaa...", icon: "🌙", youtubeId: "GtMuh3AgIwA" },
-    { id: "chinna-chinna", title: "Chinna Chinna Aasai (Tamil)", text: "Chinna chinna...", icon: "💭", youtubeId: "1dMG9sa8qUo" },
-    { id: "uyir-ezhuthukal", title: "Uyir Ezhuthukal (Tamil)", text: "A Aa E Ee...", icon: "🅰️", youtubeId: "EaRl0KZNEdQ" }, // Added
-
-    // --- Kannada Rhymes ---
-    { id: "beda-beda", title: "Beda Beda Magu (Kannada)", text: "Beda beda magu...", icon: "👶", youtubeId: "FUHy2rzxXaU" },
-
-    // --- Marathi Rhymes ---
-    { id: "chandoba", title: "Chandoba Chandoba (Marathi)", text: "Chandoba chandoba...", icon: "🌙", youtubeId: "nrmrkYUyCOQ" },
-    { id: "sasa", title: "Sasa To Sasa (Marathi)", text: "Sasa to sasa...", icon: "🐰", youtubeId: "Bgwh5Gf35x8" },
-
-    // --- Gujarati Rhymes ---
-    { id: "halarda", title: "Halarda (Gujarati)", text: "Halarda...", icon: "🎼", youtubeId: "Vz0FkXaGbPY" },
-    { id: "abc-gujarati", title: "ABC Song (Gujarati)", text: "A B C D...", icon: "🔤", youtubeId: "kR1p4-NPvfo" },
-    { id: "chhuk-chhuk", title: "Chhuk Chhuk Gadi (Gujarati)", text: "Chhuk chhuk gadi...", icon: "🚂", youtubeId: "aQgLDVrPsk4" },
-];
+import { POPULAR_RHYMES, RHYME_LANGUAGES, type Rhyme } from "@/features/stories/rhymes-data";
 
 // AWS Polly Voice options for TTS
 const VOICE_OPTIONS = [
@@ -134,12 +61,60 @@ export function StoryAssistant() {
     const [volume, setVolume] = useState(1);
     const [autoPlay, setAutoPlay] = useState(false);
     const [showRhymeGallery, setShowRhymeGallery] = useState(false);
+    const [rhymeLanguageFilter, setRhymeLanguageFilter] = useState<string>("All");
+    const [savedRhymeIds, setSavedRhymeIds] = useState<Set<string>>(new Set());
+    const [showLikedRhymesOnly, setShowLikedRhymesOnly] = useState(false);
     const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
     const [selectedVoice, setSelectedVoice] = useState<string>("Ivy");
     const [showVoiceMenu, setShowVoiceMenu] = useState(false);
     const [previewingVoice, setPreviewingVoice] = useState<string | null>(null);
     const voiceMenuRef = useRef<HTMLDivElement>(null);
     const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+
+    const { data: session } = useSession();
+
+    const SAVED_RHYMES_STORAGE_KEY = "neurokid_saved_rhyme_ids";
+
+    const getLocalSavedRhymeIds = useCallback((): Set<string> => {
+        if (typeof window === "undefined") return new Set();
+        try {
+            const raw = window.localStorage.getItem(SAVED_RHYMES_STORAGE_KEY);
+            const arr = raw ? (JSON.parse(raw) as string[]) : [];
+            return new Set(Array.isArray(arr) ? arr : []);
+        } catch {
+            return new Set();
+        }
+    }, []);
+
+    const setLocalSavedRhymeIds = useCallback((ids: Set<string>) => {
+        try {
+            window.localStorage.setItem(SAVED_RHYMES_STORAGE_KEY, JSON.stringify([...ids]));
+        } catch {
+            // ignore
+        }
+    }, []);
+
+    const fetchSavedRhymeIds = useCallback(async () => {
+        const fromLocal = getLocalSavedRhymeIds();
+        if (!session?.user) {
+            setSavedRhymeIds(fromLocal);
+            return;
+        }
+        try {
+            const res = await fetch("/api/rhymes/save");
+            const data = await res.json();
+            const fromApi = data.savedIds && Array.isArray(data.savedIds) ? new Set(data.savedIds) : new Set<string>();
+            setSavedRhymeIds(new Set([...fromApi, ...fromLocal]));
+        } catch {
+            setSavedRhymeIds(fromLocal);
+        }
+    }, [session?.user, getLocalSavedRhymeIds]);
+
+    // Fetch saved rhyme IDs when modal opens and user is logged in
+    useEffect(() => {
+        if (!showRhymeGallery || !session?.user) return;
+        fetchSavedRhymeIds();
+    }, [showRhymeGallery, session?.user, fetchSavedRhymeIds]);
 
     // AWS Polly State
     const [isLoadingAudio, setIsLoadingAudio] = useState(false);
@@ -273,6 +248,18 @@ export function StoryAssistant() {
     const generateStory = async (customTopic?: string) => {
         // If customTopic is empty (Surprise Me case), use the generic trigger
         const userPrompt = customTopic || topic || "Tell me a completely random, amazing story";
+        const promptLower = userPrompt.toLowerCase();
+
+        // Detect requested language for explicit instruction (entire story must be in that language)
+        const langInstruction = promptLower.match(/\btelugu\b/i)
+            ? "Write the ENTIRE story in Telugu. Use ONLY English/Latin letters. Every single word must be Telugu—e.g. 'Anaganagaa oka roju... Amma, ela unnaru?' NO English narrative."
+            : promptLower.match(/\bhindi\b/i)
+                ? "Write the ENTIRE story in Hindi. Use ONLY English/Latin letters. Every single word must be Hindi—e.g. 'Ek samay ki baat hai... Maa, aap kaise hain?' NO English narrative."
+                : promptLower.match(/\bspanish\b/i)
+                    ? "Write the ENTIRE story in Spanish. Use Latin letters. Every word must be Spanish. NO English narrative."
+                    : promptLower.match(/\bmarathi\b|\btamil\b/i)
+                        ? "Write the ENTIRE story in the requested language. Use ONLY English/Latin letters. Every word must be in that language. NO English narrative."
+                        : null;
 
         setIsGenerating(true);
         setStory("");
@@ -287,29 +274,38 @@ export function StoryAssistant() {
             const res = await fetch("/api/ai/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify({
+                    conversationType: "story",
                     messages: [
                         {
                             role: "system",
-                            content: `You are "StoryWeaver", a world-renowned children's book author and master storyteller who is fluent in English, Hindi, and Telugu.
+                            content: `You are "StoryWeaver", a world-renowned children's book author fluent in English, Hindi, Telugu, Spanish, Marathi, Tamil, and other languages.
 
-**YOUR GOAL:** Write a rich, immersive, and wildly entertaining story based on the user's topic.
+**HARD RULES (NEVER VIOLATE):**
+1. **Islam/Islamic content (STRICT REFUSAL):** Do not write, mention, or show anything related to Islam, Muslim, Mohammed (or Muhammad), Quran, or Islamic religion. If the user asks for such content, do NOT give any story. Instead, tell them: "Please search for different kinds of content, or try clicking 'Surprise Me' for fun general stories."
+2. **DEFAULT = GENERAL STORIES ONLY:** Do not give religious or controversial stories unless the user explicitly searches for them. By default, give only general stories (adventures, animals, fantasy, etc.).
+3. **RELIGIOUS STORIES - ONLY WHEN EXPLICITLY REQUESTED:** Hinduism, Christianity, Judaism, Buddhism, Sikhism, and Jainism stories may be given ONLY when the user explicitly searches for them (e.g. "Ramayana", "Jesus story", "Buddha", "Guru Nanak", "Mahavira"). Islam is never allowed, even if requested. All other religions: only when specifically asked.
+4. **DEFAULT LANGUAGE = ENGLISH:** If the user does NOT explicitly mention a language (e.g. "Telugu lo", "Hindi me", "in Spanish"), write ONLY in English. "Surprise Me", "King", "elephant story", generic topics—ALL must be in English only.
 
-**LANGUAGE RULES (VERY IMPORTANT):**
-- If the user mentions "Hindi", "हिंदी", or asks for a Hindi story → Write the ENTIRE story in Hindi (Devanagari script)
-- If the user mentions "Telugu", "తెలుగు", or asks for a Telugu story → Write the ENTIRE story in Telugu script
-- If the user mentions "in Hindi" or "Hindi me" or "Hindi mein" → Write in Hindi
-- If the user mentions "in Telugu" or "Telugu lo" → Write in Telugu
-- Otherwise, write in English by default
-- For Hindi stories, start with "एक समय की बात है..." (Once upon a time)
-- For Telugu stories, start with "అనగనగా ఒక రోజు..." (Once upon a time)
+**WHEN TO USE ANOTHER LANGUAGE:** Only when the user EXPLICITLY asks for it (e.g. "Telugu lo elephant", "Hindi me Ramayana", "Spanish me dog"). Then write the ENTIRE story in that language using English/Latin letters.
+
+**WRONG (NEVER DO THIS):** Writing in English with a few Telugu/Hindi words like "Once upon a time in a village there lived a girl named Siri. Amma said..." — This is WRONG. That is mostly English.
+
+**RIGHT (when language IS specified):** When user explicitly asks for Telugu/Hindi/Spanish/etc., write the ENTIRE story in that language. Use ONLY English/Latin letters.
+- **Telugu example:** "Anaganagaa oka roju, rendu pedda nadiyulu madhya unnna chinna ooru lo, Siri ane chinna ammayi undedi. Amma, nenu ela unnanu? Tinnara?"
+- **Hindi example:** "Ek samay ki baat hai, do nadiyon ke beech ek chhote gaon mein Siri naam ki ek ladki rehti thi. Maa, aap kaise hain? Aapne khaana khaya?"
+
+**SUMMARY:** No language specified OR Surprise Me → English only. Language explicitly mentioned → that language in English/Latin letters.
+
+**YOUR GOAL:** Write a rich, immersive story based on the user's topic in the correct language.
 
 **STORYTELLING RULES (STRICT):**
 1.  **Length & Depth:** The story MUST be substantial (approx. 800-1000 words) to provide a solid 4-5 minute reading/listening experience. Use dialogue and descriptive world-building.
-2.  **Expertise (Mythology & Faith):** You are an expert in **Hindu Mythology** (Ramayana, Mahabharatam) and **Christian Stories** (Bible stories for kids, the life of Jesus, Christmas Story, Noah's Ark). If the user asks for figures like **Ram, Laxman, Jesus, or David**, tell their legends with great respect and magical detail.
+2.  **Expertise (Mythology & Faith):** When the user explicitly requests them, you can tell stories from Hinduism (Ramayana, Mahabharata), Christianity (Jesus, Bible stories, Christmas), Judaism, Buddhism (Buddha), Sikhism (Guru Nanak), and Jainism (Mahavira)—with great respect and magical detail. Never Islam. Only when specifically asked.
 3.  **Kids Version Only:** Every story—especially mythological or religious ones—MUST be a **version for kids**. Focus on wonder, kindness, and positive messages.
 4.  **Structure:**
-    *   **The Hook:** Start with "Once upon a time..." (or equivalent in Hindi/Telugu)
+    *   **The Hook:** Start with "Once upon a time..." (or equivalent in requested language: Telugu "Anaganagaa oka roju...", Hindi "Ek samay ki baat hai...", Spanish "Érase una vez...", etc.—always in English/Latin letters with correct phonetic spelling for that language)
     *   **The Journey:** The main character must face obstacles and meet interesting friends.
     *   **The Climax:** A moment of excitement or big decision.
     *   **The Resolution:** A warm, happy ending with a clear moral about kindness, courage, or friendship.
@@ -328,17 +324,41 @@ export function StoryAssistant() {
                         },
                         {
                             role: "user",
-                            content: `Write the full story now. Make it long and beautiful.`
+                            content: langInstruction
+                                ? `${langInstruction}\n\nWrite the full story now based on: ${userPrompt}. Make it long and beautiful (800-1000 words).`
+                                : `Write the full story now. Make it long and beautiful.`
                         }
                     ]
                 })
             });
 
             const data = await res.json();
-            if (data.reply) {
-                setStory(data.reply);
-                if (autoPlay) setTimeout(() => speak(data.reply), 500);
+            if (!res.ok) {
+                toast.error(data.error || data.message || "Story generation failed.");
+                return;
             }
+            const jobId = data.jobId;
+            if (!jobId) {
+                toast.error("Invalid response from server.");
+                return;
+            }
+            const maxAttempts = 120;
+            const pollInterval = 1500;
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                const pollRes = await fetch(`/api/ai/jobs/${jobId}`, { credentials: "include" });
+                const pollData = await pollRes.json();
+                if (pollData.status === "completed" && pollData.result) {
+                    setStory(pollData.result);
+                    if (autoPlay) setTimeout(() => speak(pollData.result), 500);
+                    return;
+                }
+                if (pollData.status === "failed") {
+                    toast.error(pollData.error || "Story generation failed.");
+                    return;
+                }
+                await new Promise((r) => setTimeout(r, pollInterval));
+            }
+            toast.error("Response is taking too long. Please try again.");
         } catch (error) {
             console.error("Story gen failed:", error);
         } finally {
@@ -427,7 +447,7 @@ export function StoryAssistant() {
             pollyAudioRef.current = audio;
 
             audio.oncanplaythrough = () => {
-                console.log("Audio ready to play on mobile");
+                // Preload complete, ready for play()
             };
 
             audio.onended = () => {
@@ -449,7 +469,6 @@ export function StoryAssistant() {
                 const playPromise = audio.play();
                 if (playPromise !== undefined) {
                     await playPromise;
-                    console.log("Audio playing successfully");
                 } else {
                     setIsLoadingAudio(false);
                 }
@@ -479,7 +498,6 @@ export function StoryAssistant() {
     };
 
     const playRhyme = (rhyme: Rhyme) => {
-        // setShowRhymeGallery(false); // Keep gallery open behind video
         cancel(); // Stop any TTS
         if (pollyAudioRef.current) {
             pollyAudioRef.current.pause();
@@ -494,10 +512,62 @@ export function StoryAssistant() {
         }
     };
 
+    const toggleSaveRhyme = async (e: React.MouseEvent, rhymeId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!session?.user) {
+            window.location.href = "/login?callbackUrl=/stories";
+            return;
+        }
+        const nextSet = new Set(savedRhymeIds);
+        const willBeSaved = !nextSet.has(rhymeId);
+        if (willBeSaved) nextSet.add(rhymeId);
+        else nextSet.delete(rhymeId);
+
+        setSavedRhymeIds(nextSet);
+        setLocalSavedRhymeIds(nextSet);
+
+        try {
+            const res = await fetch("/api/rhymes/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ rhymeId }),
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                toast.success("Saved to Liked (this device)");
+                return;
+            }
+
+            if (data.saved !== undefined) {
+                setSavedRhymeIds((prev) => {
+                    const next = new Set(prev);
+                    if (data.saved) next.add(rhymeId);
+                    else next.delete(rhymeId);
+                    setLocalSavedRhymeIds(next);
+                    return next;
+                });
+                toast.success(data.saved ? "Saved to Liked" : "Removed from Liked");
+            }
+        } catch (err) {
+            console.error("Error toggling save rhyme:", err);
+            toast.success("Saved to Liked (this device)");
+        }
+    };
+
     const playRandomRhyme = () => {
         const random = POPULAR_RHYMES[Math.floor(Math.random() * POPULAR_RHYMES.length)];
         playRhyme(random);
     };
+
+    const filteredRhymes = useMemo(() => {
+        return POPULAR_RHYMES.filter((r) => {
+            if (showLikedRhymesOnly && !savedRhymeIds.has(r.id)) return false;
+            if (rhymeLanguageFilter !== "All" && r.language !== rhymeLanguageFilter) return false;
+            return true;
+        });
+    }, [rhymeLanguageFilter, showLikedRhymesOnly, savedRhymeIds]);
 
     const generateRandomStory = () => {
         // Rich prompt seeds to ensure variety in "Surprise Me"
@@ -519,14 +589,14 @@ export function StoryAssistant() {
 
     return (
         <div className="flex flex-col gap-6 h-full min-h-[500px] relative">
-            {/* 50+ Rhymes Modal */}
+            {/* Rhymes Modal: Select a song from selected rhyme */}
             {showRhymeGallery && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
                     <div className="bg-[var(--surface)] w-full max-w-5xl h-[85vh] rounded-3xl border border-[var(--border)] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
                         <div className="p-6 border-b border-[var(--border)] flex items-center justify-between bg-[var(--surface2)]">
-                            <h2 className="text-2xl font-black text-[var(--text)] flex items-center gap-3">
-                                <Music className="text-emerald-500 w-8 h-8" />
-                                Select a Song
+                            <h2 className="text-xl sm:text-2xl font-black text-[var(--text)] flex items-center gap-3">
+                                <Music className="text-emerald-500 w-8 h-8 shrink-0" />
+                                Select a song from selected rhyme
                             </h2>
                             <button
                                 onClick={() => setShowRhymeGallery(false)}
@@ -535,24 +605,78 @@ export function StoryAssistant() {
                                 <X className="w-8 h-8" />
                             </button>
                         </div>
+                        {/* Language filter + Show liked only */}
+                        <div className="px-6 py-4 border-b border-[var(--border)] flex flex-wrap items-center gap-3 bg-[var(--background)]">
+                            <div className="flex items-center gap-2">
+                                <Filter className="w-4 h-4 text-[var(--muted)]" />
+                                <select
+                                    value={rhymeLanguageFilter}
+                                    onChange={(e) => setRhymeLanguageFilter(e.target.value)}
+                                    className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--text)] focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer"
+                                >
+                                    {RHYME_LANGUAGES.map((lang) => (
+                                        <option key={lang} value={lang}>{lang}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            {session?.user && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowLikedRhymesOnly((v) => !v)}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${showLikedRhymesOnly ? "bg-rose-500/20 text-rose-600 dark:text-rose-400" : "bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)] hover:text-rose-500"}`}
+                                >
+                                    <Heart className={`w-4 h-4 ${showLikedRhymesOnly ? "fill-current" : ""}`} />
+                                    Liked only
+                                </button>
+                            )}
+                            <span className="text-sm text-[var(--muted)] ml-auto">
+                                {filteredRhymes.length} rhyme{filteredRhymes.length !== 1 ? "s" : ""}
+                            </span>
+                        </div>
                         <div className="flex-1 overflow-y-auto p-6 bg-[var(--background)]">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                {POPULAR_RHYMES.map((r) => (
-                                    <button
-                                        key={r.id}
-                                        onClick={() => playRhyme(r)}
-                                        className="flex flex-col items-center gap-3 p-4 bg-[var(--surface)] border border-[var(--border)] rounded-2xl hover:border-emerald-500 hover:shadow-lg hover:-translate-y-1 transition-all group"
-                                    >
-                                        <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-4xl mb-2 group-hover:scale-110 transition-transform">
-                                            {r.icon}
+                                {filteredRhymes.map((r) => {
+                                    const isSaved = savedRhymeIds.has(r.id);
+                                    return (
+                                        <div
+                                            key={r.id}
+                                            className="relative flex flex-col items-center gap-3 p-4 bg-[var(--surface)] border border-[var(--border)] rounded-2xl hover:border-emerald-500 hover:shadow-lg transition-all group"
+                                        >
+                                            {session?.user && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => toggleSaveRhyme(e, r.id)}
+                                                    className={`absolute top-3 right-3 z-10 p-2 rounded-lg transition-all ${isSaved ? "bg-rose-50 dark:bg-rose-900/30 text-rose-500" : "bg-[var(--surface2)] text-[var(--muted)] hover:bg-rose-50 hover:text-rose-500"}`}
+                                                    aria-label={isSaved ? "Unsave rhyme" : "Save rhyme"}
+                                                >
+                                                    <Heart className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />
+                                                </button>
+                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => playRhyme(r)}
+                                                className="flex flex-col items-center gap-3 w-full"
+                                            >
+                                                <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-4xl mb-2 group-hover:scale-110 transition-transform">
+                                                    {r.icon}
+                                                </div>
+                                                <span className="font-bold text-sm text-[var(--text)] text-center line-clamp-2">{r.title}</span>
+                                                {r.language && (
+                                                    <span className="text-[10px] text-[var(--muted)]">{r.language}</span>
+                                                )}
+                                                <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-1 rounded-full">
+                                                    Play Video
+                                                </span>
+                                            </button>
                                         </div>
-                                        <span className="font-bold text-sm text-[var(--text)] text-center line-clamp-2">{r.title}</span>
-                                        <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-1 rounded-full">
-                                            Play Video
-                                        </span>
-                                    </button>
-                                ))}
+                                    );
+                                })}
                             </div>
+                            {filteredRhymes.length === 0 && (
+                                <p className="text-center text-[var(--muted)] py-8">
+                                    {showLikedRhymesOnly ? "No liked rhymes yet. Like some to see them here." : "No rhymes match this filter."}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -644,8 +768,8 @@ export function StoryAssistant() {
                             type="text"
                             value={topic}
                             onChange={(e) => setTopic(e.target.value)}
-                            placeholder="e.g. King, Hindi me Ramayana, Telugu lo elephant..."
-                            className="flex-1 px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-medium"
+                            placeholder="e.g. King, Telugu lo elephant, Hindi me Ramayana, Spanish me dog..."
+                            className="flex-1 px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all font-semibold text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                             onKeyPress={(e) => e.key === "Enter" && generateStory()}
                         />
                         <button
@@ -681,7 +805,7 @@ export function StoryAssistant() {
                             className="group flex flex-col items-center justify-center gap-2 p-4 bg-white dark:bg-[var(--surface)] text-[var(--text)] border border-[var(--border)] rounded-2xl hover:border-emerald-500 hover:text-emerald-600 active:scale-95 transition-all shadow-sm hover:shadow-[0_4px_20px_rgba(16,185,129,0.15)]"
                         >
                             <Grid className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />
-                            <span className="text-[10px] font-black uppercase tracking-widest">50+ Songs Gallery</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">200+ Songs Gallery</span>
                         </button>
                     </div>
                 </div>

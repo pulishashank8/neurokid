@@ -33,7 +33,6 @@ export default function PianoPage() {
                 const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
                 audioContextRef.current = new AudioContext();
                 setAudioInitialized(true);
-                console.log("Piano AudioContext initialized");
             } catch (e) {
                 console.error("Failed to create AudioContext:", e);
             }
@@ -41,9 +40,7 @@ export default function PianoPage() {
 
         // Resume if suspended (iOS requirement)
         if (audioContextRef.current?.state === "suspended") {
-            audioContextRef.current.resume().then(() => {
-                console.log("Piano AudioContext resumed");
-            });
+            audioContextRef.current.resume();
         }
     };
 

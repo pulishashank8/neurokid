@@ -23,7 +23,25 @@ const SIZE_LIMITS: { pattern: RegExp; limit: number }[] = [
 
 const DEFAULT_SIZE_LIMIT = 100 * 1024; // 100KB for non-API routes
 
+/** AAC Demo: max 2 sessions per device (cookie-based, no IP). */
+const AAC_DEMO_MAX_VISITS = 2;
+const AAC_DEMO_VISITS_COOKIE = "neurokid_aac_demo_visits";
+const AAC_DEMO_SESSION_COOKIE = "neurokid_aac_demo_session";
+
+function handleAACDemoLimit(request: NextRequest): NextResponse | null {
+  if (request.nextUrl.pathname !== "/aac/demo") return null;
+  const visits = parseInt(request.cookies.get(AAC_DEMO_VISITS_COOKIE)?.value || "0", 10);
+  if (visits >= AAC_DEMO_MAX_VISITS) {
+    return NextResponse.redirect(new URL("/aac/demo/limit-reached", request.url));
+  }
+  return null;
+}
+
 export async function middleware(request: NextRequest) {
+  // AAC Demo: block if already used 2 times (per device via cookie)
+  const demoRedirect = handleAACDemoLimit(request);
+  if (demoRedirect) return demoRedirect;
+
   // Check request size for mutating methods
   if (["POST", "PUT", "PATCH"].includes(request.method)) {
     const contentLength = parseInt(
@@ -44,6 +62,29 @@ export async function middleware(request: NextRequest) {
   }
 
   const response = NextResponse.next();
+
+  // AAC Demo: increment visit count on new session (allow 2 sessions per device)
+  if (request.nextUrl.pathname === "/aac/demo") {
+    const currentVisits = parseInt(request.cookies.get(AAC_DEMO_VISITS_COOKIE)?.value || "0", 10);
+    const hasSession = !!request.cookies.get(AAC_DEMO_SESSION_COOKIE)?.value;
+    if (!hasSession && currentVisits < AAC_DEMO_MAX_VISITS) {
+      const newVisits = currentVisits + 1;
+      response.cookies.set(AAC_DEMO_VISITS_COOKIE, String(newVisits), {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365, // 1 year
+        sameSite: "lax",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+      });
+      response.cookies.set(AAC_DEMO_SESSION_COOKIE, "1", {
+        path: "/",
+        sameSite: "lax",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        // Session cookie: no maxAge = expires when browser closes
+      });
+    }
+  }
 
   // Generate CSP nonce for this request
   const nonce = generateNonce();

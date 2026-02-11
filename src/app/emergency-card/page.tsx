@@ -14,6 +14,7 @@ import {
   Stethoscope,
   FileText,
   Trash2,
+  Pencil,
   X,
   Printer,
   CreditCard,
@@ -67,6 +68,7 @@ export default function EmergencyCardPage() {
   const [cards, setCards] = useState<EmergencyCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingCard, setEditingCard] = useState<EmergencyCard | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(INITIAL_FORM);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
@@ -103,22 +105,57 @@ export default function EmergencyCardPage() {
     setSaving(true);
 
     try {
-      const res = await fetch("/api/emergency-cards", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      if (res.ok) {
-        await fetchCards();
-        setShowForm(false);
-        setForm(INITIAL_FORM);
+      if (editingCard) {
+        const res = await fetch(`/api/emergency-cards/${editingCard.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        });
+        if (res.ok) {
+          await fetchCards();
+          setShowForm(false);
+          setEditingCard(null);
+          setForm(INITIAL_FORM);
+        }
+      } else {
+        const res = await fetch("/api/emergency-cards", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        });
+        if (res.ok) {
+          await fetchCards();
+          setShowForm(false);
+          setForm(INITIAL_FORM);
+        }
       }
     } catch (error) {
-      console.error("Error creating card:", error);
+      console.error("Error saving card:", error);
     } finally {
       setSaving(false);
     }
+  };
+
+  const openEdit = (card: EmergencyCard) => {
+    setEditingCard(card);
+    setForm({
+      childName: card.childName || "",
+      childAge: card.childAge ? String(card.childAge) : "",
+      diagnosis: card.diagnosis || "",
+      triggers: card.triggers || "",
+      calmingStrategies: card.calmingStrategies || "",
+      communication: card.communication || "",
+      medications: card.medications || "",
+      allergies: card.allergies || "",
+      emergencyContact1Name: card.emergencyContact1Name || "",
+      emergencyContact1Phone: card.emergencyContact1Phone || "",
+      emergencyContact2Name: card.emergencyContact2Name || "",
+      emergencyContact2Phone: card.emergencyContact2Phone || "",
+      doctorName: card.doctorName || "",
+      doctorPhone: card.doctorPhone || "",
+      additionalNotes: card.additionalNotes || "",
+    });
+    setShowForm(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -240,7 +277,7 @@ export default function EmergencyCardPage() {
             <p className="text-[var(--muted)] mt-1">Create printable cards for teachers, babysitters, and caregivers</p>
           </div>
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => { setEditingCard(null); setForm(INITIAL_FORM); setShowForm(true); }}
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-semibold shadow-lg shadow-[var(--primary)]/25 hover:shadow-[var(--primary)]/40 hover:-translate-y-0.5 transition-all"
           >
             <Plus className="w-5 h-5" />
@@ -252,9 +289,9 @@ export default function EmergencyCardPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[var(--surface)] rounded-2xl border border-[var(--border)] shadow-2xl">
               <div className="sticky top-0 flex items-center justify-between p-5 border-b border-[var(--border)] bg-[var(--surface)]">
-                <h2 className="text-xl font-bold text-[var(--text)]">Create Emergency Card</h2>
+                <h2 className="text-xl font-bold text-[var(--text)]">{editingCard ? "Edit Emergency Card" : "Create Emergency Card"}</h2>
                 <button
-                  onClick={() => setShowForm(false)}
+                  onClick={() => { setShowForm(false); setEditingCard(null); setForm(INITIAL_FORM); }}
                   className="p-2 rounded-lg hover:bg-[var(--surface2)] text-[var(--muted)]"
                 >
                   <X className="w-5 h-5" />
@@ -475,7 +512,7 @@ export default function EmergencyCardPage() {
                     disabled={saving}
                     className="flex-1 px-5 py-3 rounded-xl bg-[var(--primary)] text-white font-semibold shadow-lg shadow-[var(--primary)]/25 hover:shadow-[var(--primary)]/40 disabled:opacity-50 transition-all"
                   >
-                    {saving ? "Creating..." : "Create Card"}
+                    {saving ? "Saving..." : editingCard ? "Update Card" : "Create Card"}
                   </button>
                 </div>
               </form>
@@ -523,6 +560,13 @@ export default function EmergencyCardPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); openEdit(card); }}
+                        className="p-2 rounded-lg hover:bg-[var(--surface2)] text-[var(--muted)] hover:text-[var(--primary)] transition-colors"
+                        title="Edit card"
+                      >
+                        <Pencil className="w-5 h-5" />
+                      </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); handlePrint(card); }}
                         className="p-2 rounded-lg hover:bg-[var(--surface2)] text-[var(--primary)] transition-colors"

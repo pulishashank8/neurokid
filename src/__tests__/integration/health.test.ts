@@ -12,15 +12,6 @@ describe('Health Check API Integration Tests', () => {
             expect(data.status).toBe('healthy');
         });
 
-        // it('should include version information', async () => {
-        //     const request = createMockRequest('GET', '/api/health');
-        //     const response = await GET(request);
-        //     const data = await parseResponse(response);
-        //
-        //     expect(response.status).toBe(200);
-        //     expect(data.version).toBeDefined();
-        // });
-
         it('should work without authentication', async () => {
             // Health check should be public
             const request = createMockRequest('GET', '/api/health');

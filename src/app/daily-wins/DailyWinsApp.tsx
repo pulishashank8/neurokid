@@ -11,6 +11,7 @@ import {
     Star,
     Sparkles,
     Trash2,
+    Pencil,
     PartyPopper,
     Medal
 } from "lucide-react";
@@ -30,6 +31,8 @@ export function DailyWinsApp() {
     const [wins, setWins] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isNewOpen, setIsNewOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [editingWin, setEditingWin] = useState<any | null>(null);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -79,6 +82,49 @@ export function DailyWinsApp() {
                 fetchWins();
             } else {
                 toast.error("Failed to save win");
+            }
+        } catch (error) {
+            toast.error("An error occurred");
+        }
+    };
+
+    const openEdit = (win: any) => {
+        setEditingWin(win);
+        setFormData({ content: win.content || "", category: win.category || "Milestone", mood: win.mood ?? 5 });
+        setIsEditOpen(true);
+    };
+
+    const handleEditSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingWin) return;
+        try {
+            const res = await fetch(`/api/daily-wins/${editingWin.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ...formData, date: editingWin.date }),
+            });
+            if (res.ok) {
+                toast.success("Win updated! 🎉");
+                setIsEditOpen(false);
+                setEditingWin(null);
+                fetchWins();
+            } else {
+                toast.error("Failed to update");
+            }
+        } catch (error) {
+            toast.error("An error occurred");
+        }
+    };
+
+    const handleDelete = async (win: any) => {
+        if (!confirm("Delete this win?")) return;
+        try {
+            const res = await fetch(`/api/daily-wins/${win.id}`, { method: "DELETE" });
+            if (res.ok) {
+                toast.success("Win deleted");
+                fetchWins();
+            } else {
+                toast.error("Failed to delete");
             }
         } catch (error) {
             toast.error("An error occurred");
@@ -208,6 +254,46 @@ export function DailyWinsApp() {
                             </form>
                         </DialogContent>
                     </Dialog>
+
+                    {/* Edit Win Dialog */}
+                    <Dialog open={isEditOpen} onOpenChange={(open) => { setIsEditOpen(open); if (!open) setEditingWin(null); }}>
+                        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-white/20">
+                            <DialogHeader>
+                                <DialogTitle className="text-2xl font-black text-amber-600 dark:text-amber-400">Edit Win</DialogTitle>
+                                <DialogDescription>Update this celebration.</DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleEditSubmit} className="space-y-6 mt-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">What happened?</label>
+                                    <textarea required className="w-full p-4 rounded-2xl border-2 border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-white/5 h-32 text-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all" placeholder="e.g. Tried a new food without fuss!" value={formData.content} onChange={e => setFormData({ ...formData, content: e.target.value })} />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">Category</label>
+                                        <select className="w-full p-3 rounded-xl border-2 border-slate-100 dark:border-white/10 bg-transparent text-lg focus:ring-amber-500" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}>
+                                            <option value="Milestone">🏆 Milestone</option>
+                                            <option value="Behavior">🧠 Behavior</option>
+                                            <option value="Social">👋 Social</option>
+                                            <option value="School">🎒 School</option>
+                                            <option value="Home">🏠 Home</option>
+                                            <option value="Sensory">🌈 Sensory</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">Mood</label>
+                                        <div className="flex items-center justify-between border-2 border-slate-100 dark:border-white/10 rounded-xl p-2 bg-slate-50 dark:bg-white/5">
+                                            <button type="button" onClick={() => setFormData({ ...formData, mood: Math.max(1, formData.mood - 1) })} className="w-12 h-12 flex items-center justify-center hover:bg-black/5 active:bg-black/10 rounded-xl text-xl font-bold transition-colors">-</button>
+                                            <div className="font-bold flex items-center gap-2 text-2xl text-amber-500">{formData.mood} <Star className="w-6 h-6 fill-amber-500" /></div>
+                                            <button type="button" onClick={() => setFormData({ ...formData, mood: Math.min(5, formData.mood + 1) })} className="w-12 h-12 flex items-center justify-center hover:bg-black/5 active:bg-black/10 rounded-xl text-xl font-bold transition-colors">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white p-4 rounded-xl font-bold text-lg">
+                                    Update Win ✨
+                                </motion.button>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
                 </header>
 
                 {/* Wins List */}
@@ -259,9 +345,13 @@ export function DailyWinsApp() {
                                                 <div className={`px-4 py-1.5 rounded-full text-sm font-bold text-white bg-gradient-to-r ${getCategoryColor(win.category)} shadow-md`}>
                                                     {win.category || "General"}
                                                 </div>
-                                                <span className="text-sm text-[var(--muted)] font-medium bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-lg">
-                                                    {format(new Date(win.date), "MMM d")}
-                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <button type="button" onClick={() => openEdit(win)} className="p-2 rounded-lg hover:bg-amber-500/10 text-[var(--muted)] hover:text-amber-500 transition-colors" title="Edit"><Pencil className="w-4 h-4" /></button>
+                                                    <button type="button" onClick={() => handleDelete(win)} className="p-2 rounded-lg hover:bg-red-500/10 text-[var(--muted)] hover:text-red-500 transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                                                    <span className="text-sm text-[var(--muted)] font-medium bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-lg">
+                                                        {format(new Date(win.date), "MMM d")}
+                                                    </span>
+                                                </div>
                                             </div>
 
                                             <p className="text-2xl text-[var(--foreground)] font-medium leading-relaxed mb-6 flex-grow">

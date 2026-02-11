@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth";
 import { dataGovernanceService } from "@/services/dataGovernanceService";
 import { logSecurityEvent } from "@/lib/securityAudit";
-import { successResponse, errorResponse } from "@/lib/apiResponse";
+import { successResponse, errorResponse } from "@/lib/api/apiResponse";
 
 export async function DELETE(request: NextRequest) {
   try {

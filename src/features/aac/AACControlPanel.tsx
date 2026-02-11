@@ -46,6 +46,30 @@ export function AACControlPanel({
 }: AACControlPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // When locked (navigation lock): show only Unlock button - always visible for caregivers
+  if (isLocked) {
+    return (
+      <div className={`
+        w-full rounded-xl sm:rounded-2xl
+        backdrop-blur-xl bg-white/10 dark:bg-white/5
+        border border-white/20 dark:border-white/10
+        ${sensoryMode === "muted" ? "shadow-sm" : "shadow-luxury"}
+        overflow-hidden
+      `}>
+        <div className="flex items-center justify-center p-3 sm:p-4">
+          <button
+            onClick={onToggleLock}
+            className="flex items-center gap-2 px-4 py-3 sm:px-6 sm:py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-medium text-sm sm:text-base shadow-lg shadow-amber-500/25 touch-manipulation"
+            aria-label="Unlock (restore navigation)"
+          >
+            <Unlock className="w-5 h-5" />
+            <span>Unlock</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`
       w-full rounded-xl sm:rounded-2xl
@@ -99,29 +123,14 @@ export function AACControlPanel({
           </span>
         </button>
 
-        {/* Lock Screen Toggle */}
+        {/* Lock Toggle - when unlocked, shows Lock to enable navigation lock */}
         <button
           onClick={onToggleLock}
-          className={`
-            flex items-center gap-1.5 px-3 py-2 rounded-xl
-            text-xs sm:text-sm font-medium
-            transition-all duration-200
-            ${isLocked
-              ? "bg-red-500 text-white animate-pulse"
-              : "bg-red-500/20 text-red-700 dark:text-red-300"
-            }
-            hover:opacity-80
-          `}
-          aria-label={isLocked ? "Unlock screen" : "Lock screen"}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 bg-red-500/20 text-red-700 dark:text-red-300 hover:opacity-80"
+          aria-label="Lock (restrict navigation)"
         >
-          {isLocked ? (
-            <Lock className="w-4 h-4" />
-          ) : (
-            <Unlock className="w-4 h-4" />
-          )}
-          <span className="hidden sm:inline">
-            {isLocked ? "Locked" : "Lock"}
-          </span>
+          <Lock className="w-4 h-4" />
+          <span className="hidden sm:inline">Lock</span>
         </button>
 
         {/* Fullscreen Toggle */}

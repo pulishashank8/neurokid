@@ -32,7 +32,10 @@ interface Post {
     username: string;
     avatarUrl: string | null;
   };
-  voteScore: number;
+  voteScore?: number;
+  likeCount?: number;
+  dislikeCount?: number;
+  userVote?: number;
   commentCount: number;
   isPinned?: boolean;
   isLocked?: boolean;
@@ -81,12 +84,27 @@ export function PostCard({
         </div>
       )}
 
-      <div className="relative flex">
+      <div className="relative flex flex-col sm:flex-row">
+        <div className="sm:hidden flex items-center gap-2 p-3 bg-[var(--surface2)]/50 border-b border-[var(--border)]/50">
+          <VoteButtons
+            targetType="POST"
+            targetId={post.id}
+            initialScore={post.voteScore ?? 0}
+            initialLikeCount={post.likeCount ?? 0}
+            initialDislikeCount={post.dislikeCount ?? 0}
+            initialUserVote={post.userVote ?? 0}
+            compact
+            horizontal
+          />
+        </div>
         <div className="hidden sm:flex flex-col items-center gap-1 p-4 bg-[var(--surface2)]/50 border-r border-[var(--border)]/50">
           <VoteButtons
             targetType="POST"
             targetId={post.id}
-            initialScore={post.voteScore}
+            initialScore={post.voteScore ?? 0}
+            initialLikeCount={post.likeCount ?? 0}
+            initialDislikeCount={post.dislikeCount ?? 0}
+            initialUserVote={post.userVote ?? 0}
           />
         </div>
 

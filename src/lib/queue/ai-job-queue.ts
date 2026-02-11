@@ -11,6 +11,7 @@
 import { prisma } from "@/lib/prisma";
 import { FieldEncryption } from "@/lib/encryption";
 import { AuditLogger } from "@/lib/audit";
+import { callGroqChat } from "@/lib/ai/groq-keys";
 
 export type AIJobStatus = "pending" | "processing" | "completed" | "failed";
 
@@ -148,15 +149,18 @@ export class AIJobQueue {
         },
       });
 
-      // Save to conversation history
-      await prisma.aIMessage.create({
-        data: {
-          conversationId: job.conversationId,
-          userId: job.userId,
-          role: "assistant",
-          content: result,
-        },
-      });
+      // Save to conversation history only for persisted conversations (ephemeral = support, no DB)
+      const isEphemeral = job.conversationId.startsWith("ephemeral_");
+      if (!isEphemeral) {
+        await prisma.aIMessage.create({
+          data: {
+            conversationId: job.conversationId,
+            userId: job.userId,
+            role: "assistant",
+            content: result,
+          },
+        });
+      }
 
       await AuditLogger.log({
         action: "AI_CHAT_COMPLETED",
@@ -247,51 +251,17 @@ export class AIJobQueue {
   }
 
   /**
-   * Call Groq API
+   * Call Groq API (uses shared callGroqChat with key rotation + retry on 429)
    */
   private static async callGroq(messages: ChatMessage[]): Promise<string> {
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey || apiKey === "mock-key") {
-      throw new Error("GROQ_API_KEY not configured");
-    }
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
-
-    try {
-      const response = await fetch(
-        "https://api.groq.com/openai/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
-            messages,
-            temperature: 0.7,
-            max_tokens: 1024,
-          }),
-          signal: controller.signal,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Groq HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      const content = data?.choices?.[0]?.message?.content;
-      
-      if (!content) {
-        throw new Error("Empty response from Groq");
-      }
-
-      return content;
-    } finally {
-      clearTimeout(timeout);
-    }
+    const data = await callGroqChat({
+      messages,
+      temperature: 0.7,
+      max_tokens: 1024,
+    });
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content) throw new Error("Empty response from Groq");
+    return content;
   }
 
   /**

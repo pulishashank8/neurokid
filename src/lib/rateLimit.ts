@@ -47,7 +47,6 @@ async function getRedisClient() {
     });
 
     redisClient = client;
-    console.log("✓ Redis connected for rate limiting");
     return client;
   } catch (error) {
     console.warn(

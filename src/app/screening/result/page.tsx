@@ -56,10 +56,6 @@ export default function ScreeningResultPage() {
     }
   }, [saveEnabled, summary]);
 
-  useEffect(() => {
-    if (summary) console.log("Screening Summary:", summary);
-  }, [summary]);
-
   const gauge = useMemo(() => {
     const radius = 80;
     const circumference = 2 * Math.PI * radius;

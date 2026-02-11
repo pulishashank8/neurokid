@@ -241,13 +241,11 @@ function maskIdentifier(identifier: string): string {
  */
 export function initMonitoring(): void {
   if (!process.env.SENTRY_DSN) {
-    console.log("Sentry not configured - skipping monitoring initialization");
     return;
   }
 
   // Sentry is initialized via @sentry/nextjs config files
   // This function serves as a hook for additional setup
-  console.log("Security monitoring initialized");
 }
 
 /**

@@ -14,7 +14,9 @@ import {
     ClipboardList,
     Search,
     Activity,
-    Sparkles
+    Sparkles,
+    Pencil,
+    Trash2
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -32,6 +34,8 @@ export function TherapyLogApp() {
     const [sessions, setSessions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isNewOpen, setIsNewOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [editingSession, setEditingSession] = useState<any | null>(null);
     const [date, setDate] = useState<Date | undefined>(new Date());
 
     // Form state
@@ -92,6 +96,62 @@ export function TherapyLogApp() {
                 fetchSessions();
             } else {
                 toast.error("Failed to save session");
+            }
+        } catch (error) {
+            toast.error("An error occurred");
+        }
+    };
+
+    const openEdit = (session: any) => {
+        setEditingSession(session);
+        setFormData({
+            childName: session.childName,
+            therapistName: session.therapistName,
+            therapyType: session.therapyType,
+            duration: session.duration || 60,
+            mood: session.mood ?? 3,
+            notes: session.notes || "",
+            wentWell: session.wentWell || "",
+            toWorkOn: session.toWorkOn || "",
+        });
+        setDate(new Date(session.sessionDate));
+        setIsEditOpen(true);
+    };
+
+    const handleEditSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingSession) return;
+        try {
+            const res = await fetch(`/api/therapy-sessions/${editingSession.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ...formData,
+                    sessionDate: date?.toISOString(),
+                }),
+            });
+            if (res.ok) {
+                toast.success("Session updated successfully");
+                setIsEditOpen(false);
+                setEditingSession(null);
+                fetchSessions();
+            } else {
+                toast.error("Failed to update session");
+            }
+        } catch (error) {
+            toast.error("An error occurred");
+        }
+    };
+
+    const handleDelete = async (session: any) => {
+        if (!confirm("Are you sure you want to delete this session?")) return;
+        try {
+            const res = await fetch(`/api/therapy-sessions/${session.id}`, { method: "DELETE" });
+            if (res.ok) {
+                toast.success("Session deleted");
+                fetchSessions();
+            } else {
+                toast.error("Failed to delete session");
             }
         } catch (error) {
             toast.error("An error occurred");
@@ -280,6 +340,76 @@ export function TherapyLogApp() {
                             </form>
                         </DialogContent>
                     </Dialog>
+
+                    {/* Edit Session Dialog */}
+                    <Dialog open={isEditOpen} onOpenChange={(open) => { setIsEditOpen(open); if (!open) setEditingSession(null); }}>
+                        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-white/20">
+                            <DialogHeader>
+                                <DialogTitle className="text-2xl font-bold">Edit Therapy Session</DialogTitle>
+                                <DialogDescription>Update the details of this session.</DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleEditSubmit} className="space-y-6 mt-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Child Name</label>
+                                        <input required className="w-full p-3 rounded-xl border bg-transparent focus:ring-2 focus:ring-blue-500 transition-all" placeholder="e.g. Alex" value={formData.childName} onChange={e => setFormData({ ...formData, childName: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Therapist Name</label>
+                                        <input required className="w-full p-3 rounded-xl border bg-transparent focus:ring-2 focus:ring-blue-500 transition-all" placeholder="e.g. Dr. Sarah" value={formData.therapistName} onChange={e => setFormData({ ...formData, therapistName: e.target.value })} />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Therapy Type</label>
+                                        <select className="w-full p-3 rounded-xl border bg-transparent focus:ring-2 focus:ring-blue-500 transition-all" value={formData.therapyType} onChange={e => setFormData({ ...formData, therapyType: e.target.value })}>
+                                            <option value="ABA">🧩 ABA Therapy</option>
+                                            <option value="Speech">🗣️ Speech Therapy</option>
+                                            <option value="Occupational">🖐️ Occupational Therapy</option>
+                                            <option value="Physical">🏃 Physical Therapy</option>
+                                            <option value="Behavioral">🧠 Behavioral Therapy</option>
+                                            <option value="Social Skills">👥 Social Skills Group</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Duration (minutes)</label>
+                                        <input type="number" className="w-full p-3 rounded-xl border bg-transparent focus:ring-2 focus:ring-blue-500 transition-all" value={formData.duration} onChange={e => setFormData({ ...formData, duration: parseInt(e.target.value) })} />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Session Date</label>
+                                    <input type="date" className="w-full p-3 rounded-xl border bg-transparent focus:ring-2 focus:ring-blue-500 transition-all" value={date ? format(date, "yyyy-MM-dd") : ""} onChange={e => setDate(e.target.value ? new Date(e.target.value) : undefined)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Mood (1-5)</label>
+                                    <div className="flex items-center gap-4">
+                                        {[1, 2, 3, 4, 5].map(rating => (
+                                            <button key={rating} type="button" onClick={() => setFormData({ ...formData, mood: rating })} className={`w-12 h-12 rounded-xl flex items-center justify-center border-2 transition-all transform hover:scale-110 ${formData.mood === rating ? "bg-blue-100 border-blue-500 text-3xl shadow-lg scale-110" : "bg-transparent border-slate-200 dark:border-slate-700 text-2xl grayscale hover:grayscale-0"}`}>
+                                                {rating === 1 ? "😫" : rating === 2 ? "😕" : rating === 3 ? "😐" : rating === 4 ? "🙂" : "😁"}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Session Notes</label>
+                                    <textarea className="w-full p-3 rounded-xl border bg-transparent h-24 focus:ring-2 focus:ring-blue-500 transition-all" placeholder="What happened during the session?" value={formData.notes} onChange={e => setFormData({ ...formData, notes: e.target.value })} />
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">What went well? ✨</label>
+                                        <textarea className="w-full p-3 rounded-xl border bg-transparent h-20 focus:ring-2 focus:ring-green-500 transition-all" placeholder="Successes..." value={formData.wentWell} onChange={e => setFormData({ ...formData, wentWell: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">To work on 🎯</label>
+                                        <textarea className="w-full p-3 rounded-xl border bg-transparent h-20 focus:ring-2 focus:ring-orange-500 transition-all" placeholder="Challenges..." value={formData.toWorkOn} onChange={e => setFormData({ ...formData, toWorkOn: e.target.value })} />
+                                    </div>
+                                </div>
+                                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl">
+                                    Update Session
+                                </motion.button>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
                 </header>
 
                 {/* Sessions List */}
@@ -323,6 +453,25 @@ export function TherapyLogApp() {
                                         transition={{ delay: index * 0.1 }}
                                         className="group relative bg-white dark:bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-lg hover:shadow-2xl hover:border-blue-500/30 transition-all duration-300"
                                     >
+                                        {/* Edit/Delete actions */}
+                                        <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
+                                            <button
+                                                type="button"
+                                                onClick={() => openEdit(session)}
+                                                className="p-2 rounded-xl hover:bg-blue-500/10 text-[var(--muted)] hover:text-blue-500 transition-colors"
+                                                title="Edit session"
+                                            >
+                                                <Pencil className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDelete(session)}
+                                                className="p-2 rounded-xl hover:bg-red-500/10 text-[var(--muted)] hover:text-red-500 transition-colors"
+                                                title="Delete session"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
                                         {/* Gradient Border Effect on Hover */}
                                         <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 

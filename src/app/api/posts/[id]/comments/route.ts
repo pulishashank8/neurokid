@@ -7,9 +7,9 @@ import { canModerate } from "@/lib/rbac";
 import { invalidateCache } from "@/lib/redis";
 import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
 import { createLogger } from "@/lib/logger";
-import { getRequestId, withApiHandler } from "@/lib/apiHandler";
+import { getRequestId, withApiHandler } from "@/lib/api/apiHandler";
 import { sanitizeHtml } from "@/lib/security";
-import { successResponse, errorResponse, notFoundError, unauthorizedError } from "@/lib/apiResponse";
+import { successResponse, errorResponse, notFoundError, unauthorizedError } from "@/lib/api/apiResponse";
 import { logSecurityEvent } from "@/lib/securityAudit";
 
 // GET /api/posts/[id]/comments - Get threaded comments
@@ -99,6 +99,8 @@ export const GET = withApiHandler(async (
             avatarUrl: comment.author.profile?.avatarUrl || null,
           },
         voteScore: comment.voteScore,
+        likeCount: comment.likeCount ?? 0,
+        dislikeCount: comment.dislikeCount ?? 0,
         isAnonymous: comment.isAnonymous,
         parentCommentId: comment.parentCommentId,
         children: [],

@@ -30,7 +30,6 @@ import {
   MessageCircle,
   MessageSquare,
   Star,
-  Sparkles,
   Map
 } from "lucide-react";
 
@@ -168,25 +167,8 @@ export default function NavBar() {
               </span>
             </Link>
 
-            {/* Desktop Menu - Premium Styling */}
+            {/* Desktop Menu - Premium Styling (NeuroKid logo = home, no separate Home link) */}
             <div className="hidden lg:flex items-center gap-1">
-              <Link
-                href="/"
-                className={`
-                  relative px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300
-                  ${pathname === "/"
-                    ? "text-emerald-500"
-                    : "text-[var(--muted)] hover:text-[var(--text)]"
-                  }
-                  hover:bg-[var(--surface2)]/50
-                `}
-              >
-                Home
-                {pathname === "/" && (
-                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-500" />
-                )}
-              </Link>
-
               {getNavGroups(!!session?.user).map((group) => {
                 const isCommunityGroup = group.label === "Community";
                 const hasGroupNotification = isCommunityGroup && notifications.totalUnread > 0;
@@ -395,21 +377,7 @@ export default function NavBar() {
                 <span>Get Help Now</span>
               </Link>
 
-              <Link
-                href="/"
-                className={`
-                  flex items-center gap-3 px-4 py-3 rounded-2xl text-base font-bold transition-all duration-300
-                  ${pathname === "/"
-                    ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg"
-                    : "text-[var(--text)] hover:bg-[var(--surface2)]"
-                  }
-                `}
-                onClick={() => setMobileOpen(false)}
-              >
-                <Sparkles className="w-5 h-5" />
-                Home
-              </Link>
-
+              {/* NeuroKid logo = home; no separate Home link in mobile menu either */}
               {getNavGroups(!!session?.user).map((group) => {
                 const isCommunityGroup = group.label === "Community";
                 const hasGroupNotification = isCommunityGroup && notifications.totalUnread > 0;

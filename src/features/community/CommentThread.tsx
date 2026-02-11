@@ -22,6 +22,8 @@ interface Comment {
     avatarUrl: string | null;
   };
   voteScore: number;
+  likeCount?: number;
+  dislikeCount?: number;
   isAnonymous: boolean;
   parentCommentId?: string;
   children?: Comment[];
@@ -132,6 +134,8 @@ export function CommentThread({
                   targetType="COMMENT"
                   targetId={comment.id}
                   initialScore={comment.voteScore}
+                  initialLikeCount={comment.likeCount ?? 0}
+                  initialDislikeCount={comment.dislikeCount ?? 0}
                 />
               </div>
 

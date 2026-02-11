@@ -5,9 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { createPostSchema, getPostsSchema } from "@/lib/validations/community";
 import { getCached, setCached, invalidateCache, CACHE_TTL, cacheKey } from "@/lib/redis";
 import { rateLimitResponse, RATE_LIMITERS } from "@/lib/rateLimit";
-import { withApiHandler, getRequestId } from "@/lib/apiHandler";
+import { withApiHandler, getRequestId } from "@/lib/api/apiHandler";
 import { createLogger } from "@/lib/logger";
-import { apiErrors } from "@/lib/apiError";
+import { apiErrors } from "@/lib/api/apiError";
 import { sortByHot } from "@/services/rankingService";
 
 // SUPER STABLE SANITIZER (No external dependencies)
@@ -43,9 +43,25 @@ export const GET = withApiHandler(async (request: NextRequest) => {
     );
   }
 
-  const { cursor, limit, sort, categoryId, tag, search, page, authorId } = validation.data;
+  const { cursor, limit, sort, categoryId: categoryIdParam, category: categoryName, tag, search, page, authorId } = validation.data;
   const useCursor = !!cursor;
   const take = limit + 1; // Fetch one extra to determine if there's a next page
+
+  // Resolve category: use categoryId if provided, else look up by category name/slug
+  let categoryId = categoryIdParam;
+  if (!categoryId && categoryName && categoryName !== "All Categories") {
+    const slug = categoryName.toLowerCase().replace(/\s+/g, "-").replace(/&/g, "and");
+    const cat = await prisma.category.findFirst({
+      where: {
+        OR: [
+          { name: { equals: categoryName, mode: "insensitive" } },
+          { slug: { equals: slug, mode: "insensitive" } },
+        ],
+      },
+      select: { id: true },
+    });
+    if (cat) categoryId = cat.id;
+  }
 
   logger.debug({ cursor, limit, sort, categoryId, tag, search, authorId }, 'Fetching posts');
 
@@ -63,6 +79,28 @@ export const GET = withApiHandler(async (request: NextRequest) => {
   const cached = await getCached(cacheKeyStr, { prefix: "posts", ttl: CACHE_TTL.POSTS_FEED });
   if (cached) {
     logger.debug('Cache hit');
+    const session = await getServerSession(authOptions);
+    if (session?.user?.id && cached.posts?.length > 0) {
+      const postIds = cached.posts.map((p: any) => p.id);
+      const votes = await prisma.vote.findMany({
+        where: {
+          userId: session.user.id,
+          targetType: "POST",
+          targetId: { in: postIds },
+        },
+        select: { targetId: true, value: true },
+      });
+      const userVoteMap: Record<string, number> = {};
+      votes.forEach((v: { targetId: string; value: number }) => {
+        userVoteMap[v.targetId] = v.value;
+      });
+      cached.posts = cached.posts.map((p: any) => ({
+        ...p,
+        userVote: userVoteMap[p.id] ?? 0,
+        likeCount: p.likeCount ?? 0,
+        dislikeCount: p.dislikeCount ?? 0,
+      }));
+    }
     return NextResponse.json(cached);
   }
 
@@ -128,6 +166,8 @@ export const GET = withApiHandler(async (request: NextRequest) => {
       isLocked: true,
       status: true,
       voteScore: true,
+      likeCount: true,
+      dislikeCount: true,
       images: true,
       category: {
         select: {
@@ -185,8 +225,25 @@ export const GET = withApiHandler(async (request: NextRequest) => {
     ? Buffer.from(JSON.stringify({ id: displayPosts[displayPosts.length - 1].id })).toString('base64')
     : null;
 
+  const postIds = displayPosts.map((p: any) => p.id);
+  let userVoteMap: Record<string, number> = {};
+  const session = await getServerSession(authOptions);
+  if (session?.user?.id && postIds.length > 0) {
+    const votes = await prisma.vote.findMany({
+      where: {
+        userId: session.user.id,
+        targetType: "POST",
+        targetId: { in: postIds },
+      },
+      select: { targetId: true, value: true },
+    });
+    votes.forEach((v) => {
+      userVoteMap[v.targetId] = v.value;
+    });
+  }
+
   // Format posts
-  const formattedPosts = displayPosts.map((post) => {
+  const formattedPosts = displayPosts.map((post: any) => {
     return {
       id: post.id,
       title: post.title,
@@ -211,10 +268,12 @@ export const GET = withApiHandler(async (request: NextRequest) => {
           avatarUrl: post.author.profile?.avatarUrl || null,
         },
       voteScore: post.voteScore,
+      likeCount: post.likeCount ?? 0,
+      dislikeCount: post.dislikeCount ?? 0,
+      userVote: userVoteMap[post.id] ?? 0,
       commentCount: post._count.comments,
       isPinned: post.isPinned,
       isLocked: post.isLocked,
-      votes: post.votes, // Pass votes if needed
       images: post.images || [],
       status: post.status,
     };

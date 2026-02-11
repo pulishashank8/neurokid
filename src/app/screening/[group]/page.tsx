@@ -101,7 +101,6 @@ export default function ScreeningFlowPage() {
 
   const computeScore = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
-    console.log("Computing score... Current state:", { group, allAnswered, answers });
 
     if (!allAnswered) {
       const missing = answers
@@ -114,7 +113,6 @@ export default function ScreeningFlowPage() {
 
     try {
       if (group === "toddler") {
-        // ... (existing toddler logic) ...
         let score = 0;
         const reverseScored = [1, 4, 11]; // indices for questions 2, 5, 12 (0-indexed)
 
@@ -146,7 +144,6 @@ export default function ScreeningFlowPage() {
         };
 
         sessionStorage.setItem("nk-screening-summary", JSON.stringify(summary));
-        console.log("Summary saved, navigating...", summary);
 
         setTimeout(() => {
           window.location.href = "/screening/result";
@@ -179,7 +176,6 @@ export default function ScreeningFlowPage() {
         };
 
         sessionStorage.setItem("nk-screening-summary", JSON.stringify(summary));
-        console.log("Summary saved, navigating...", summary);
 
         setTimeout(() => {
           window.location.href = "/screening/result";
@@ -263,7 +259,12 @@ export default function ScreeningFlowPage() {
               <button
                 onClick={handleNext}
                 type="button"
-                className="rounded-lg bg-[var(--primary)] px-5 py-2 text-sm font-semibold text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] transition-all min-h-[44px]"
+                disabled={answers[index] === null}
+                className={`rounded-lg px-5 py-2 text-sm font-semibold transition-all min-h-[44px] ${
+                  answers[index] === null
+                    ? "cursor-not-allowed opacity-50 bg-[var(--surface2)] text-[var(--muted)] border border-[var(--border)]"
+                    : "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)]"
+                }`}
               >
                 Next
               </button>
@@ -271,7 +272,12 @@ export default function ScreeningFlowPage() {
               <button
                 onClick={computeScore}
                 type="button"
-                className="rounded-lg bg-[var(--primary)] px-5 py-2 text-sm font-semibold text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] transition-all min-h-[44px] shadow-lg shadow-[var(--primary)]/20"
+                disabled={answers[index] === null}
+                className={`rounded-lg px-5 py-2 text-sm font-semibold transition-all min-h-[44px] ${
+                  answers[index] === null
+                    ? "cursor-not-allowed opacity-50 bg-[var(--surface2)] text-[var(--muted)] border border-[var(--border)]"
+                    : "bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary-hover)] shadow-lg shadow-[var(--primary)]/20"
+                }`}
               >
                 See Results
               </button>

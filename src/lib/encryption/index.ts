@@ -124,6 +124,20 @@ class FieldEncryption {
       return false;
     }
   }
+
+  /**
+   * Safely decrypt or return value as-is for backwards compatibility.
+   * Use when data may be encrypted (new) or plaintext (legacy).
+   */
+  static decryptOrPassthrough(value: string | null | undefined): string | null {
+    if (!value) return null;
+    if (!this.isEncrypted(value)) return value;
+    try {
+      return this.decrypt(value);
+    } catch {
+      return value;
+    }
+  }
 }
 
 export { FieldEncryption };

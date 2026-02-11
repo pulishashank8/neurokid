@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { sendVerificationEmail } from "@/lib/mailer";
-import { withApiHandler, getRequestId } from "@/lib/apiHandler";
+import { withApiHandler, getRequestId } from "@/lib/api/apiHandler";
 import { RATE_LIMITERS, checkRateLimit, rateLimitResponse } from "@/lib/rateLimit";
 import { createLogger } from "@/lib/logger";
 

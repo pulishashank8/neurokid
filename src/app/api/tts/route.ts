@@ -62,9 +62,6 @@ export async function POST(req: NextRequest) {
         const secretKey = process.env.AWS_SECRET_ACCESS_KEY;
         const region = process.env.AWS_REGION;
 
-        console.log("Polly Region:", region);
-        console.log("Text length:", text.length);
-
         if (!accessKey || !secretKey || !region) {
             return new Response(
                 JSON.stringify({ error: "Missing AWS environment variables" }),
@@ -82,7 +79,6 @@ export async function POST(req: NextRequest) {
 
         // Split text into chunks to handle Polly's 3000 char limit for neural voices
         const chunks = splitTextIntoChunks(text);
-        console.log(`Processing ${chunks.length} chunks`);
 
         const audioBuffers: Buffer[] = [];
 

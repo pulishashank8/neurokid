@@ -8,9 +8,9 @@ import {
   RATE_LIMITERS,
   rateLimitResponse,
 } from "@/lib/rateLimit";
-import { withApiHandler, getRequestId } from "@/lib/apiHandler";
+import { withApiHandler, getRequestId } from "@/lib/api/apiHandler";
 import { createLogger } from "@/lib/logger";
-import { apiErrors } from "@/lib/apiError";
+import { apiErrors } from "@/lib/api/apiError";
 
 // POST /api/votes - Create/update/remove vote
 export const POST = withApiHandler(async (request: NextRequest) => {
@@ -78,10 +78,16 @@ export const POST = withApiHandler(async (request: NextRequest) => {
       },
     });
 
+    const oldValue = existingVote?.value ?? 0;
+    const scoreChange = value === 0 ? -oldValue : value - oldValue;
+    const likeDelta = (value === 1 ? 1 : 0) - (oldValue === 1 ? 1 : 0);
+    const dislikeDelta = (value === -1 ? 1 : 0) - (oldValue === -1 ? 1 : 0);
+
     let updatedVoteScore = 0;
+    let likeCount = 0;
+    let dislikeCount = 0;
 
     if (value === 0) {
-      // Remove vote
       if (existingVote) {
         await prisma.vote.delete({
           where: {
@@ -92,30 +98,35 @@ export const POST = withApiHandler(async (request: NextRequest) => {
             },
           },
         });
-
-        // Update target vote score
-        const scoreChange = -existingVote.value;
         if (targetType === "POST") {
           const post = await prisma.post.update({
             where: { id: targetId },
-            data: { voteScore: { increment: scoreChange } },
-            select: { voteScore: true },
+            data: {
+              voteScore: { increment: scoreChange },
+              likeCount: { increment: likeDelta },
+              dislikeCount: { increment: dislikeDelta },
+            },
+            select: { voteScore: true, likeCount: true, dislikeCount: true },
           });
           updatedVoteScore = post.voteScore;
+          likeCount = post.likeCount;
+          dislikeCount = post.dislikeCount;
         } else {
           const comment = await prisma.comment.update({
             where: { id: targetId },
-            data: { voteScore: { increment: scoreChange } },
-            select: { voteScore: true },
+            data: {
+              voteScore: { increment: scoreChange },
+              likeCount: { increment: likeDelta },
+              dislikeCount: { increment: dislikeDelta },
+            },
+            select: { voteScore: true, likeCount: true, dislikeCount: true },
           });
           updatedVoteScore = comment.voteScore;
+          likeCount = comment.likeCount;
+          dislikeCount = comment.dislikeCount;
         }
       }
     } else {
-      // Create or update vote
-      const oldValue = existingVote?.value || 0;
-      const scoreChange = value - oldValue;
-
       await prisma.vote.upsert({
         where: {
           userId_targetId_targetType: {
@@ -130,45 +141,56 @@ export const POST = withApiHandler(async (request: NextRequest) => {
           targetId,
           value,
         },
-        update: {
-          value,
-        },
+        update: { value },
       });
-
-      // Update target vote score
       if (targetType === "POST") {
         const post = await prisma.post.update({
           where: { id: targetId },
-          data: { voteScore: { increment: scoreChange } },
-          select: { voteScore: true },
+          data: {
+            voteScore: { increment: scoreChange },
+            likeCount: { increment: likeDelta },
+            dislikeCount: { increment: dislikeDelta },
+          },
+          select: { voteScore: true, likeCount: true, dislikeCount: true },
         });
         updatedVoteScore = post.voteScore;
+        likeCount = post.likeCount;
+        dislikeCount = post.dislikeCount;
       } else {
         const comment = await prisma.comment.update({
           where: { id: targetId },
-          data: { voteScore: { increment: scoreChange } },
-          select: { voteScore: true },
+          data: {
+            voteScore: { increment: scoreChange },
+            likeCount: { increment: likeDelta },
+            dislikeCount: { increment: dislikeDelta },
+          },
+          select: { voteScore: true, likeCount: true, dislikeCount: true },
         });
         updatedVoteScore = comment.voteScore;
+        likeCount = comment.likeCount;
+        dislikeCount = comment.dislikeCount;
       }
     }
 
-    // Invalidate caches
     if (targetType === "POST") {
       await invalidateCache("posts:*", { prefix: "posts" });
     }
 
-    logger.info({ 
-      userId: session.user.id, 
-      targetType, 
-      targetId, 
-      value, 
-      voteScore: updatedVoteScore 
+    logger.info({
+      userId: session.user.id,
+      targetType,
+      targetId,
+      value,
+      voteScore: updatedVoteScore,
+      likeCount,
+      dislikeCount,
     }, 'Vote processed successfully');
-    
+
     return NextResponse.json({
       success: true,
       voteScore: updatedVoteScore,
+      likeCount,
+      dislikeCount,
       userVote: value,
     });
 }, { method: 'POST', routeName: '/api/votes' });

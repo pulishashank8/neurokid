@@ -6,7 +6,6 @@ export async function GET(request: NextRequest) {
         const npiParams = new URLSearchParams(searchParams);
 
         const targetUrl = `https://npiregistry.cms.hhs.gov/api/?${npiParams.toString()}`;
-        console.log('NPI Proxy fetching:', targetUrl);
 
         // Forward the request to NPPES API
         const response = await fetch(targetUrl, {
@@ -16,8 +15,6 @@ export async function GET(request: NextRequest) {
             },
             next: { revalidate: 3600 }
         });
-
-        console.log('NPI Proxy response status:', response.status);
 
         if (!response.ok) {
             const errorBody = await response.text();

@@ -112,7 +112,6 @@ describe('Providers API Integration Tests', () => {
         });
 
         it('should filter providers by multiple criteria', async () => {
-            // ... no change
             const request = createMockRequest('GET', '/api/providers', {
                 searchParams: {
                     state: 'IL',

@@ -56,7 +56,7 @@ const faqQuestions = [
 export default async function TherapyLogPage() {
   const session = await getServerSession(authOptions);
 
-  if (session) {
+  if (session?.user) {
     return <TherapyLogApp />;
   }
 

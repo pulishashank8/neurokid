@@ -34,6 +34,9 @@ interface Post {
     avatarUrl: string | null;
   };
   voteScore: number;
+  likeCount?: number;
+  dislikeCount?: number;
+  userVote?: number;
   commentCount: number;
   isPinned: boolean;
   isLocked: boolean;
@@ -227,6 +230,9 @@ export default function PostDetailPage({
                     targetType="POST"
                     targetId={post.id}
                     initialScore={post.voteScore}
+                    initialLikeCount={post.likeCount ?? 0}
+                    initialDislikeCount={post.dislikeCount ?? 0}
+                    initialUserVote={post.userVote ?? 0}
                   />
                   <BookmarkButton postId={post.id} />
                   <ReportButton targetType="POST" targetId={post.id} />

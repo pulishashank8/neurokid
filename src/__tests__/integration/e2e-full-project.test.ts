@@ -1,4 +1,12 @@
 import { resetMockData } from '../setup';
+import { vi } from 'vitest';
+
+// Mock next-auth to avoid "headers called outside request scope" when calling API routes directly
+vi.mock('next-auth', () => ({
+  getServerSession: vi.fn().mockResolvedValue(null),
+  default: vi.fn(),
+}));
+
 import {
     createTestUser,
     createModeratorUser,

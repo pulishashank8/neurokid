@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth";
 import { AIJobQueue } from "@/lib/queue/ai-job-queue";
-import { withApiHandler } from "@/lib/api-handler";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { enforceRateLimit, RateLimits } from "@/lib/rate-limit";
 
 interface RouteContext {
@@ -42,9 +42,10 @@ export const GET = withApiHandler(
     // Return appropriate response based on status
     switch (job.status) {
       case "completed":
+        const strippedResult = job.result?.replace(/\*\*([^*]+)\*\*/g, "$1") ?? job.result;
         return NextResponse.json({
           status: "completed",
-          result: job.result,
+          result: strippedResult,
           completedAt: job.completedAt,
         });
 

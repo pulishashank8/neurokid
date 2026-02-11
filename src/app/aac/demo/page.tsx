@@ -6,7 +6,7 @@ import { AACBoard } from "@/features/aac/AACBoard";
 import { Maximize2, Minimize2, Clock, LogIn, X } from "lucide-react";
 import Link from "next/link";
 
-const DEMO_DURATION_MINUTES = 3;
+const DEMO_DURATION_MINUTES = 5;
 const DEMO_DURATION_MS = DEMO_DURATION_MINUTES * 60 * 1000;
 
 export default function AACDemoPage() {

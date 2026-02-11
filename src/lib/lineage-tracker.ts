@@ -385,7 +385,6 @@ export class LineageTracker {
     let edgeCount = 0;
 
     for (const [flowName, flow] of Object.entries(LINEAGE_DEFINITIONS)) {
-      console.log(`  Processing flow: ${flowName}`);
 
       // Create nodes
       for (const node of flow.nodes) {

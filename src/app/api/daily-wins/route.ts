@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { RateLimits, enforceRateLimit } from "@/lib/rate-limit";
 import { createLogger } from "@/lib/logger";
-import { addSecurityHeaders, sanitizeString } from "@/lib/api-security";
+import { addSecurityHeaders, sanitizeString } from "@/lib/api/api-security";
 
 // Validation schema for daily wins
 const DailyWinSchema = z.object({

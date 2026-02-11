@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { STATIC_RESOURCES } from "@/lib/resources-static";
+import { STATIC_RESOURCES, RESOURCE_COUNT } from "@/lib/resources-static";
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get("category");
     const sortBy = searchParams.get("sortBy");
     const limitParam = searchParams.get("limit");
-    const limit = Math.min(limitParam ? parseInt(limitParam) : 50, 100); // Default 50, max 100
+    const limit = Math.min(limitParam ? Number.parseInt(limitParam, 10) : 250, 300); // Default 250 so 200+ resources show; max 300
 
     const where: any = {
       status: "ACTIVE",
@@ -42,17 +42,20 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Fallback to static resources if DB is empty to ensure "Marketplace" feel
-    if (resources.length === 0 && (!category || category === "ALL")) {
-      console.log("DB resources empty, serving static fallback");
+    // Use full static list when viewing all categories and DB has fewer than our curated count
+    const useStatic = (!category || category === "ALL") &&
+      (resources.length === 0 || resources.length < RESOURCE_COUNT);
+    if (useStatic) {
       const mappedStatic = STATIC_RESOURCES.map((r, i) => ({
         ...r,
         id: `static-${i}`,
-        views: 1000 + i,
+        views: 1000 + (STATIC_RESOURCES.length - 1 - i),
         createdAt: new Date().toISOString(),
         status: "ACTIVE",
         _count: { savedBy: 42 + i }
-      }));
+      }))
+        .sort((a, b) => (b.views ?? 0) - (a.views ?? 0))
+        .slice(0, limit);
       return NextResponse.json({ resources: mappedStatic });
     }
 

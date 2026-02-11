@@ -28,12 +28,12 @@ export const getPostsSchema = z.object({
   limit: z.coerce.number().int().positive().max(100).default(20),
   sort: z.enum(["new", "top", "hot"]).default("new"),
   categoryId: z.string().min(1).optional(),
+  category: z.string().max(100).trim().optional(), // Frontend sends category name/slug; resolved to categoryId in API
   tag: z.string().min(1).optional(),
   search: z.string().max(200).trim().optional(),
   authorId: z.string().min(1).optional(), // Filter by author
-  // Keep page for backward compatibility
   page: z.coerce.number().int().positive().default(1).optional(),
-}).strict();
+}).strip(); // strip unknown keys instead of strict to avoid 400 on extra params
 
 // Comment Schemas
 export const createCommentSchema = z.object({

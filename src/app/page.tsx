@@ -114,14 +114,13 @@ export default function Home() {
   const { status } = useSession();
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
 
   // Quote Rotation Logic
   const [currentQuote, setCurrentQuote] = useState(0);
   const [fade, setFade] = useState(true);
 
+  // Redirect authenticated users to dashboard
   useEffect(() => {
-    setMounted(true);
     if (status === "authenticated") {
       router.push("/dashboard");
     }
@@ -140,8 +139,8 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  if (!mounted || status === "loading" || status === "authenticated") {
-    // Loading State - Adaptive
+  // Show loading only when redirecting authenticated users—guests see landing page immediately.
+  if (status === "authenticated") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white dark:bg-[#05070a] transition-colors duration-500">
         <div className="text-center">
@@ -149,7 +148,7 @@ export default function Home() {
             <div className="absolute inset-0 rounded-full border-4 border-slate-200 dark:border-emerald-500/20"></div>
             <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-emerald-500 animate-spin"></div>
           </div>
-          <p className="mt-6 text-sm font-bold uppercase tracking-widest text-slate-500 animate-pulse">Initializing Experience...</p>
+          <p className="mt-6 text-sm font-bold uppercase tracking-widest text-slate-500 animate-pulse">Loading...</p>
         </div>
       </div>
     );
@@ -480,8 +479,31 @@ export default function Home() {
 
         {/* FOOTER */}
         <footer className="py-8 border-t border-slate-200 dark:border-white/5 px-6">
-          <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
-            <p className="text-[10px] text-slate-400 dark:text-slate-600 max-w-xl leading-relaxed uppercase tracking-wider mb-2">
+          <div className="max-w-7xl mx-auto flex flex-col items-center text-center gap-4">
+            {/* About us & legal links - subtle, non-intrusive */}
+            <nav className="flex flex-wrap justify-center items-center gap-x-4 gap-y-1" aria-label="Footer navigation">
+              <Link
+                href="/about"
+                className="text-sm text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium"
+              >
+                About us
+              </Link>
+              <span className="text-slate-300 dark:text-slate-600">·</span>
+              <Link
+                href="/privacy"
+                className="text-sm text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+              >
+                Privacy
+              </Link>
+              <span className="text-slate-300 dark:text-slate-600">·</span>
+              <Link
+                href="/terms"
+                className="text-sm text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+              >
+                Terms
+              </Link>
+            </nav>
+            <p className="text-[10px] text-slate-400 dark:text-slate-600 max-w-xl leading-relaxed uppercase tracking-wider">
               Disclaimer: NeuroKid is a personal project created for educational purposes.
               Content provided is not a substitute for professional medical advice.
             </p>

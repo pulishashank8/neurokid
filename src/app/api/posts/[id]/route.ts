@@ -1,14 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { updatePostSchema } from "@/lib/validations/community";
 import { canModerate } from "@/lib/rbac";
-import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
-import { withApiHandler, getRequestId } from "@/lib/apiHandler";
-import { createLogger } from "@/lib/logger";
+import { withApiHandler } from "@/lib/api/apiHandler";
 import { sanitizeHtml } from "@/lib/security";
-import { successResponse, errorResponse, forbiddenError, notFoundError, unauthorizedError } from "@/lib/apiResponse";
+import { successResponse, errorResponse, forbiddenError, notFoundError, unauthorizedError } from "@/lib/api/apiResponse";
 import { logSecurityEvent } from "@/lib/securityAudit";
 
 function enforceSafeLinks(html: string): string {
@@ -27,8 +25,6 @@ export const GET = withApiHandler(async (
   try {
     const { id } = await params;
 
-    console.log(`[GET /api/posts/${id}] Starting request...`);
-
     if (!id) {
       return errorResponse("VALIDATION_ERROR", "Post ID missing", 400);
     }
@@ -37,10 +33,22 @@ export const GET = withApiHandler(async (
       return errorResponse("VALIDATION_ERROR", "Invalid ID", 400);
     }
 
-    console.log(`[GET /api/posts/${id}] Fetching from Prisma...`);
     const post = await prisma.post.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        createdAt: true,
+        updatedAt: true,
+        isAnonymous: true,
+        isPinned: true,
+        isLocked: true,
+        status: true,
+        voteScore: true,
+        likeCount: true,
+        dislikeCount: true,
+        images: true,
         category: {
           select: {
             id: true,
@@ -69,30 +77,50 @@ export const GET = withApiHandler(async (
           },
         },
         _count: {
-          select: {
-            comments: true,
-          },
+          select: { comments: true },
         },
       },
     });
 
-    if (!post) {
-      console.log(`[GET /api/posts/${id}] Post not found`);
+    const postWithVote = post ? {
+      ...post,
+      likeCount: post.likeCount ?? 0,
+      dislikeCount: post.dislikeCount ?? 0,
+    } : null;
+
+    let userVote = 0;
+    if (postWithVote) {
+      const session = await getServerSession(authOptions);
+      if (session?.user?.id) {
+        const vote = await prisma.vote.findUnique({
+          where: {
+            userId_targetId_targetType: {
+              userId: session.user.id,
+              targetId: id,
+              targetType: "POST",
+            },
+          },
+          select: { value: true },
+        });
+        userVote = vote?.value ?? 0;
+      }
+    }
+
+    const postToFormat = postWithVote || post;
+    if (!postToFormat) {
       return notFoundError("Post");
     }
 
-    console.log(`[GET /api/posts/${id}] Post found: ${post.title}`);
-
     // Format response
     const formattedPost = {
-      id: post.id,
-      title: post.title,
-      content: post.content,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-      category: post.category,
-      tags: post.tags,
-      author: post.isAnonymous || !post.author
+      id: postToFormat.id,
+      title: postToFormat.title,
+      content: postToFormat.content,
+      createdAt: postToFormat.createdAt,
+      updatedAt: postToFormat.updatedAt,
+      category: postToFormat.category,
+      tags: postToFormat.tags,
+      author: postToFormat.isAnonymous || !postToFormat.author
         ? {
           id: "anonymous",
           username: "Anonymous",
@@ -100,24 +128,25 @@ export const GET = withApiHandler(async (
           bio: null,
         }
         : {
-          id: post.author.id,
-          username: post.author.profile?.username || "Unknown",
-          avatarUrl: post.author.profile?.avatarUrl || null,
-          bio: post.author.profile?.bio || null,
+          id: postToFormat.author.id,
+          username: postToFormat.author.profile?.username || "Unknown",
+          avatarUrl: postToFormat.author.profile?.avatarUrl || null,
+          bio: postToFormat.author.profile?.bio || null,
         },
-      voteScore: post.voteScore,
-      commentCount: post._count.comments,
-      isPinned: post.isPinned,
-      isLocked: post.isLocked,
-      status: post.status,
-      isAnonymous: post.isAnonymous,
+      voteScore: postToFormat.voteScore,
+      likeCount: (postToFormat as any).likeCount ?? 0,
+      dislikeCount: (postToFormat as any).dislikeCount ?? 0,
+      userVote,
+      commentCount: postToFormat._count.comments,
+      isPinned: postToFormat.isPinned,
+      isLocked: postToFormat.isLocked,
+      status: postToFormat.status,
+      isAnonymous: postToFormat.isAnonymous,
     };
 
-    console.log(`[GET /api/posts/${id}] Sending response`);
     return successResponse(formattedPost);
   } catch (error: any) {
-    console.error(`[GET /api/posts/FAILED] Error:`, error);
-    console.error(`Stack:`, error.stack);
+    console.error("Error fetching post:", error);
     return errorResponse("INTERNAL_ERROR", "Internal Server Error", 500);
   }
 });

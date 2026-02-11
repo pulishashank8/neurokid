@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth";
 import { TherapySessionService } from "@/services/therapy-session.service";
-import { withApiHandler, getClientIp } from "@/lib/api-handler";
+import { withApiHandler, getClientIp } from "@/lib/api/api-handler";
 import { enforceRateLimit, RateLimits } from "@/lib/rate-limit";
 import { z } from "zod";
 

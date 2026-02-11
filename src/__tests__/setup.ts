@@ -21,6 +21,10 @@ const {
   mockAIMessages,
   mockProviders,
   mockUserFinders,
+  mockDailyWins,
+  mockTherapySessions,
+  mockEmergencyCards,
+  mockSavedRhymes,
   mockPrisma
 } = vi.hoisted(() => {
   const tokens: any[] = [];
@@ -41,6 +45,10 @@ const {
   const aiMessages: any[] = [];
   const providers: any[] = [];
   const userFinders: any[] = [];
+  const dailyWins: any[] = [];
+  const therapySessions: any[] = [];
+  const emergencyCards: any[] = [];
+  const savedRhymes: any[] = [];
 
   const prismaMock: any = {
     category: {
@@ -690,6 +698,103 @@ const {
       }),
       deleteMany: vi.fn().mockImplementation(() => { aiMessages.length = 0; return Promise.resolve({ count: 1 }); }),
     },
+    aIJob: {
+      create: vi.fn().mockImplementation((args: any) => {
+        const job = {
+          id: `job_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+          ...args.data,
+          status: "pending",
+          retryCount: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        return Promise.resolve(job);
+      }),
+      findFirst: vi.fn().mockImplementation((args: any) => {
+        return Promise.resolve(null);
+      }),
+      findUnique: vi.fn().mockImplementation((args: any) => {
+        return Promise.resolve(null);
+      }),
+      update: vi.fn().mockImplementation((args: any) => Promise.resolve({ id: args.where.id, ...args.data })),
+    },
+    dailyWin: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        let list = dailyWins.filter(d => !args?.where?.userId || d.userId === args.where.userId);
+        if (args?.orderBy?.date === 'desc') {
+          list = [...list].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        }
+        if (args?.take) list = list.slice(0, args.take);
+        if (args?.skip) list = list.slice(args.skip);
+        return Promise.resolve(list);
+      }),
+      count: vi.fn().mockImplementation((args: any) => {
+        const list = dailyWins.filter(d => !args?.where?.userId || d.userId === args.where.userId);
+        return Promise.resolve(list.length);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const w = { id: `dw_${dailyWins.length + 1}`, ...args.data, createdAt: new Date(), updatedAt: new Date() };
+        dailyWins.push(w);
+        return Promise.resolve(w);
+      }),
+    },
+    therapySession: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        let list = therapySessions.filter(s => !args?.where?.userId || s.userId === args.where.userId);
+        if (args?.where?.childName) list = list.filter(s => s.childName === args.where.childName);
+        if (args?.where?.therapyType) list = list.filter(s => s.therapyType === args.where.therapyType);
+        if (args?.orderBy?.sessionDate === 'desc') {
+          list = [...list].sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime());
+        }
+        if (args?.take) list = list.slice(0, args.take);
+        return Promise.resolve(list);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const s = {
+          id: `ts_${therapySessions.length + 1}`,
+          ...args.data,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        therapySessions.push(s);
+        return Promise.resolve(s);
+      }),
+    },
+    emergencyCard: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        let list = emergencyCards.filter(c => !args?.where?.userId || c.userId === args.where.userId);
+        if (args?.orderBy?.createdAt === 'desc') {
+          list = [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        }
+        return Promise.resolve(list);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const c = { id: `ec_${emergencyCards.length + 1}`, ...args.data, createdAt: new Date(), updatedAt: new Date() };
+        emergencyCards.push(c);
+        return Promise.resolve(c);
+      }),
+    },
+    savedRhyme: {
+      findUnique: vi.fn().mockImplementation((args: any) => {
+        const where = args.where?.userId_rhymeId || args.where;
+        const r = savedRhymes.find(s => s.userId === where.userId && s.rhymeId === where.rhymeId);
+        return Promise.resolve(r || null);
+      }),
+      findMany: vi.fn().mockImplementation((args: any) => {
+        const list = savedRhymes.filter(s => !args?.where?.userId || s.userId === args.where.userId);
+        return Promise.resolve(list);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const r = { id: `sr_${savedRhymes.length + 1}`, ...args.data, createdAt: new Date() };
+        savedRhymes.push(r);
+        return Promise.resolve(r);
+      }),
+      delete: vi.fn().mockImplementation((args: any) => {
+        const idx = savedRhymes.findIndex(s => s.id === args.where.id);
+        if (idx !== -1) savedRhymes.splice(idx, 1);
+        return Promise.resolve({ id: args.where.id });
+      }),
+    },
     provider: {
       findMany: vi.fn().mockImplementation((args: any) => {
         let list = [...providers];
@@ -821,6 +926,10 @@ const {
     mockAIMessages: aiMessages,
     mockProviders: providers,
     mockUserFinders: userFinders,
+    mockDailyWins: dailyWins,
+    mockTherapySessions: therapySessions,
+    mockEmergencyCards: emergencyCards,
+    mockSavedRhymes: savedRhymes,
     mockPrisma: prismaMock
   };
 });
@@ -914,6 +1023,10 @@ export const resetMockData = () => {
   mockAIMessages.length = 0;
   mockProviders.length = 0;
   mockUserFinders.length = 0;
+  mockDailyWins.length = 0;
+  mockTherapySessions.length = 0;
+  mockEmergencyCards.length = 0;
+  mockSavedRhymes.length = 0;
 
   // Repopulate default data
   mockCategories.push(
