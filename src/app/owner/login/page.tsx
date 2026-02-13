@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signIn, useSession } from 'next-auth/react';
+import { signIn, signOut, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Shield, Lock, Sparkles, AlertTriangle, Mail, Key } from 'lucide-react';
+import { Shield, Lock, Sparkles, AlertTriangle, Mail, Key, LogOut } from 'lucide-react';
 
 export default function OwnerLoginPage() {
   const { data: session, status } = useSession();
@@ -20,15 +20,16 @@ export default function OwnerLoginPage() {
   const callbackUrl = searchParams.get('callbackUrl') || '/owner/dashboard';
 
   useEffect(() => {
-    // If already authenticated, redirect to dashboard
-    if (status === 'authenticated' && session?.user) {
+    // Only redirect if authenticated AND no error parameter
+    // This prevents redirect loop for users without OWNER role
+    if (status === 'authenticated' && session?.user && !errorParam) {
       router.push(callbackUrl);
     }
-  }, [status, session, router, callbackUrl]);
+  }, [status, session, router, callbackUrl, errorParam]);
 
   useEffect(() => {
     if (errorParam === 'unauthorized') {
-      setError('You need OWNER role to access this dashboard.');
+      setError('You need OWNER role to access this dashboard. Please sign out and use an owner account, or contact an administrator to grant you OWNER role.');
     } else if (errorParam === 'expired') {
       setError('Your session has expired. Please sign in again.');
     }
@@ -102,9 +103,21 @@ export default function OwnerLoginPage() {
           </div>
           
           {error && (
-            <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6">
-              <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-              <p className="text-sm">{error}</p>
+            <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl mb-6">
+              <div className="flex items-center gap-3 mb-3">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0 text-red-400" />
+                <p className="text-sm text-red-400">{error}</p>
+              </div>
+              {errorParam === 'unauthorized' && status === 'authenticated' && (
+                <button
+                  type="button"
+                  onClick={() => signOut({ callbackUrl: '/owner/login' })}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors text-sm"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out and Use Different Account
+                </button>
+              )}
             </div>
           )}
           
