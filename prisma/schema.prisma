@@ -24,6 +24,9 @@ model User {
   bannedReason               String?
   deletedAt                  DateTime? // Soft delete
   lastActiveAt               DateTime?
+  mfaEnabled                 Boolean                   @default(false)
+  mfaSecret                  String? // Encrypted TOTP secret
+  mfaBackupCodes             String[] // Hashed backup codes
   aacVocabulary              AACVocabulary[]
   aiConversations            AIConversation[]
   aiMessages                 AIMessage[]
@@ -1266,6 +1269,7 @@ enum Role {
   THERAPIST
   MODERATOR
   ADMIN
+  OWNER
 }
 
 enum PostStatus {
@@ -1601,13 +1605,18 @@ model OwnerEmailRecipient {
 /// Owner audit log for dashboard actions - Pillar 7
 model OwnerAuditLog {
   id        String   @id @default(cuid())
-  action    String
+  userId    String? // Which owner performed the action
+  action    String // e.g., "LOGIN", "EXPORT_DATA", "BAN_USER", "VIEW_PHI"
+  resource  String? // What was accessed, e.g., "user:123", "report:export"
   details   Json?
   ipAddress String?
   userAgent String?
+  success   Boolean  @default(true)
   createdAt DateTime @default(now())
 
+  @@index([userId, createdAt])
   @@index([action, createdAt])
+  @@index([resource])
 }
 
 /// Email templates for owner communications - Pillar 6

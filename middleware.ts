@@ -37,18 +37,27 @@ function handleAACDemoLimit(request: NextRequest): NextResponse | null {
   return null;
 }
 
-const ADMIN_SESSION_COOKIE = "admin_session";
-
-/** Fast redirect for unauthenticated owner access (avoids slow page compile in incognito) */
+/**
+ * Owner route protection
+ * 
+ * Checks for NextAuth session token. Full RBAC check happens in API routes.
+ * This is a fast pre-check to redirect unauthenticated users before page compilation.
+ */
 function handleOwnerAuth(request: NextRequest): NextResponse | null {
   const path = request.nextUrl.pathname;
   if (!path.startsWith("/owner")) return null;
   if (path === "/owner/login") return null; // Allow login page
 
-  const hasSession = !!request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
-  if (!hasSession) {
+  // Check for NextAuth session token
+  const sessionToken = 
+    request.cookies.get("next-auth.session-token")?.value ||
+    request.cookies.get("__Secure-next-auth.session-token")?.value;
+  
+  if (!sessionToken) {
     return NextResponse.redirect(new URL("/owner/login", request.url));
   }
+  
+  // Note: Full RBAC check (OWNER role) happens in the API routes and page components
   return null;
 }
 

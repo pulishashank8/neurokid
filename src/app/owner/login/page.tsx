@@ -1,56 +1,77 @@
-import { redirect } from 'next/navigation';
-import { isAdminAuthenticated, validateAdminPassword, setAdminSession, isPasswordConfigured } from '@/lib/admin-auth';
-import { Shield, Lock, Sparkles, AlertTriangle, Clock } from 'lucide-react';
+'use client';
 
-export default async function OwnerLoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string; expired?: string }>;
-}) {
-  const passwordConfigured = isPasswordConfigured();
-  
-  if (!passwordConfigured) {
+import { useState, useEffect } from 'react';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Shield, Lock, Sparkles, AlertTriangle, Mail, Key } from 'lucide-react';
+
+export default function OwnerLoginPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [mfaCode, setMfaCode] = useState('');
+  const [showMfa, setShowMfa] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const errorParam = searchParams.get('error');
+  const callbackUrl = searchParams.get('callbackUrl') || '/owner/dashboard';
+
+  useEffect(() => {
+    // If already authenticated, redirect to dashboard
+    if (status === 'authenticated' && session?.user) {
+      router.push(callbackUrl);
+    }
+  }, [status, session, router, callbackUrl]);
+
+  useEffect(() => {
+    if (errorParam === 'unauthorized') {
+      setError('You need OWNER role to access this dashboard.');
+    } else if (errorParam === 'expired') {
+      setError('Your session has expired. Please sign in again.');
+    }
+  }, [errorParam]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        if (result.error === 'TooManyAttempts') {
+          setError('Too many login attempts. Please try again later.');
+        } else if (result.error === 'EmailNotVerified') {
+          setError('Please verify your email before logging in.');
+        } else {
+          setError('Invalid email or password.');
+        }
+      } else if (result?.ok) {
+        // Successfully signed in - NextAuth will handle the redirect
+        // But we need to verify OWNER role on the dashboard page
+        router.push(callbackUrl);
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-red-500/10 rounded-full blur-3xl -translate-y-1/3 translate-x-1/3"></div>
-        </div>
-        <div className="relative bg-slate-800/80 backdrop-blur-xl p-8 rounded-3xl border border-white/10 shadow-2xl w-full max-w-md">
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-red-500/20 flex items-center justify-center">
-              <AlertTriangle className="w-8 h-8 text-red-400" />
-            </div>
-            <h1 className="text-2xl font-bold text-red-400 mb-2">Configuration Error</h1>
-            <p className="text-slate-400">
-              The ADMIN_PASSWORD secret is not configured. Please set the ADMIN_PASSWORD 
-              environment variable to enable owner access.
-            </p>
-          </div>
-        </div>
+        <div className="text-white">Loading...</div>
       </div>
     );
-  }
-  
-  const authenticated = await isAdminAuthenticated();
-  if (authenticated) {
-    redirect('/owner/dashboard');
-  }
-
-  const params = await searchParams;
-  const error = params.error;
-  const expired = params.expired;
-
-  async function login(formData: FormData) {
-    'use server';
-    
-    const password = formData.get('password') as string;
-    
-    if (validateAdminPassword(password)) {
-      await setAdminSession();
-      redirect('/owner/dashboard');
-    } else {
-      redirect('/owner/login?error=invalid');
-    }
   }
 
   return (
@@ -77,55 +98,102 @@ export default async function OwnerLoginPage({
               <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Secure Access</span>
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Owner Dashboard</h1>
-            <p className="text-slate-400">Enter your password to continue</p>
+            <p className="text-slate-400">Sign in with your OWNER account</p>
           </div>
-          
-          {expired && (
-            <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 p-4 rounded-xl mb-6">
-              <Clock className="w-5 h-5 flex-shrink-0" />
-              <p className="text-sm">Your session expired due to inactivity. Please log in again.</p>
-            </div>
-          )}
           
           {error && (
             <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6">
               <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-              <p className="text-sm">Invalid password. Please try again.</p>
+              <p className="text-sm">{error}</p>
             </div>
           )}
           
-          <form action={login}>
-            <div className="mb-6">
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
-                Owner Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="w-5 h-5 text-slate-500" />
+          <form onSubmit={handleSubmit}>
+            {!showMfa ? (
+              <>
+                <div className="mb-4">
+                  <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Mail className="w-5 h-5 text-slate-500" />
+                    </div>
+                    <input
+                      type="email"
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                      className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                      placeholder="owner@neurokid.com"
+                    />
+                  </div>
                 </div>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  required
-                  autoComplete="current-password"
-                  className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
-                  placeholder="Enter password"
-                />
+                
+                <div className="mb-6">
+                  <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Lock className="w-5 h-5 text-slate-500" />
+                    </div>
+                    <input
+                      type="password"
+                      id="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      autoComplete="current-password"
+                      className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                      placeholder="Enter password"
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="mb-6">
+                <label htmlFor="mfa" className="block text-sm font-medium text-slate-300 mb-2">
+                  Two-Factor Code
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Key className="w-5 h-5 text-slate-500" />
+                  </div>
+                  <input
+                    type="text"
+                    id="mfa"
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value)}
+                    required
+                    maxLength={6}
+                    pattern="[0-9]{6}"
+                    className="w-full pl-12 pr-4 py-4 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-slate-500 text-center text-2xl tracking-widest font-mono focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                    placeholder="000000"
+                  />
+                </div>
               </div>
-            </div>
+            )}
             
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-4 px-4 rounded-xl font-bold text-lg shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 hover:-translate-y-0.5 transition-all"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-4 px-4 rounded-xl font-bold text-lg shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign In
+              {loading ? 'Signing in...' : showMfa ? 'Verify & Sign In' : 'Sign In'}
             </button>
           </form>
           
-          <p className="text-center text-slate-500 text-sm mt-6">
-            Session expires after 15 minutes of inactivity
-          </p>
+          <div className="mt-6 text-center">
+            <p className="text-slate-500 text-sm">
+              🔒 Protected by role-based access control
+            </p>
+            <p className="text-slate-500 text-xs mt-2">
+              Only users with OWNER role can access this dashboard
+            </p>
+          </div>
         </div>
       </div>
     </div>

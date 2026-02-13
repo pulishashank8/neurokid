@@ -1,126 +1,87 @@
+/**
+ * DEPRECATED: Legacy admin authentication system
+ * 
+ * This file is kept for backward compatibility but should NOT be used.
+ * Owner authentication now uses NextAuth with OWNER role check.
+ * 
+ * See: src/lib/auth.ts and src/lib/rbac.ts for the new secure system.
+ */
+
 import { cookies } from 'next/headers';
-import { createHash, createHmac, randomBytes } from 'crypto';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { hasRole } from './rbac';
 
-const SESSION_COOKIE = 'admin_session';
-const SESSION_SECRET = process.env.ADMIN_PASSWORD || '';
-const SESSION_DURATION_MINUTES = 15;
-const SESSION_DURATION_MS = SESSION_DURATION_MINUTES * 60 * 1000;
-
-interface SessionPayload {
-  token: string;
-  expiresAt: number;
-}
-
-function generateToken(): string {
-  const timestamp = Date.now().toString();
-  const random = randomBytes(16).toString('hex');
-  const data = `${timestamp}:${random}:${SESSION_SECRET}`;
-  return createHash('sha256').update(data).digest('hex');
-}
-
-function sign(payload: SessionPayload): string {
-  const data = JSON.stringify(payload);
-  const signature = createHmac('sha256', SESSION_SECRET)
-    .update(data)
-    .digest('hex');
-  return Buffer.from(JSON.stringify({ payload, signature })).toString('base64');
-}
-
-function verify(encoded: string): SessionPayload | null {
+/**
+ * Check if the current user has OWNER role (secure RBAC-based auth)
+ */
+export async function isAdminAuthenticated(): Promise<boolean> {
   try {
-    const decoded = Buffer.from(encoded, 'base64').toString('utf-8');
-    const { payload, signature } = JSON.parse(decoded) as { 
-      payload: SessionPayload; 
-      signature: string;
-    };
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return false;
     
-    // Verify HMAC signature
-    const expectedSignature = createHmac('sha256', SESSION_SECRET)
-      .update(JSON.stringify(payload))
-      .digest('hex');
+    // Check if user has OWNER role in database
+    return await hasRole(session.user.id, 'OWNER');
+  } catch (error) {
+    console.error('[admin-auth] Error checking authentication:', error);
+    return false;
+  }
+}
+
+/**
+ * Get the authenticated owner user ID
+ */
+export async function getAuthenticatedOwnerId(): Promise<string | null> {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return null;
     
-    if (signature !== expectedSignature) {
-      return null;
-    }
-    
-    // Check token format
-    if (!payload.token || payload.token.length !== 64) {
-      return null;
-    }
-    
-    // Check expiration
-    if (Date.now() > payload.expiresAt) {
-      return null;
-    }
-    
-    return payload;
-  } catch {
+    const isOwner = await hasRole(session.user.id, 'OWNER');
+    return isOwner ? session.user.id : null;
+  } catch (error) {
+    console.error('[admin-auth] Error getting owner ID:', error);
     return null;
   }
 }
 
-export function isPasswordConfigured(): boolean {
-  return !!SESSION_SECRET && SESSION_SECRET.length > 0;
+/**
+ * Check if user is authenticated and has OWNER role
+ * Throws error if not authenticated
+ */
+export async function requireOwnerAuth(): Promise<string> {
+  const ownerId = await getAuthenticatedOwnerId();
+  if (!ownerId) {
+    throw new Error('Unauthorized: OWNER role required');
+  }
+  return ownerId;
 }
 
-export async function isAdminAuthenticated(): Promise<boolean> {
-  if (!isPasswordConfigured()) return false;
-  
-  const cookieStore = await cookies();
-  const session = cookieStore.get(SESSION_COOKIE);
-  if (!session?.value) return false;
-  
-  const payload = verify(session.value);
-  return payload !== null;
+// Legacy functions for backward compatibility
+export function isPasswordConfigured(): boolean {
+  console.warn('[admin-auth] isPasswordConfigured is deprecated. Use NextAuth with OWNER role.');
+  return false;
 }
 
 export async function getSessionTimeRemaining(): Promise<number> {
-  const cookieStore = await cookies();
-  const session = cookieStore.get(SESSION_COOKIE);
-  if (!session?.value) return 0;
-  
-  const payload = verify(session.value);
-  if (!payload) return 0;
-  
-  const remaining = payload.expiresAt - Date.now();
-  return Math.max(0, remaining);
+  console.warn('[admin-auth] getSessionTimeRemaining is deprecated.');
+  return 0;
 }
 
 export function validateAdminPassword(password: string): boolean {
-  if (!isPasswordConfigured()) return false;
-  return password === SESSION_SECRET;
+  console.warn('[admin-auth] validateAdminPassword is deprecated. Use NextAuth.');
+  return false;
 }
 
 export async function setAdminSession(): Promise<number> {
-  const cookieStore = await cookies();
-  const expiresAt = Date.now() + SESSION_DURATION_MS;
-  const payload: SessionPayload = {
-    token: generateToken(),
-    expiresAt,
-  };
-  
-  const signedSession = sign(payload);
-  
-  cookieStore.set(SESSION_COOKIE, signedSession, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: SESSION_DURATION_MINUTES * 60,
-    path: '/',
-  });
-  
-  return expiresAt;
+  console.warn('[admin-auth] setAdminSession is deprecated. Use NextAuth.');
+  return 0;
 }
 
 export async function refreshAdminSession(): Promise<number | null> {
-  const isAuthenticated = await isAdminAuthenticated();
-  if (!isAuthenticated) {
-    return null;
-  }
-  return await setAdminSession();
+  console.warn('[admin-auth] refreshAdminSession is deprecated.');
+  return null;
 }
 
 export async function clearAdminSession(): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.delete(SESSION_COOKIE);
+  console.warn('[admin-auth] clearAdminSession is deprecated.');
 }

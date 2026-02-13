@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { isAdminAuthenticated } from '@/lib/admin-auth';
+import { withOwnerAuth } from '@/lib/owner/rbac-check';
 import { subDays, startOfDay, format } from 'date-fns';
 
-export async function GET(request: NextRequest) {
-  if (!(await isAdminAuthenticated())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+export const GET = withOwnerAuth(async (request: NextRequest, { ownerId }) => {
 
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type');
@@ -172,4 +169,4 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching stats:', error);
     return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
   }
-}
+}, 'VIEW_DASHBOARD');
