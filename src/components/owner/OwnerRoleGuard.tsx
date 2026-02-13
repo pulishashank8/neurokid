@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Shield, AlertTriangle, Loader2 } from 'lucide-react';
 
 interface OwnerRoleGuardProps {
@@ -19,10 +19,21 @@ interface OwnerRoleGuardProps {
 export function OwnerRoleGuard({ children }: OwnerRoleGuardProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const [isVerifying, setIsVerifying] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
 
+  // Don't guard the login page itself
+  const isLoginPage = pathname === '/owner/login';
+
   useEffect(() => {
+    // Skip guard for login page
+    if (isLoginPage) {
+      setHasAccess(true);
+      setIsVerifying(false);
+      return;
+    }
+
     const verifyOwnerRole = async () => {
       if (status === 'loading') {
         return;
@@ -49,10 +60,10 @@ export function OwnerRoleGuard({ children }: OwnerRoleGuardProps) {
     };
 
     verifyOwnerRole();
-  }, [session, status, router]);
+  }, [session, status, router, isLoginPage, pathname]);
 
-  // Loading state
-  if (status === 'loading' || isVerifying) {
+  // Loading state (skip for login page)
+  if (!isLoginPage && (status === 'loading' || isVerifying)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="text-center">
@@ -89,29 +100,4 @@ export function OwnerRoleGuard({ children }: OwnerRoleGuardProps) {
 
   // Authorized - render the protected content
   return <>{children}</>;
-}
-
-/**
- * Server-side Owner Role Guard
- * Use this in server components
- */
-export async function requireOwnerRole() {
-  const { getServerSession } = await import('next-auth');
-  const { authOptions } = await import('@/app/api/auth/[...nextauth]/route');
-  const { redirect } = await import('next/navigation');
-  
-  const session = await getServerSession(authOptions);
-  
-  if (!session?.user) {
-    redirect('/owner/login');
-  }
-  
-  const roles = (session.user as any).roles || [];
-  const isOwner = roles.includes('OWNER');
-  
-  if (!isOwner) {
-    redirect('/owner/login?error=unauthorized');
-  }
-  
-  return session.user;
 }
