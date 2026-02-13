@@ -247,17 +247,17 @@ export const authOptions: NextAuthOptions = {
         token.lastActivity = now;
       }
 
-      // Check absolute timeout (2 hours max)
+      // Check absolute timeout (30 minutes max for owner dashboard)
       if (token.loginAt) {
-        const MAX_SESSION_DURATION = 2 * 60 * 60 * 1000; // 2 hours
+        const MAX_SESSION_DURATION = 30 * 60 * 1000; // 30 minutes
         if (now - (token.loginAt as number) > MAX_SESSION_DURATION) {
           return { ...token, forceSignOut: true };
         }
       }
 
-      // Check idle timeout (30 minutes)
+      // Check idle timeout (15 minutes of inactivity)
       if (token.lastActivity) {
-        const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+        const IDLE_TIMEOUT = 15 * 60 * 1000; // 15 minutes
         if (now - (token.lastActivity as number) > IDLE_TIMEOUT) {
           return { ...token, forceSignOut: true };
         }

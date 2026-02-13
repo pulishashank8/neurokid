@@ -41,7 +41,7 @@ NeuroKid helps families:
 neurokind/
 ├── src/
 │   ├── app/              # Next.js App Router (pages, API routes, layouts)
-│   ├── features/         # Feature modules (AAC, Autism Navigator, Community, Owner)
+│   ├── features/         # Feature modules (AAC, Autism Navigator, Community)
 │   ├── components/       # Reusable UI, layout, animations
 │   ├── lib/              # Shared utilities, auth, API helpers, config
 │   │   └── api/          # API handlers, error handling, security

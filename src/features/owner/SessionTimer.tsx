@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Clock, AlertTriangle } from 'lucide-react';
 
-const SESSION_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds
-const WARNING_THRESHOLD = 2 * 60 * 1000; // 2 minutes warning
-const ACTIVITY_REFRESH_INTERVAL = 60 * 1000; // Refresh session every 1 minute of activity
+// Session expires after 30 minutes of login or 15 minutes of inactivity
+const SESSION_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
+const WARNING_THRESHOLD = 5 * 60 * 1000; // 5 minutes warning
+const ACTIVITY_REFRESH_INTERVAL = 2 * 60 * 1000; // Refresh session every 2 minutes of activity
 const SYNC_INTERVAL = 30 * 1000; // Sync with server every 30 seconds
 
 export default function SessionTimer() {
