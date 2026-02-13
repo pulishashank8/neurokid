@@ -196,6 +196,15 @@ export async function POST(request: NextRequest) {
 
     await blockDuplicateReport(session.user.id, targetType, targetId);
 
+    import("@/lib/owner/event-bus").then(({ emitRealtimeEvent }) =>
+      emitRealtimeEvent({
+        eventType: "report_create",
+        entityType: "Report",
+        entityId: report.id,
+        metadata: { targetType, targetId },
+      })
+    ).catch(() => {});
+
     return NextResponse.json(
       {
         success: true,

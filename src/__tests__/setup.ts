@@ -25,6 +25,8 @@ const {
   mockTherapySessions,
   mockEmergencyCards,
   mockSavedRhymes,
+  mockAutomationRules,
+  mockAutomationActions,
   mockPrisma
 } = vi.hoisted(() => {
   const tokens: any[] = [];
@@ -49,6 +51,8 @@ const {
   const therapySessions: any[] = [];
   const emergencyCards: any[] = [];
   const savedRhymes: any[] = [];
+  const automationRules: any[] = [];
+  const automationActions: any[] = [];
 
   const prismaMock: any = {
     category: {
@@ -840,6 +844,192 @@ const {
       findUnique: vi.fn().mockImplementation((args: any) => Promise.resolve(userFinders.find((uf: any) => uf.userId === args.where.userId) || null)),
       deleteMany: vi.fn().mockImplementation(() => { userFinders.length = 0; return Promise.resolve({ count: 1 }); }),
     },
+    automationRule: {
+      findMany: vi.fn().mockImplementation(() => Promise.resolve([...automationRules])),
+      findUnique: vi.fn().mockImplementation((args: any) =>
+        Promise.resolve(automationRules.find((r) => r.id === args?.where?.id) || null)
+      ),
+      findFirst: vi.fn().mockImplementation((args: any) =>
+        Promise.resolve(automationRules.find((r) => r.triggerEvent === args?.where?.triggerEvent && r.isActive === args?.where?.isActive) || null)
+      ),
+      create: vi.fn().mockImplementation((args: any) => {
+        const rule = {
+          id: `rule_${automationRules.length + 1}`,
+          ...args.data,
+          isActive: args.data?.isActive ?? true,
+          triggerCount: 0,
+          lastTriggered: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        automationRules.push(rule);
+        return Promise.resolve(rule);
+      }),
+      update: vi.fn().mockImplementation((args: any) => {
+        const idx = automationRules.findIndex((r) => r.id === args.where.id);
+        if (idx >= 0 && args.data) {
+          Object.assign(automationRules[idx], args.data);
+          return Promise.resolve(automationRules[idx]);
+        }
+        return Promise.resolve({ id: args.where.id, ...args.data });
+      }),
+    },
+    automationAction: {
+      findMany: vi.fn().mockImplementation((args: any) =>
+        Promise.resolve(
+          automationActions
+            .filter((a) => !args?.where?.createdAt?.gte || new Date(a.createdAt) >= args.where.createdAt.gte)
+            .filter((a) => !args?.where?.status || a.status === args.where.status)
+            .slice(args?.skip ?? 0, (args?.skip ?? 0) + (args?.take ?? 25))
+        )
+      ),
+      count: vi.fn().mockImplementation((args: any) => {
+        let list = automationActions;
+        if (args?.where?.createdAt?.gte) list = list.filter((a) => new Date(a.createdAt) >= args.where.createdAt.gte);
+        if (args?.where?.status) list = list.filter((a) => a.status === args.where.status);
+        return Promise.resolve(list.length);
+      }),
+      create: vi.fn().mockImplementation((args: any) => {
+        const action = { id: `action_${automationActions.length + 1}`, ...args.data, createdAt: new Date() };
+        automationActions.push(action);
+        return Promise.resolve(action);
+      }),
+      groupBy: vi.fn().mockImplementation((args: any) => {
+        let list = automationActions;
+        if (args?.where?.createdAt?.gte) {
+          list = list.filter((a) => new Date(a.createdAt) >= args.where.createdAt.gte);
+        }
+        if (args?.where?.status) {
+          list = list.filter((a) => a.status === args.where.status);
+        }
+        const byRule = new Map<string, number>();
+        for (const a of list) {
+          byRule.set(a.ruleId, (byRule.get(a.ruleId) ?? 0) + 1);
+        }
+        return Promise.resolve(
+          Array.from(byRule.entries()).map(([ruleId, count]) => ({ ruleId, _count: { id: count } }))
+        );
+      }),
+    },
+    churnPrediction: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    dataRequest: {
+      count: vi.fn().mockResolvedValue(0),
+    },
+    featureFlag: {
+      findMany: vi.fn().mockImplementation(() =>
+        Promise.resolve([
+          { key: 'test_flag', isEnabled: true, rolloutPercent: 100, targetUserIds: null, targetRoles: null },
+        ])
+      ),
+      findUnique: vi.fn().mockImplementation((args: any) =>
+        Promise.resolve(
+          args?.where?.key === 'test_flag'
+            ? { key: 'test_flag', isEnabled: true, rolloutPercent: 100, targetUserIds: null, targetRoles: null }
+            : null
+        )
+      ),
+      create: vi.fn().mockImplementation((args: any) =>
+        Promise.resolve({ id: 'ff1', ...args.data, createdAt: new Date(), updatedAt: new Date() })
+      ),
+      update: vi.fn().mockImplementation((args: any) =>
+        Promise.resolve({ id: args.where.id, ...args.data, updatedAt: new Date() })
+      ),
+      delete: vi.fn().mockResolvedValue({ id: 'ff1' }),
+    },
+    backupEvent: {
+      findMany: vi.fn().mockImplementation(() => Promise.resolve([])),
+      create: vi.fn().mockImplementation((args: any) =>
+        Promise.resolve({ id: 'be1', ...args.data, createdAt: new Date() })
+      ),
+    },
+    deployEvent: {
+      findMany: vi.fn().mockResolvedValue([]),
+      create: vi.fn().mockImplementation((args: any) =>
+        Promise.resolve({ id: 'de1', ...args.data, deployedAt: new Date() })
+      ),
+    },
+    digestConfig: {
+      findMany: vi.fn().mockResolvedValue([]),
+      findUnique: vi.fn().mockResolvedValue(null),
+      upsert: vi.fn().mockImplementation((args: any) =>
+        Promise.resolve({ id: 'dc1', ...args.create, ...args.update, updatedAt: new Date() })
+      ),
+      update: vi.fn().mockImplementation((args: any) =>
+        Promise.resolve({ id: args.where.id, ...args.data, updatedAt: new Date() })
+      ),
+    },
+    adminNotification: {
+      create: vi.fn().mockResolvedValue({ id: 'an1' }),
+    },
+    userFeedback: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        const list: any[] = [];
+        if (args?.where?.createdAt?.gte) return Promise.resolve(list);
+        if (args?.where?.type) return Promise.resolve(list);
+        if (args?.where?.rating) return Promise.resolve(list);
+        return Promise.resolve(list);
+      }),
+      groupBy: vi.fn().mockImplementation((args: any) => {
+        return Promise.resolve([
+          { type: 'NPS', _count: { id: 0 } },
+          { type: 'QUICK_REACTION', _count: { id: 0 } },
+          { type: 'BUG_REPORT', _count: { id: 0 } },
+          { type: 'FEATURE_REQUEST', _count: { id: 0 } },
+        ]);
+      }),
+    },
+    ownerEmail: {
+      findMany: vi.fn().mockImplementation((args: any) => {
+        const list: any[] = [];
+        if (args?.skip !== undefined) return Promise.resolve(list.slice(args.skip, (args.skip || 0) + (args.take || 20)));
+        return Promise.resolve(list);
+      }),
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockImplementation((args: any) => {
+        const email = {
+          id: `oe_${Date.now()}`,
+          subject: args.data?.subject || '',
+          body: args.data?.body || '',
+          recipientCount: args.data?.recipientCount || 0,
+          status: args.data?.status || 'SENT',
+          templateId: args.data?.templateId || null,
+          sentAt: new Date(),
+          createdAt: new Date(),
+          recipients: args.data?.recipients?.create || [],
+        };
+        return Promise.resolve(email);
+      }),
+      update: vi.fn().mockImplementation((args: any) =>
+        Promise.resolve({ id: args.where.id, ...args.data, status: 'SENT', sentAt: new Date() })
+      ),
+      count: vi.fn().mockResolvedValue(0),
+    },
+    ownerEmailRecipient: {
+      create: vi.fn().mockImplementation((args: any) =>
+        Promise.resolve({ id: `oer_${Date.now()}`, ...args.data })
+      ),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+    },
+    emailTemplate: {
+      findMany: vi.fn().mockImplementation(() => Promise.resolve([])),
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockImplementation((args: any) => {
+        const t = {
+          id: `et_${Date.now()}`,
+          ...args.data,
+          category: args.data?.category || 'GENERAL',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        return Promise.resolve(t);
+      }),
+      update: vi.fn().mockImplementation((args: any) =>
+        Promise.resolve({ id: args.where.id, ...args.data, updatedAt: new Date() })
+      ),
+      delete: vi.fn().mockResolvedValue({ id: 'et1' }),
+    },
     vote: {
       findMany: vi.fn().mockImplementation((args: any) => {
         let list = votes;
@@ -930,6 +1120,8 @@ const {
     mockTherapySessions: therapySessions,
     mockEmergencyCards: emergencyCards,
     mockSavedRhymes: savedRhymes,
+    mockAutomationRules: automationRules,
+    mockAutomationActions: automationActions,
     mockPrisma: prismaMock
   };
 });
@@ -1027,6 +1219,8 @@ export const resetMockData = () => {
   mockTherapySessions.length = 0;
   mockEmergencyCards.length = 0;
   mockSavedRhymes.length = 0;
+  mockAutomationRules.length = 0;
+  mockAutomationActions.length = 0;
 
   // Repopulate default data
   mockCategories.push(

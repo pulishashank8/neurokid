@@ -1,11 +1,13 @@
 /**
  * Sentry Server Configuration
- * 
+ *
  * This file configures Sentry for server-side code (API routes, SSR, etc.)
  * Captures server errors and performance data.
+ * Also forwards errors to the owner Problem Detection dashboard.
  */
 
 import * as Sentry from "@sentry/nextjs";
+import { forwardSentryEventToDashboard } from "@/lib/owner/sentry-forward";
 
 // Only initialize if DSN is configured
 if (process.env.SENTRY_DSN) {
@@ -29,6 +31,8 @@ if (process.env.SENTRY_DSN) {
 
     // Before sending, sanitize to ensure HIPAA compliance
     beforeSend(event) {
+      // Forward to owner dashboard (fire-and-forget)
+      void forwardSentryEventToDashboard(event).catch(console.error);
       // Remove request data that might contain PHI
       if (event.request) {
         // Keep only method and URL (no headers, cookies, or data)

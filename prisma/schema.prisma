@@ -20,7 +20,9 @@ model User {
   emailVerifiedAt            DateTime?
   isBanned                   Boolean                   @default(false)
   bannedAt                   DateTime?
+  bannedUntil                DateTime? // Temp ban expiration
   bannedReason               String?
+  deletedAt                  DateTime? // Soft delete
   lastActiveAt               DateTime?
   aacVocabulary              AACVocabulary[]
   aiConversations            AIConversation[]
@@ -474,7 +476,7 @@ model AIJob {
   conversationId String
   /// ENCRYPTED: Contains conversation messages
   messages       String    @db.Text
-  status         String    // pending, processing, completed, failed
+  status         String // pending, processing, completed, failed
   /// ENCRYPTED: Contains AI response
   result         String?   @db.Text
   error          String?
@@ -1016,6 +1018,249 @@ model AACVocabulary {
   @@index([isActive])
 }
 
+/// Owner dashboard analytics events for engagement tracking
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  userId      String?
+  eventType   String
+  featureName String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([eventType])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+/// DevOps-style system metrics for health monitoring
+model SystemMetric {
+  id          String   @id @default(cuid())
+  metricName  String
+  metricValue Float
+  recordedAt  DateTime @default(now())
+
+  @@index([metricName])
+  @@index([recordedAt])
+}
+
+/// AI usage tracking for cost and performance monitoring
+model AIUsageLog {
+  id             String   @id @default(cuid())
+  aiJobId        String?  @unique /// Link to AIJob for deduplication during backfill
+  userId         String?
+  feature        String
+  tokensUsed     Int?
+  responseTimeMs Int?
+  status         String
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+  @@index([feature])
+  @@index([createdAt])
+}
+
+/// Admin audit trail for moderation actions
+model ModerationActionLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  actionType String
+  targetType String
+  targetId   String?
+  reason     String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([adminId])
+  @@index([targetType])
+  @@index([createdAt])
+}
+
+/// Owner dashboard notifications for system alerts
+model AdminNotification {
+  id            String   @id @default(cuid())
+  type          String
+  severity      String
+  message       String
+  relatedEntity String?
+  metadata      Json?
+  isRead        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([isRead])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+/// GDPR data export/delete requests
+model DataRequest {
+  id          String    @id @default(cuid())
+  userId      String?
+  requestType String
+  status      String
+  createdAt   DateTime  @default(now())
+  resolvedAt  DateTime?
+
+  @@index([requestType])
+  @@index([status])
+  @@index([createdAt])
+}
+
+/// Section 17 — Anomaly Detection
+model SystemAnomaly {
+  id          String    @id @default(cuid())
+  anomalyType String
+  description String    @db.VarChar(500)
+  severity    String    @db.VarChar(50)
+  detectedAt  DateTime  @default(now())
+  resolvedAt  DateTime?
+  metadata    Json?
+
+  @@index([anomalyType])
+  @@index([detectedAt])
+  @@index([resolvedAt])
+}
+
+/// Section 18 — User Risk Scoring
+model UserRiskScore {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  score           Float
+  riskLevel       String   @db.VarChar(20)
+  lastEvaluatedAt DateTime
+  factors         Json
+
+  @@index([riskLevel])
+  @@index([lastEvaluatedAt])
+}
+
+/// Section 21 — Churn Prediction
+model ChurnPrediction {
+  id               String   @id @default(cuid())
+  userId           String
+  churnProbability Float
+  riskLevel        String   @db.VarChar(20)
+  predictedAt      DateTime @default(now())
+
+  @@index([userId])
+  @@index([riskLevel])
+  @@index([predictedAt])
+}
+
+/// Section 20 — Data Quality Metrics
+model DataQualityMetric {
+  id          String   @id @default(cuid())
+  metricName  String
+  metricValue Float
+  recordedAt  DateTime @default(now())
+
+  @@index([metricName])
+  @@index([recordedAt])
+}
+
+/// Section 25 — Real-Time Event Stream
+model RealtimeEvent {
+  id         String   @id @default(cuid())
+  eventType  String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+/// Section 35 — Retention Snapshots
+model UserRetentionSnapshot {
+  id             String   @id @default(cuid())
+  cohortDate     DateTime
+  day1Retention  Float
+  day7Retention  Float
+  day30Retention Float
+  calculatedAt   DateTime @default(now())
+
+  @@index([cohortDate])
+}
+
+/// Section 36 — User Lifecycle Stage
+model UserLifecycleStage {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  stage          String   @db.VarChar(50)
+  lastActivityAt DateTime
+  updatedAt      DateTime @updatedAt
+
+  @@index([stage])
+}
+
+/// Section 38 — Funnel Metrics
+model UserFunnelMetric {
+  id             String   @id @default(cuid())
+  stepName       String
+  usersEntered   Int
+  usersCompleted Int
+  recordedAt     DateTime @default(now())
+
+  @@index([stepName])
+  @@index([recordedAt])
+}
+
+/// Section 39 — Behavioral Segmentation
+model UserSegment {
+  id              String   @id @default(cuid())
+  userId          String
+  segment         String   @db.VarChar(50)
+  confidenceScore Float
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([segment])
+}
+
+/// Section 40 — Engagement Signals
+model EngagementSignal {
+  id         String   @id @default(cuid())
+  userId     String
+  signalType String   @db.VarChar(100)
+  severity   String   @db.VarChar(50)
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([signalType])
+}
+
+/// Section 42 — Search Insights
+model SearchInsight {
+  id             String   @id @default(cuid())
+  term           String   @db.VarChar(500)
+  searchCount    Int
+  resultCount    Int
+  lastSearchedAt DateTime
+
+  @@index([term])
+}
+
+/// Section 44 — A/B Experimentation
+model Experiment {
+  id          String    @id @default(cuid())
+  name        String
+  featureFlag String    @db.VarChar(100)
+  startDate   DateTime
+  endDate     DateTime?
+
+  @@index([featureFlag])
+}
+
+model ExperimentResult {
+  id            String @id @default(cuid())
+  experimentId  String
+  metricName    String
+  variantAValue Float
+  variantBValue Float
+
+  @@index([experimentId])
+}
+
 enum Role {
   PARENT
   THERAPIST
@@ -1182,4 +1427,375 @@ enum AACCategory {
   SOCIAL
   ACTIONS
   CUSTOM
+}
+
+// ===================================================================
+// PRD v3.0/v4.0 NEW MODELS - Owner Dashboard Enhancement
+// ===================================================================
+
+/// AI Agent insights from 6 specialized agents (Business Analyst, Legal Compliance, UX Agent, Content Intelligence, Security Sentinel, Growth Strategist)
+model AIAgentInsight {
+  id             String    @id @default(cuid())
+  agentType      String // BUSINESS_ANALYST, LEGAL_COMPLIANCE, UX_AGENT, CONTENT_INTELLIGENCE, SECURITY_SENTINEL, GROWTH_STRATEGIST
+  category       String // GROWTH, RISK, LEGAL, UX_ISSUE, CONTENT, SECURITY, COST
+  severity       String // info, warning, critical
+  title          String
+  description    String    @db.Text
+  recommendation String?   @db.Text
+  metrics        Json?
+  confidence     Float     @default(0.8)
+  isRead         Boolean   @default(false)
+  isResolved     Boolean   @default(false)
+  resolvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([agentType, createdAt])
+  @@index([severity])
+  @@index([isRead])
+}
+
+/// Automation rules for event-driven actions (15 predefined rules)
+model AutomationRule {
+  id            String    @id @default(cuid())
+  name          String
+  description   String?
+  triggerEvent  String
+  conditions    Json
+  actions       Json
+  isActive      Boolean   @default(true)
+  lastTriggered DateTime?
+  triggerCount  Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([triggerEvent, isActive])
+}
+
+/// Log of automated actions taken by the automation engine
+model AutomationAction {
+  id           String   @id @default(cuid())
+  ruleId       String
+  ruleName     String
+  triggerEvent String
+  actionTaken  String
+  targetUserId String?
+  targetPostId String?
+  status       String   @default("SUCCESS")
+  details      Json?
+  createdAt    DateTime @default(now())
+
+  @@index([ruleId, createdAt])
+  @@index([status])
+}
+
+/// Client-side errors tracked for user problem detection (Pillar 10)
+model ClientError {
+  id         String    @id @default(cuid())
+  userId     String?
+  errorType  String // JS_ERROR, NETWORK_FAILURE, RAGE_CLICK, SLOW_PAGE, DEAD_CLICK, MEDIA_ERROR
+  message    String    @db.Text
+  stackTrace String?   @db.Text
+  pagePath   String
+  pageTitle  String?
+  elementId  String?
+  deviceType String?   @db.VarChar(30)
+  userAgent  String?
+  metadata   Json?
+  isResolved Boolean   @default(false)
+  resolvedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([errorType, createdAt])
+  @@index([userId])
+  @@index([pagePath])
+  @@index([isResolved])
+}
+
+/// Business intelligence metrics (CAC, LTV, DAU, etc.) - Pillar 11
+model BusinessMetric {
+  id          String   @id @default(cuid())
+  metricName  String
+  metricValue Float
+  period      String // daily, weekly, monthly
+  periodDate  DateTime
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@unique([metricName, period, periodDate])
+  @@index([metricName, periodDate])
+}
+
+/// Platform infrastructure costs tracking - Pillar 11
+model PlatformCost {
+  id            String   @id @default(cuid())
+  category      String // AI, HOSTING, DATABASE, EMAIL, STORAGE, OTHER
+  amount        Float
+  currency      String   @default("USD")
+  month         DateTime
+  description   String?
+  isAutoTracked Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([category, month])
+  @@index([month])
+}
+
+/// Page view tracking for user analytics - Pillar 13
+model PageView {
+  id          String    @id @default(cuid())
+  userId      String?
+  pagePath    String
+  pageTitle   String?
+  duration    Int // milliseconds
+  scrollDepth Int? // percentage 0-100
+  deviceType  String?   @db.VarChar(20)
+  enteredAt   DateTime
+  leftAt      DateTime?
+  referrer    String?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([pagePath])
+}
+
+/// Click events for granular activity tracking - Pillar 13
+model ClickEvent {
+  id          String   @id @default(cuid())
+  userId      String?
+  pagePath    String
+  elementId   String?
+  elementType String?  @db.VarChar(50)
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([pagePath])
+}
+
+/// Owner emails sent through the dashboard - Pillar 6
+model OwnerEmail {
+  id             String                @id @default(cuid())
+  subject        String
+  body           String                @db.Text
+  recipientCount Int
+  status         String                @default("QUEUED") // QUEUED, SENDING, SENT, FAILED
+  templateId     String?
+  sentAt         DateTime?
+  createdAt      DateTime              @default(now())
+  recipients     OwnerEmailRecipient[]
+
+  @@index([status, createdAt])
+}
+
+/// Recipients of owner emails
+model OwnerEmailRecipient {
+  id             String     @id @default(cuid())
+  emailId        String
+  userId         String
+  deliveryStatus String     @default("PENDING") // PENDING, SENT, DELIVERED, BOUNCED, FAILED
+  email          OwnerEmail @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  @@index([emailId])
+}
+
+/// Owner audit log for dashboard actions - Pillar 7
+model OwnerAuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  details   Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([action, createdAt])
+}
+
+/// Email templates for owner communications - Pillar 6
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  subject   String
+  body      String   @db.Text
+  category  String   @default("GENERAL") // GENERAL, WELCOME, WARNING, NOTIFICATION, DIGEST
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Owner todo items - Pillar 1 Command Center
+model OwnerTodo {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  dueDate     DateTime?
+  priority    String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+/// Dashboard layout configuration - Pillar 17
+model DashboardLayout {
+  id      String @id @default(cuid())
+  widgets Json
+  theme   String @default("dark") // dark, light
+}
+
+// ===================================================================
+// PRD v4.0 NEW MODELS - Gap Audit Additions
+// ===================================================================
+
+/// API performance logging - Pillar 19
+model ApiPerformanceLog {
+  id           String   @id @default(cuid())
+  method       String   @db.VarChar(10) // GET, POST, PUT, DELETE, PATCH
+  routePath    String
+  statusCode   Int
+  responseTime Int // milliseconds
+  userId       String?
+  createdAt    DateTime @default(now())
+
+  @@index([routePath, createdAt])
+  @@index([statusCode])
+}
+
+/// Aggregated API performance metrics - Pillar 19
+model ApiPerformanceMetric {
+  id         String   @id @default(cuid())
+  routePath  String
+  period     String // hourly, daily
+  periodDate DateTime
+  p50        Float // 50th percentile latency
+  p95        Float // 95th percentile latency
+  p99        Float // 99th percentile latency
+  avgTime    Float
+  errorRate  Float
+  totalReqs  Int
+  createdAt  DateTime @default(now())
+
+  @@unique([routePath, period, periodDate])
+  @@index([routePath, periodDate])
+}
+
+/// User feedback and NPS surveys - Pillar 20
+model UserFeedback {
+  id         String   @id @default(cuid())
+  userId     String
+  type       String // QUICK_REACTION, NPS, BUG_REPORT, FEATURE_REQUEST
+  rating     Int? // 0-10 for NPS, 1 or -1 for quick reaction
+  text       String?  @db.Text
+  category   String? // Feature area or feedback category
+  pagePath   String?
+  metadata   Json?
+  isReviewed Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([type, createdAt])
+  @@index([userId])
+  @@index([isReviewed])
+}
+
+/// Database backup events - Pillar 21
+model BackupEvent {
+  id         String   @id @default(cuid())
+  backupType String // AUTOMATIC, MANUAL
+  status     String // SUCCESS, FAILED
+  sizeBytes  BigInt?
+  provider   String   @default("SUPABASE") // SUPABASE, MANUAL, S3
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([status, createdAt])
+}
+
+/// Revenue and income tracking - Pillar 22
+model RevenueEntry {
+  id          String   @id @default(cuid())
+  source      String // DONATION, GRANT, SPONSORSHIP, SUBSCRIPTION, AD_REVENUE, OTHER
+  amount      Float
+  currency    String   @default("USD")
+  month       DateTime // First day of the month
+  description String?
+  stripeId    String? // If from Stripe
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([source, month])
+  @@index([month])
+}
+
+/// Traffic source tracking (UTM, referrer, geo) - Pillar 23
+model TrafficSource {
+  id          String   @id @default(cuid())
+  userId      String?
+  sessionId   String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+  referrer    String?
+  channel     String // DIRECT, ORGANIC, SOCIAL, REFERRAL, EMAIL, PAID
+  landingPage String
+  ipAddress   String?
+  country     String?
+  createdAt   DateTime @default(now())
+
+  @@index([channel, createdAt])
+  @@index([utmCampaign])
+  @@index([userId])
+}
+
+/// Feature flags for toggling features - Pillar 24
+model FeatureFlag {
+  id             String   @id @default(cuid())
+  key            String   @unique
+  name           String
+  description    String?
+  isEnabled      Boolean  @default(false)
+  rolloutPercent Int      @default(100) // 0-100 percentage rollout
+  targetRoles    Json? // ["PARENT", "PROVIDER"]
+  targetUserIds  Json? // Specific user IDs for targeting
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+/// Deploy events for changelog tracking - Pillar 25
+model DeployEvent {
+  id             String   @id @default(cuid())
+  version        String
+  gitCommit      String?
+  changesSummary String?  @db.Text
+  status         String // SUCCESS, FAILED
+  environment    String   @default("PRODUCTION")
+  deployedAt     DateTime @default(now())
+  metadata       Json?
+
+  @@index([deployedAt])
+  @@index([version])
+}
+
+/// Owner digest email configuration - Pillar 18
+model DigestConfig {
+  id             String    @id @default(cuid())
+  digestType     String    @unique // DAILY, WEEKLY, MONTHLY
+  isEnabled      Boolean   @default(true)
+  sendTime       String    @default("08:00") // HH:mm format
+  recipientEmail String
+  lastSentAt     DateTime?
+  updatedAt      DateTime  @updatedAt
+}
+
+
+// Pillar 20: Co-Founder AI Agent Reports
+model CoFounderReport {
+  id               String   @id @default(cuid())
+  sentAt           DateTime
+  recipientEmail   String
+  executiveSummary String   @db.Text
+  reportData       Json     // Full ExecutiveReport from AI agent
+  attachmentUrls   String[] // URLs to Excel/PDF attachments
+  agentSessionId   String   // Link to reasoning session
+  createdAt        DateTime @default(now())
+
+  @@index([sentAt])
+  @@index([recipientEmail])
 }

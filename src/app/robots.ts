@@ -12,7 +12,6 @@ export default function robots(): MetadataRoute.Robots {
           "/api/",
           "/_next/",
           "/owner/",
-          "/admin/",
           "/settings",
           "/messages",
           "/bookmarks",
@@ -35,7 +34,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           "/api/",
           "/owner/",
-          "/admin/",
           "/settings",
           "/messages",
           "/bookmarks",

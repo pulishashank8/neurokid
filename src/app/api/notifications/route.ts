@@ -12,7 +12,7 @@ export async function GET() {
 
     const userId = session.user.id;
 
-    const [unreadConnectionRequests, unreadMessages] = await Promise.all([
+    const [unreadConnectionRequests, unreadMessages, inAppNotifications] = await Promise.all([
       prisma.connectionRequest.count({
         where: {
           receiverId: userId,
@@ -29,11 +29,34 @@ export async function GET() {
           senderId: { not: userId },
         },
       }),
+      prisma.notification.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+        select: { id: true, type: true, payload: true, readAt: true, createdAt: true },
+      }),
     ]);
+
+    const inAppUnread = inAppNotifications.filter((n) => !n.readAt).length;
+
+    const formatted = inAppNotifications.map((n) => {
+      const payload = (n.payload || {}) as Record<string, unknown>;
+      return {
+        id: n.id,
+        type: n.type,
+        title: payload.title ?? "Notification",
+        message: payload.message ?? "",
+        link: payload.link ?? null,
+        readAt: n.readAt,
+        createdAt: n.createdAt,
+      };
+    });
 
     return NextResponse.json({
       unreadConnectionRequests,
       unreadMessages,
+      inAppNotifications: formatted,
+      inAppUnread,
       totalUnread: unreadConnectionRequests + unreadMessages,
     });
   } catch (error) {

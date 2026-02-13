@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { QuickReaction } from "@/components/feedback";
 
 type Summary = {
   score: number;
@@ -36,7 +37,18 @@ export default function ScreeningResultPage() {
     const raw = sessionStorage.getItem("nk-screening-summary");
     if (raw) {
       try {
-        setSummary(JSON.parse(raw));
+        const data = JSON.parse(raw);
+        setSummary(data);
+        // Track screening complete for analytics (fire-and-forget)
+        fetch("/api/analytics/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            eventType: "screening_complete",
+            featureName: "screening",
+            metadata: { group: data.group, category: data.category },
+          }),
+        }).catch(() => {});
       } catch { }
     }
   }, []);
@@ -153,6 +165,9 @@ export default function ScreeningResultPage() {
               <p className="text-xs text-[var(--text)] leading-relaxed relative z-10">
                 {summary.interpretation || "Please consult with your healthcare provider."}
               </p>
+              <div className="mt-4 pt-4 border-t border-[var(--border)]">
+                <QuickReaction category="screening" compact />
+              </div>
             </div>
           </div>
         </div>

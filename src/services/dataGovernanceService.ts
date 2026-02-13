@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { logSecurityEvent } from '@/lib/securityAudit';
+import { createAdminNotification } from '@/lib/owner/create-admin-notification';
 
 export interface UserDataExport {
   user: {
@@ -44,6 +45,8 @@ export interface UserDataExport {
 export class DataGovernanceService {
   async exportUserData(userId: string): Promise<UserDataExport> {
     logger.info({ userId }, 'Starting user data export');
+
+    await this.createDataRequest(userId, 'export');
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -122,6 +125,30 @@ export class DataGovernanceService {
       })),
       exportedAt: new Date(),
     };
+  }
+
+  async createDataRequest(
+    userId: string,
+    requestType: 'export' | 'delete'
+  ): Promise<{ id: string }> {
+    const record = await prisma.dataRequest.create({
+      data: {
+        userId,
+        requestType,
+        status: requestType === 'export' ? 'completed' : 'pending',
+        resolvedAt: requestType === 'export' ? new Date() : undefined,
+      },
+    });
+
+    await createAdminNotification({
+      type: 'data_request',
+      severity: 'info',
+      message: `Data ${requestType} request for user`,
+      relatedEntity: userId,
+      metadata: { requestId: record.id, requestType },
+    });
+
+    return { id: record.id };
   }
 
   async anonymizeUserData(userId: string, deletedBy: string): Promise<void> {

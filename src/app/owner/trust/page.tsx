@@ -37,17 +37,16 @@ interface TrustMetrics {
     complianceStatus: 'COMPLIANT' | 'WARNING' | 'VIOLATION';
 }
 
-// Simulated real-time metrics (in production, fetch from /api/governance/metrics)
 const defaultMetrics: TrustMetrics = {
-    trustScore: 94,
-    phiRedactionsToday: 12,
-    phiRedactionsTotal: 847,
-    qualityPassRate: 98.2,
-    accessLogsToday: 23,
+    trustScore: 0,
+    phiRedactionsToday: 0,
+    phiRedactionsTotal: 0,
+    qualityPassRate: 0,
+    accessLogsToday: 0,
     anomaliesDetected: 0,
-    quarantinedRecords: 3,
-    lastScanTime: new Date().toISOString(),
-    scannerStatus: 'ACTIVE',
+    quarantinedRecords: 0,
+    lastScanTime: '',
+    scannerStatus: 'IDLE',
     complianceStatus: 'COMPLIANT',
 };
 
@@ -68,18 +67,22 @@ export default function TrustCenterPage() {
             const res = await fetch('/api/governance/summary');
             if (res.ok) {
                 const data = await res.json();
-                if (data.success) {
+                if (data.success && data.data) {
+                    const q = data.data.quality ?? {};
+                    const c = data.data.compliance ?? {};
+                    const criticalFailures = q.criticalFailures ?? [];
+                    const latestFailed = q.latestResults?.failed ?? 0;
                     setMetrics({
-                        trustScore: data.data.healthScore || 94,
-                        phiRedactionsToday: data.data.phiRedactionsToday || 12,
-                        phiRedactionsTotal: data.data.phiRedactionsTotal || 847,
-                        qualityPassRate: data.data.quality?.qualityScore || 98.2,
-                        accessLogsToday: data.data.compliance?.recentAccesses || 23,
-                        anomaliesDetected: data.data.quality?.anomaliesDetected || 0,
-                        quarantinedRecords: data.data.quality?.quarantinedRecords || 3,
-                        lastScanTime: new Date().toISOString(),
+                        trustScore: data.data.healthScore ?? 0,
+                        phiRedactionsToday: data.data.phiRedactionsToday ?? 0,
+                        phiRedactionsTotal: data.data.phiRedactionsTotal ?? 0,
+                        qualityPassRate: q.qualityScore ?? 0,
+                        accessLogsToday: c.auditLogEntries ?? 0,
+                        anomaliesDetected: criticalFailures.length,
+                        quarantinedRecords: latestFailed,
+                        lastScanTime: data.data.lastUpdated ?? new Date().toISOString(),
                         scannerStatus: 'ACTIVE',
-                        complianceStatus: data.data.compliance?.status || 'COMPLIANT',
+                        complianceStatus: 'COMPLIANT',
                     });
                 }
             }
@@ -92,13 +95,12 @@ export default function TrustCenterPage() {
 
     async function runManualScan() {
         setScanning(true);
-        await new Promise(resolve => setTimeout(resolve, 2500));
-        setMetrics(prev => ({
-            ...prev,
-            lastScanTime: new Date().toISOString(),
-            phiRedactionsToday: prev.phiRedactionsToday + Math.floor(Math.random() * 3),
-        }));
-        setScanning(false);
+        try {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            await fetchMetrics();
+        } finally {
+            setScanning(false);
+        }
     }
 
     const trustLevel = metrics.trustScore >= 90 ? 'EXCELLENT' : metrics.trustScore >= 75 ? 'GOOD' : metrics.trustScore >= 60 ? 'FAIR' : 'CRITICAL';

@@ -174,6 +174,14 @@ export const POST = withApiHandler(async (request: NextRequest) => {
 
     if (targetType === "POST") {
       await invalidateCache("posts:*", { prefix: "posts" });
+      import("@/lib/owner/event-bus").then(({ emitRealtimeEvent }) =>
+        emitRealtimeEvent({
+          eventType: "vote_create",
+          entityType: "Vote",
+          entityId: targetId,
+          metadata: { postId: targetId, targetType },
+        })
+      ).catch(() => {});
     }
 
     logger.info({

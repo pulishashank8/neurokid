@@ -11,5 +11,9 @@ export default function OwnerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <div className="w-full min-w-0 overflow-x-hidden">
+      {children}
+    </div>
+  );
 }

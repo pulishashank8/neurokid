@@ -9,6 +9,7 @@ import { withApiHandler, getRequestId } from "@/lib/api/apiHandler";
 import { createLogger } from "@/lib/logger";
 import { apiErrors } from "@/lib/api/apiError";
 import { sortByHot } from "@/services/rankingService";
+import { trackEvent } from "@/lib/analytics/events";
 
 // SUPER STABLE SANITIZER (No external dependencies)
 function simpleSanitize(html: string): string {
@@ -447,6 +448,22 @@ export const POST = withApiHandler(async (request: NextRequest) => {
 
   // Invalidate feed cache
   await invalidateCache("posts:*", { prefix: "posts" });
+
+  trackEvent({
+    userId: session.user.id,
+    eventType: "post_create",
+    featureName: "community",
+    metadata: { postId: post.id, categoryId },
+  }).catch(() => {});
+
+  import("@/lib/owner/event-bus").then(({ emitRealtimeEvent }) =>
+    emitRealtimeEvent({
+      eventType: "post_create",
+      entityType: "Post",
+      entityId: post.id,
+      metadata: { userId: (session.user as { id?: string }).id, authorId: post.authorId ?? (session.user as { id?: string }).id },
+    })
+  ).catch(() => {});
 
   // Format validation response to match GET response structure (hide author if anonymous)
   const safePost = {

@@ -1,22 +1,31 @@
 import { NextResponse } from 'next/server';
-import { refreshAdminSession, isAdminAuthenticated } from '@/lib/admin-auth';
+import { refreshAdminSession } from '@/lib/admin-auth';
 
+/**
+ * POST /api/owner/refresh-session
+ * Refreshes the admin session and returns new expiration time
+ */
 export async function POST() {
-  const authenticated = await isAdminAuthenticated();
-  
-  if (!authenticated) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  try {
+    const expiresAt = await refreshAdminSession();
+    
+    if (!expiresAt) {
+      return NextResponse.json({ 
+        error: 'Not authenticated' 
+      }, { status: 401 });
+    }
 
-  const expiresAt = await refreshAdminSession();
-  
-  if (expiresAt === null) {
-    return NextResponse.json({ error: 'Session expired' }, { status: 401 });
+    const timeRemaining = expiresAt - Date.now();
+    
+    return NextResponse.json({ 
+      success: true,
+      timeRemaining,
+      expiresAt 
+    });
+  } catch (error) {
+    console.error('[Refresh Session] Error:', error);
+    return NextResponse.json({ 
+      error: 'Failed to refresh session' 
+    }, { status: 500 });
   }
-  
-  return NextResponse.json({ 
-    success: true,
-    expiresAt,
-    timeRemaining: expiresAt - Date.now(),
-  });
 }

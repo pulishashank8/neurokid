@@ -1,25 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { cookies } from 'next/headers';
-
-async function verifyOwnerAuth() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('owner_session')?.value;
-  if (!token) return false;
-  
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword) return false;
-  
-  const crypto = await import('crypto');
-  const expectedToken = crypto.createHash('sha256').update(adminPassword).digest('hex');
-  return token === expectedToken;
-}
+import { isAdminAuthenticated } from '@/lib/admin-auth';
+import { logModerationAction } from '@/lib/owner/moderation-log';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await verifyOwnerAuth())) {
+  if (!(await isAdminAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -37,6 +25,13 @@ export async function POST(
       },
     });
 
+    await logModerationAction({
+      actionType: 'BAN',
+      targetType: 'user',
+      targetId: id,
+      reason: reason || 'Banned by owner',
+    });
+
     return NextResponse.json({ success: true, user });
   } catch (error) {
     console.error('Error banning user:', error);
@@ -48,7 +43,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  if (!(await verifyOwnerAuth())) {
+  if (!(await isAdminAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -62,6 +57,12 @@ export async function DELETE(
         bannedAt: null,
         bannedReason: null,
       },
+    });
+
+    await logModerationAction({
+      actionType: 'UNBAN',
+      targetType: 'user',
+      targetId: id,
     });
 
     return NextResponse.json({ success: true, user });

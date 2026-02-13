@@ -11,8 +11,13 @@ if (typeof window !== "undefined") {
   const originalConsoleError = console.error;
   console.error = (...args: any[]) => {
     const message = args[0]?.toString?.() || "";
-    if (message.includes("CLIENT_FETCH_ERROR") || message.includes("Cannot convert undefined or null to object")) {
-      return; // Suppress this error
+    const fullMsg = args.map((a) => String(a)).join(" ");
+    if (
+      message.includes("CLIENT_FETCH_ERROR") ||
+      message.includes("Cannot convert undefined or null to object") ||
+      (fullMsg.includes("hydrated") && fullMsg.includes("data-cursor-ref"))
+    ) {
+      return; // Suppress known non-actionable errors (auth client, Cursor browser refs)
     }
     originalConsoleError.apply(console, args);
   };

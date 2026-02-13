@@ -284,3 +284,96 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
     throw error;
   }
 }
+
+/**
+ * Send a custom email (owner-initiated from dashboard).
+ * Used for announcements, bulk communications, etc.
+ */
+export async function sendCustomEmail(to: string, subject: string, html: string): Promise<{ id?: string; error?: string }> {
+  const resendApiKey = process.env.RESEND_API_KEY;
+
+  if (!resendApiKey) {
+    console.warn('RESEND_API_KEY is not set. Skipping email sending.');
+    return { error: 'RESEND_API_KEY not configured' };
+  }
+
+  const resend = new Resend(resendApiKey);
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: `NeuroKid <${emailFrom}>`,
+      to,
+      subject,
+      html,
+    });
+
+    if (error) {
+      console.error('Error sending custom email:', error);
+      return { error: String(error.message || JSON.stringify(error)) };
+    }
+
+    return { id: data?.id };
+  } catch (error) {
+    console.error('Exception sending custom email:', error);
+    const err = error as Error;
+    return { error: err.message || 'Failed to send email' };
+  }
+}
+
+export async function sendWarningEmail(email: string, reason?: string): Promise<void> {
+  const resendApiKey = process.env.RESEND_API_KEY;
+
+  if (!resendApiKey) {
+    console.warn('RESEND_API_KEY is not set. Skipping warning email.');
+    return;
+  }
+
+  const resend = new Resend(resendApiKey);
+
+  try {
+    const { error } = await resend.emails.send({
+      from: `NeuroKid <${emailFrom}>`,
+      to: email,
+      subject: 'Community guidelines reminder – NeuroKid',
+      html: `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+            <title>Community guidelines reminder</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f9fafb; margin: 0; padding: 0; }
+              .container { max-width: 570px; margin: 0 auto; background-color: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-top: 40px; }
+              .heading { font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 24px; }
+              .text { font-size: 16px; line-height: 26px; color: #475569; margin-bottom: 24px; }
+              .warning-box { background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 8px; margin: 24px 0; }
+              .footer { text-align: center; font-size: 13px; color: #94a3b8; margin-top: 40px; padding-top: 24px; border-top: 1px solid #e2e8f0; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1 class="heading">Community guidelines reminder</h1>
+              <p class="text">Hi there,</p>
+              <p class="text">Our moderation team has contacted you regarding activity on NeuroKid that may not align with our community guidelines.</p>
+              ${reason ? `<div class="warning-box"><strong>Details:</strong> ${reason}</div>` : ''}
+              <p class="text">Please review our community guidelines and ensure future contributions support a safe and welcoming environment for all parents.</p>
+              <p class="text">If you have questions, please reach out to our support team.</p>
+              <div class="footer">
+                <p>© ${new Date().getFullYear()} NeuroKid. All rights reserved.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `
+    });
+
+    if (error) {
+      console.error('Error sending warning email:', error);
+      throw new Error('Failed to send warning email');
+    }
+  } catch (error) {
+    console.error('Exception sending warning email:', error);
+    throw error;
+  }
+}

@@ -12,6 +12,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: Readonly<{ children: ReactNode }>) {
+  // DEFAULT TO LIGHT MODE - explicitly set light as default
   const [theme, setTheme] = useState<Theme>("light");
   const [mounted, setMounted] = useState(false);
 
@@ -38,15 +39,34 @@ export function ThemeProvider({ children }: Readonly<{ children: ReactNode }>) {
     // Check localStorage first
     const savedTheme = localStorage.getItem("neurokid-theme") as Theme | null;
     
-    // Check system preference
-    const prefersDark = globalThis.matchMedia("(prefers-color-scheme: dark)").matches;
+    // DEFAULT TO LIGHT MODE - only use dark if explicitly saved or system prefers dark
+    let initialTheme: Theme = "light"; // Start with light mode as default
     
-    // Use saved theme, or fall back to system preference
-    const initialTheme = savedTheme || (prefersDark ? "dark" : "light");
+    if (savedTheme) {
+      // Use saved preference if it exists
+      initialTheme = savedTheme;
+    } else {
+      // Check system preference only if no saved preference
+      const prefersDark = globalThis.matchMedia("(prefers-color-scheme: dark)").matches;
+      initialTheme = prefersDark ? "dark" : "light";
+    }
     
     setTheme(initialTheme);
     applyTheme(initialTheme);
     setMounted(true);
+    
+    // Listen for system theme changes if no saved preference
+    const mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (!localStorage.getItem("neurokid-theme")) {
+        const newTheme = e.matches ? "dark" : "light";
+        setTheme(newTheme);
+        applyTheme(newTheme);
+      }
+    };
+    
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

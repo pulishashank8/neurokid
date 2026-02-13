@@ -50,6 +50,13 @@ export function withApiHandler(
         durationMs,
       }, `API ${method} ${routeName} completed`);
 
+      // Log API performance for /api routes (fire-and-forget)
+      if (pathname.startsWith('/api/')) {
+        import('@/lib/owner/api-performance')
+          .then((m) => m.logApiPerformance({ method, routePath: pathname, statusCode: response.status, responseTime: durationMs }))
+          .catch(() => {});
+      }
+
       // Add request ID to response headers
       response.headers.set('x-request-id', requestId);
 

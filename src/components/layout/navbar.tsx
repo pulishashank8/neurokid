@@ -32,6 +32,7 @@ import {
   Star,
   Map
 } from "lucide-react";
+import { UserNotificationBell } from "./UserNotificationBell";
 
 type SubItem = { href: string; label: string; icon: any; description: string };
 type NavGroup = { label: string; items: SubItem[] };
@@ -257,9 +258,10 @@ export default function NavBar() {
                 <span>Help</span>
               </Link>
 
-              {/* Theme Toggle - Premium */}
+              {/* Theme Toggle + Notifications - Premium */}
               {session && (
                 <>
+                  <UserNotificationBell />
                   <button
                     onClick={toggleTheme}
                     className="relative inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-300 glass-premium hover:shadow-lg group overflow-hidden"

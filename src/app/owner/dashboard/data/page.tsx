@@ -68,10 +68,10 @@ export default async function DataGovernancePage() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
-            Data <span className="text-emerald-400 font-black tracking-widest uppercase">Governance</span> Command Center
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">
+            Data <span className="text-emerald-500 dark:text-emerald-400 font-black tracking-widest uppercase">Governance</span> Command Center
           </h1>
-          <p className="text-slate-400 font-medium leading-relaxed">
+          <p className="text-gray-600 dark:text-slate-400 font-medium leading-relaxed">
             Enterprise data governance for autism healthcare data management
           </p>
         </div>
@@ -90,17 +90,17 @@ export default async function DataGovernancePage() {
 
       {/* PHI Alert Banner (if PHI data exists) */}
       {metrics.catalog.phiDatasets > 0 && (
-        <div className="bg-slate-900 border border-red-500/20 rounded-3xl p-8 relative overflow-hidden">
+        <div className="bg-red-50 dark:bg-slate-900 border border-red-300 dark:border-red-500/20 rounded-3xl p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/10 rounded-full blur-3xl"></div>
           <div className="flex flex-col lg:flex-row items-center gap-8 relative z-10">
-            <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center text-red-500 border border-red-500/20">
+            <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center text-red-600 dark:text-red-500 border border-red-300 dark:border-red-500/20">
               <Lock size={32} />
             </div>
             <div className="flex-1 text-center lg:text-left">
-              <h3 className="text-xl font-bold text-white mb-2">
-                <span className="text-red-500">{metrics.catalog.phiDatasets}</span> PHI Datasets Under Governance
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <span className="text-red-600 dark:text-red-500">{metrics.catalog.phiDatasets}</span> PHI Datasets Under Governance
               </h3>
-              <p className="text-slate-400 font-medium leading-relaxed">
+              <p className="text-gray-700 dark:text-slate-400 font-medium leading-relaxed">
                 Protected Health Information detected in your data catalog. HIPAA compliance monitoring is active.
                 All access is logged and auditable.
               </p>
@@ -119,13 +119,13 @@ export default async function DataGovernancePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Catalog */}
         <Link href="/owner/dashboard/data/catalog" className="group">
-          <div className="bg-slate-900 border border-white/5 rounded-3xl p-6 hover:border-blue-500/30 transition-all hover:shadow-2xl hover:shadow-blue-500/5">
-            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform">
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-3xl p-6 hover:border-blue-500/30 transition-all hover:shadow-2xl hover:shadow-blue-500/5">
+            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 dark:text-blue-400 mb-4 group-hover:scale-110 transition-transform">
               <Database size={24} />
             </div>
-            <h4 className="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Data Catalog</h4>
-            <p className="text-3xl font-black text-white">{metrics.catalog.totalDatasets}</p>
-            <p className="text-slate-500 text-xs font-medium mt-2">
+            <h4 className="text-gray-500 dark:text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Data Catalog</h4>
+            <p className="text-3xl font-black text-gray-900 dark:text-white">{metrics.catalog.totalDatasets}</p>
+            <p className="text-gray-500 dark:text-slate-500 text-xs font-medium mt-2">
               {metrics.catalog.totalFields} fields documented
             </p>
           </div>
@@ -133,13 +133,13 @@ export default async function DataGovernancePage() {
 
         {/* Quality */}
         <Link href="/owner/dashboard/data/quality" className="group">
-          <div className="bg-slate-900 border border-white/5 rounded-3xl p-6 hover:border-emerald-500/30 transition-all hover:shadow-2xl hover:shadow-emerald-500/5">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-4 group-hover:scale-110 transition-transform">
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-3xl p-6 hover:border-emerald-500/30 transition-all hover:shadow-2xl hover:shadow-emerald-500/5">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-4 group-hover:scale-110 transition-transform">
               <CheckCircle size={24} />
             </div>
-            <h4 className="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Quality Score</h4>
-            <p className="text-3xl font-black text-white">{metrics.quality.qualityScore}%</p>
-            <p className="text-slate-500 text-xs font-medium mt-2">
+            <h4 className="text-gray-500 dark:text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Quality Score</h4>
+            <p className="text-3xl font-black text-gray-900 dark:text-white">{metrics.quality.qualityScore}%</p>
+            <p className="text-gray-500 dark:text-slate-500 text-xs font-medium mt-2">
               {metrics.quality.passCount}/{metrics.quality.total} rules passing
             </p>
           </div>
@@ -147,13 +147,13 @@ export default async function DataGovernancePage() {
 
         {/* Lineage */}
         <Link href="/owner/dashboard/data/lineage" className="group">
-          <div className="bg-slate-900 border border-white/5 rounded-3xl p-6 hover:border-violet-500/30 transition-all hover:shadow-2xl hover:shadow-violet-500/5">
-            <div className="w-12 h-12 rounded-2xl bg-violet-500/10 flex items-center justify-center text-violet-400 mb-4 group-hover:scale-110 transition-transform">
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-3xl p-6 hover:border-violet-500/30 transition-all hover:shadow-2xl hover:shadow-violet-500/5">
+            <div className="w-12 h-12 rounded-2xl bg-violet-500/10 flex items-center justify-center text-violet-600 dark:text-violet-400 mb-4 group-hover:scale-110 transition-transform">
               <GitBranch size={24} />
             </div>
-            <h4 className="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Data Lineage</h4>
-            <p className="text-3xl font-black text-white">{metrics.lineage.totalNodes}</p>
-            <p className="text-slate-500 text-xs font-medium mt-2">
+            <h4 className="text-gray-500 dark:text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Data Lineage</h4>
+            <p className="text-3xl font-black text-gray-900 dark:text-white">{metrics.lineage.totalNodes}</p>
+            <p className="text-gray-500 dark:text-slate-500 text-xs font-medium mt-2">
               {metrics.lineage.totalEdges} data flows mapped
             </p>
           </div>
@@ -161,13 +161,13 @@ export default async function DataGovernancePage() {
 
         {/* Audit */}
         <Link href="/owner/dashboard/data/access-logs" className="group">
-          <div className="bg-slate-900 border border-white/5 rounded-3xl p-6 hover:border-rose-500/30 transition-all hover:shadow-2xl hover:shadow-rose-500/5">
-            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-400 mb-4 group-hover:scale-110 transition-transform">
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-3xl p-6 hover:border-rose-500/30 transition-all hover:shadow-2xl hover:shadow-rose-500/5">
+            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-600 dark:text-rose-400 mb-4 group-hover:scale-110 transition-transform">
               <Eye size={24} />
             </div>
-            <h4 className="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Audit Logs</h4>
-            <p className="text-3xl font-black text-white">{metrics.compliance.sensitiveAccesses}</p>
-            <p className="text-slate-500 text-xs font-medium mt-2">
+            <h4 className="text-gray-500 dark:text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Audit Logs</h4>
+            <p className="text-3xl font-black text-gray-900 dark:text-white">{metrics.compliance.sensitiveAccesses}</p>
+            <p className="text-gray-500 dark:text-slate-500 text-xs font-medium mt-2">
               Sensitive accesses (30d)
             </p>
           </div>
@@ -177,8 +177,8 @@ export default async function DataGovernancePage() {
       {/* Data Sensitivity Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sensitivity Overview */}
-        <div className="bg-slate-900 border border-white/5 rounded-3xl p-8">
-          <h3 className="text-xl font-bold text-white mb-6 tracking-tight">Data Sensitivity Distribution</h3>
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-3xl p-8">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 tracking-tight">Data Sensitivity Distribution</h3>
           <div className="space-y-4">
             <SensitivityBar label="PHI (Protected Health)" count={metrics.catalog.phiDatasets} total={metrics.catalog.totalDatasets} color="red" />
             <SensitivityBar label="PII (Personal Info)" count={metrics.catalog.piiDatasets} total={metrics.catalog.totalDatasets} color="orange" />
@@ -192,45 +192,45 @@ export default async function DataGovernancePage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-slate-900 border border-white/5 rounded-3xl p-8">
-          <h3 className="text-xl font-bold text-white mb-6 tracking-tight">Governance Actions</h3>
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-3xl p-8">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 tracking-tight">Governance Actions</h3>
           <div className="space-y-4">
             <Link
               href="/owner/dashboard/data/quality"
-              className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 hover:border-emerald-500/20 transition-all group"
+              className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-white/5 hover:bg-gray-100 dark:hover:bg-white/10 hover:border-emerald-500/20 transition-all group"
             >
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                 <Activity size={20} />
               </div>
               <div className="flex-1">
-                <h4 className="text-white font-bold group-hover:text-emerald-400 transition-colors">Run Quality Checks</h4>
-                <p className="text-slate-500 text-xs">Execute {metrics.quality.totalRules} validation rules</p>
+                <h4 className="text-gray-900 dark:text-white font-bold group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Run Quality Checks</h4>
+                <p className="text-gray-500 dark:text-slate-500 text-xs">Execute {metrics.quality.totalRules} validation rules</p>
               </div>
             </Link>
 
             <Link
               href="/owner/dashboard/data/catalog"
-              className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 hover:border-blue-500/20 transition-all group"
+              className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-white/5 hover:bg-gray-100 dark:hover:bg-white/10 hover:border-blue-500/20 transition-all group"
             >
-              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
                 <Database size={20} />
               </div>
               <div className="flex-1">
-                <h4 className="text-white font-bold group-hover:text-blue-400 transition-colors">Browse Data Catalog</h4>
-                <p className="text-slate-500 text-xs">Explore {metrics.catalog.totalDatasets} datasets</p>
+                <h4 className="text-gray-900 dark:text-white font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Browse Data Catalog</h4>
+                <p className="text-gray-500 dark:text-slate-500 text-xs">Explore {metrics.catalog.totalDatasets} datasets</p>
               </div>
             </Link>
 
             <Link
               href="/owner/dashboard/data/lineage"
-              className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 hover:border-violet-500/20 transition-all group"
+              className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-white/5 hover:bg-gray-100 dark:hover:bg-white/10 hover:border-violet-500/20 transition-all group"
             >
-              <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-400">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center text-violet-600 dark:text-violet-400">
                 <GitBranch size={20} />
               </div>
               <div className="flex-1">
-                <h4 className="text-white font-bold group-hover:text-violet-400 transition-colors">View Data Lineage</h4>
-                <p className="text-slate-500 text-xs">Track data flow through {metrics.lineage.totalNodes} nodes</p>
+                <h4 className="text-gray-900 dark:text-white font-bold group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">View Data Lineage</h4>
+                <p className="text-gray-500 dark:text-slate-500 text-xs">Track data flow through {metrics.lineage.totalNodes} nodes</p>
               </div>
             </Link>
           </div>
@@ -239,17 +239,17 @@ export default async function DataGovernancePage() {
 
       {/* Setup Instructions (if no data) */}
       {metrics.catalog.totalDatasets === 0 && (
-        <div className="bg-slate-900 border border-amber-500/20 rounded-3xl p-8">
+        <div className="bg-amber-50 dark:bg-slate-900 border border-amber-300 dark:border-amber-500/20 rounded-3xl p-8">
           <div className="flex items-start gap-6">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-400">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400">
               <AlertTriangle size={24} />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-white mb-2">Setup Required</h3>
-              <p className="text-slate-400 mb-4">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Setup Required</h3>
+              <p className="text-gray-700 dark:text-slate-400 mb-4">
                 Run the governance setup script to populate the data catalog, quality rules, and lineage graph:
               </p>
-              <pre className="bg-black/30 rounded-xl p-4 text-sm text-emerald-400 font-mono">
+              <pre className="bg-gray-100 dark:bg-black/30 rounded-xl p-4 text-sm text-emerald-600 dark:text-emerald-400 font-mono">
                 npx tsx scripts/setup-governance.ts
               </pre>
             </div>
@@ -282,10 +282,10 @@ function SensitivityBar({
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-white">{label}</span>
-        <span className="text-sm font-bold text-slate-400">{count} datasets</span>
+        <span className="text-sm font-medium text-gray-900 dark:text-white">{label}</span>
+        <span className="text-sm font-bold text-gray-500 dark:text-slate-400">{count} datasets</span>
       </div>
-      <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+      <div className="h-2 bg-gray-200 dark:bg-white/5 rounded-full overflow-hidden">
         <div
           className={`h-full ${colors[color]} transition-all duration-500`}
           style={{ width: `${percentage}%` }}

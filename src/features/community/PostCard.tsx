@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
-import { formatDistanceToNow } from "date-fns";
+import { FormattedDate } from "@/components/shared/FormattedDate";
 import { VoteButtons } from "./VoteButtons";
 import { BookmarkButton } from "./BookmarkButton";
 import { ReportButton } from "./ReportButton";
@@ -199,7 +199,7 @@ export function PostCard({
             <span className="w-1 h-1 rounded-full bg-[var(--border)]" />
 
             <time className="text-xs text-[var(--muted)]">
-              {formatDistanceToNow(createdDate, { addSuffix: true })}
+              <FormattedDate date={createdDate} relative />
             </time>
           </div>
 

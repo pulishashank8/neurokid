@@ -51,4 +51,18 @@ export const onRequestError = async (
     route: context.routePath,
     stack: err.stack,
   });
+
+  // Create AdminNotification for owner dashboard
+  try {
+    const { createAdminNotification } = await import("@/lib/owner/create-admin-notification");
+    await createAdminNotification({
+      type: "system_error",
+      severity: "critical",
+      message: `Request error: ${err.message}`,
+      relatedEntity: context.routePath,
+      metadata: { url: request.url, method: request.method },
+    });
+  } catch (notifErr) {
+    console.error("[Request Error] Failed to create admin notification:", notifErr);
+  }
 };

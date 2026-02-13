@@ -37,7 +37,26 @@ function handleAACDemoLimit(request: NextRequest): NextResponse | null {
   return null;
 }
 
+const ADMIN_SESSION_COOKIE = "admin_session";
+
+/** Fast redirect for unauthenticated owner access (avoids slow page compile in incognito) */
+function handleOwnerAuth(request: NextRequest): NextResponse | null {
+  const path = request.nextUrl.pathname;
+  if (!path.startsWith("/owner")) return null;
+  if (path === "/owner/login") return null; // Allow login page
+
+  const hasSession = !!request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+  if (!hasSession) {
+    return NextResponse.redirect(new URL("/owner/login", request.url));
+  }
+  return null;
+}
+
 export async function middleware(request: NextRequest) {
+  // Owner: redirect unauthenticated users before compiling dashboard
+  const ownerRedirect = handleOwnerAuth(request);
+  if (ownerRedirect) return ownerRedirect;
+
   // AAC Demo: block if already used 2 times (per device via cookie)
   const demoRedirect = handleAACDemoLimit(request);
   if (demoRedirect) return demoRedirect;

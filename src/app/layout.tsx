@@ -6,6 +6,10 @@ import "./globals.css";
 import { SessionProvider } from "@/app/providers";
 import { ProfileGuard } from "@/components/shared/ProfileGuard";
 import SessionTracker from "@/components/shared/SessionTracker";
+import ErrorTrackerInit from "@/components/shared/ErrorTrackerInit";
+import EngagementTracker from "@/components/analytics/EngagementTracker";
+import { FloatingFeedbackButton } from "@/components/feedback";
+import { TimezoneProvider } from "@/contexts/TimezoneContext";
 import { OrganizationSchema, SoftwareAppSchema } from "@/components/seo/SchemaMarkup";
 
 const geistSans = Geist({
@@ -132,14 +136,19 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[var(--background)] transition-colors duration-300`}
       >
         <SessionProvider>
+          <TimezoneProvider>
           <SessionTracker />
+          <EngagementTracker />
+          <ErrorTrackerInit />
           <ProfileGuard>
             <ConditionalNavBar />
             <main className="min-h-screen">
               {children}
             </main>
+            <FloatingFeedbackButton />
             <Analytics />
           </ProfileGuard>
+          </TimezoneProvider>
         </SessionProvider>
       </body>
     </html>

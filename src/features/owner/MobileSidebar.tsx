@@ -3,23 +3,33 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Shield, Sparkles, LayoutDashboard, BarChart3, Users, FileText, MessageSquare, Heart, Activity, Wifi, ClipboardList, Building2, Search, LogOut, Database, Share2 } from 'lucide-react';
+import { Menu, X, Shield, Sparkles, LayoutDashboard, BarChart3, Users, FileText, MessageSquare, Heart, Activity, Wifi, LogOut, Database, Share2, Cpu, Zap, Megaphone, Bell, ShieldAlert } from 'lucide-react';
 
 const navItems = [
     { href: '/owner/dashboard', label: 'Overview', icon: LayoutDashboard, color: 'emerald' },
+    { href: '/owner/dashboard/engagement', label: 'Engagement', icon: BarChart3, color: 'blue' },
     { href: '/owner/dashboard/analytics', label: 'Analytics', icon: BarChart3, color: 'blue' },
+    { href: '/owner/dashboard/growth', label: 'Growth', icon: Activity, color: 'amber' },
     { href: '/owner/dashboard/users', label: 'Users', icon: Users, color: 'violet' },
     { href: '/owner/dashboard/posts', label: 'Posts', icon: FileText, color: 'orange' },
     { href: '/owner/dashboard/comments', label: 'Comments', icon: MessageSquare, color: 'cyan' },
+    { href: '/owner/dashboard/moderation', label: 'Moderation', icon: ShieldAlert, color: 'rose' },
+    { href: '/owner/dashboard/ai', label: 'AI Usage', icon: Cpu, color: 'violet' },
+    { href: '/owner/dashboard/ai-agents', label: 'AI Agents', icon: Cpu, color: 'violet' },
+    { href: '/owner/dashboard/system', label: 'System Health', icon: Zap, color: 'green' },
     { href: '/owner/dashboard/votes', label: 'Votes/Likes', icon: Heart, color: 'rose' },
     { href: '/owner/dashboard/activity', label: 'Activity Log', icon: Activity, color: 'amber' },
     { href: '/owner/dashboard/online', label: 'Online Users', icon: Wifi, color: 'green' },
-    { href: '/owner/dashboard/screening', label: 'Screenings', icon: ClipboardList, color: 'purple' },
-    { href: '/owner/dashboard/data/trust', label: 'Trust Center', icon: Shield, color: 'emerald' },
+    { href: '/owner/dashboard/governance', label: 'Governance', icon: Shield, color: 'teal' },
+    { href: '/owner/dashboard/actions', label: 'Action Center', icon: Megaphone, color: 'cyan' },
+    { href: '/owner/dashboard/email', label: 'Send Email', icon: Megaphone, color: 'cyan' },
+    { href: '/owner/dashboard/notifications', label: 'Announcements', icon: Bell, color: 'amber' },
+    { href: '/owner/dashboard/data', label: 'Data Governance', icon: Shield, color: 'teal' },
     { href: '/owner/dashboard/data/catalog', label: 'Data Catalog', icon: Database, color: 'blue' },
     { href: '/owner/dashboard/data/quality', label: 'Quality & ML', icon: Activity, color: 'indigo' },
     { href: '/owner/dashboard/data/lineage', label: 'Data Lineage', icon: Share2, color: 'violet' },
-    { href: '/owner/dashboard/data/access-logs', label: 'Audit Logs', icon: FileText, color: 'rose' },
+    { href: '/owner/dashboard/data/trust', label: 'Trust Center', icon: Heart, color: 'rose' },
+    { href: '/owner/dashboard/data/access-logs', label: 'Audit Logs', icon: FileText, color: 'amber' },
 ];
 
 const colorMap: Record<string, { bg: string; text: string; activeBg: string }> = {
@@ -49,13 +59,13 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
             {/* Overlay */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                    className="fixed inset-0 bg-black/50 z-40 md:hidden"
                     onClick={onClose}
                 />
             )}
 
             {/* Sidebar */}
-            <aside className={`fixed top-0 left-0 bottom-0 w-72 bg-slate-900/95 backdrop-blur-xl border-r border-white/5 z-50 flex flex-col transition-transform duration-300 lg:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'
+            <aside className={`fixed top-0 left-0 bottom-0 w-[min(288px,85vw)] max-w-[288px] bg-surface/98 backdrop-blur-xl border-r border-border z-50 flex flex-col transition-transform duration-300 md:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'
                 }`}>
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 pb-4">
@@ -64,7 +74,7 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                             <Shield className="w-5 h-5 text-white" />
                         </div>
                         <div className="min-w-0">
-                            <h1 className="text-lg font-bold text-white truncate">NeuroKid</h1>
+                            <h1 className="text-lg font-bold text-foreground truncate">NeuroKid</h1>
                             <div className="flex items-center gap-1.5">
                                 <Sparkles className="w-3 h-3 text-emerald-400 flex-shrink-0" />
                                 <span className="text-xs font-medium text-emerald-400 truncate">Owner</span>

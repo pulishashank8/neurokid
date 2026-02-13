@@ -1,8 +1,13 @@
 import { prisma } from '@/lib/prisma';
 import { format } from 'date-fns';
 import Link from 'next/link';
-import { Eye, MessageSquare, ThumbsUp, Clock } from 'lucide-react';
+import { Eye, MessageSquare, ThumbsUp, Clock, FileText } from 'lucide-react';
 import PostModeration from '@/features/owner/PostModeration';
+import {
+  PremiumPageHeader,
+  PremiumCard,
+} from '@/components/owner/PremiumSection';
+import { PremiumButton } from '@/components/owner/PremiumButton';
 
 async function getPosts(page: number = 1, search: string = '') {
   const pageSize = 20;
@@ -51,33 +56,37 @@ export default async function PostsPage({
   const totalPages = Math.ceil(total / pageSize);
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">Posts</h1>
-        <p className="text-gray-500">View all forum posts and engagement metrics</p>
-      </div>
+    <div className="space-y-8">
+      <PremiumPageHeader
+        title="Posts Management"
+        subtitle="View all forum posts and engagement metrics"
+        breadcrumbs={[
+          { label: 'Owner', href: '/owner' },
+          { label: 'Dashboard', href: '/owner/dashboard' },
+          { label: 'Posts' },
+        ]}
+        gradient="from-blue-600 via-indigo-600 to-purple-600"
+      />
 
-      <div className="bg-white rounded-xl shadow-sm">
-        <div className="p-4 border-b border-gray-200">
+      <PremiumCard variant="glass">
+        <div className="p-4 border-b border-border">
           <form method="GET" className="flex gap-4">
             <input
               type="text"
               name="search"
               defaultValue={search}
               placeholder="Search posts by title or content..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+              className="flex-1 px-4 py-2.5 bg-background/50 backdrop-blur-sm border border-white/10 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
             />
-            <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
+            <PremiumButton type="submit" variant="secondary">
+              <FileText className="w-4 h-4" />
               Search
-            </button>
+            </PremiumButton>
           </form>
         </div>
 
         <div className="p-4">
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Showing {posts.length} of {total} posts
           </p>
         </div>
@@ -85,26 +94,26 @@ export default async function PostsPage({
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">Title</th>
-                <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">Author</th>
-                <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">Category</th>
-                <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">Status</th>
-                <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">Views</th>
-                <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">Comments</th>
-                <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">Score</th>
-                <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">Created</th>
-                <th className="text-left py-3 px-4 text-gray-500 font-medium text-sm">Actions</th>
+              <tr className="border-b border-border bg-muted/30">
+                <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Title</th>
+                <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Author</th>
+                <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Category</th>
+                <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Status</th>
+                <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Views</th>
+                <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Comments</th>
+                <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Score</th>
+                <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Created</th>
+                <th className="text-left py-3 px-4 text-muted-foreground font-medium text-sm">Actions</th>
               </tr>
             </thead>
             <tbody>
               {posts.map((post) => (
-                <tr key={post.id} className="border-b border-gray-100 hover:bg-gray-50">
+                <tr key={post.id} className="border-b border-border hover:bg-muted/30 transition-colors">
                   <td className="py-3 px-4">
                     <div className="max-w-md">
-                      <p className="font-medium text-gray-800 truncate">{post.title}</p>
+                      <p className="font-medium text-foreground truncate">{post.title}</p>
                       {post.isAnonymous && (
-                        <span className="text-xs text-orange-600 font-medium">Anonymous</span>
+                        <span className="text-xs text-orange-600 dark:text-orange-400 font-medium">Anonymous</span>
                       )}
                     </div>
                   </td>
@@ -112,53 +121,53 @@ export default async function PostsPage({
                     {post.author ? (
                       <Link
                         href={`/owner/dashboard/users/${post.author.id}`}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-primary hover:underline"
                       >
                         {post.author.profile?.displayName || post.author.email}
                       </Link>
                     ) : (
-                      <span className="text-gray-400">Deleted User</span>
+                      <span className="text-muted-foreground">Deleted User</span>
                     )}
                   </td>
                   <td className="py-3 px-4">
-                    <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">
+                    <span className="px-2 py-1 text-xs rounded-full bg-muted text-foreground">
                       {post.category.name}
                     </span>
                   </td>
                   <td className="py-3 px-4">
                     <span
-                      className={`px-2 py-1 text-xs rounded-full ${
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${
                         post.status === 'ACTIVE'
-                          ? 'bg-green-100 text-green-700'
+                          ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
                           : post.status === 'REMOVED'
-                          ? 'bg-red-100 text-red-700'
+                          ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400'
                           : post.status === 'LOCKED'
-                          ? 'bg-yellow-100 text-yellow-700'
-                          : 'bg-gray-100 text-gray-700'
+                          ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+                          : 'bg-muted text-foreground'
                       }`}
                     >
                       {post.status}
                     </span>
                   </td>
                   <td className="py-3 px-4">
-                    <div className="flex items-center gap-1 text-gray-600">
+                    <div className="flex items-center gap-1 text-muted-foreground">
                       <Eye size={14} />
                       {post.viewCount}
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <div className="flex items-center gap-1 text-gray-600">
+                    <div className="flex items-center gap-1 text-muted-foreground">
                       <MessageSquare size={14} />
                       {post._count.comments}
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <div className="flex items-center gap-1 text-gray-600">
+                    <div className="flex items-center gap-1 text-muted-foreground">
                       <ThumbsUp size={14} />
                       {post.voteScore}
                     </div>
                   </td>
-                  <td className="py-3 px-4 text-gray-600">
+                  <td className="py-3 px-4 text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Clock size={14} />
                       {format(post.createdAt, 'MMM d, yyyy')}
@@ -179,29 +188,29 @@ export default async function PostsPage({
         </div>
 
         {totalPages > 1 && (
-          <div className="p-4 border-t border-gray-200 flex justify-center gap-2">
+          <div className="p-4 border-t border-border flex justify-center gap-3 bg-muted/20">
             {page > 1 && (
               <Link
                 href={`/owner/dashboard/posts?page=${page - 1}&search=${search}`}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 border border-border bg-background/50 backdrop-blur-sm rounded-xl text-foreground hover:bg-accent transition-colors"
               >
                 Previous
               </Link>
             )}
-            <span className="px-4 py-2 text-gray-600">
+            <span className="px-4 py-2 text-muted-foreground font-medium">
               Page {page} of {totalPages}
             </span>
             {page < totalPages && (
               <Link
                 href={`/owner/dashboard/posts?page=${page + 1}&search=${search}`}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 border border-border bg-background/50 backdrop-blur-sm rounded-xl text-foreground hover:bg-accent transition-colors"
               >
                 Next
               </Link>
             )}
           </div>
         )}
-      </div>
+      </PremiumCard>
     </div>
   );
 }

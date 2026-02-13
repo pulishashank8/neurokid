@@ -151,7 +151,7 @@ export default function DataTrustCenter() {
     return (
         <div className="space-y-8">
             {/* Hero Header */}
-            <div className="relative overflow-hidden bg-slate-900 shadow-2xl rounded-3xl border border-white/5 p-8 lg:p-12">
+            <div className="relative overflow-hidden bg-white dark:bg-slate-900 shadow-2xl rounded-3xl border border-gray-200 dark:border-white/5 p-8 lg:p-12">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
 
@@ -165,10 +165,10 @@ export default function DataTrustCenter() {
                                 HIPAA Compliant
                             </div>
                         </div>
-                        <h1 className="text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight leading-tight">
+                        <h1 className="text-4xl lg:text-5xl font-extrabold text-gray-900 dark:text-white mb-4 tracking-tight leading-tight">
                             Trust <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Center</span>
                         </h1>
-                        <p className="text-slate-400 text-lg font-medium leading-relaxed max-w-2xl">
+                        <p className="text-gray-600 dark:text-slate-400 text-lg font-medium leading-relaxed max-w-2xl">
                             Monitoring data integrity, privacy compliance, and metadata quality across the NeuroKid pediatric autism support ecosystem.
                         </p>
                     </div>
@@ -190,7 +190,7 @@ export default function DataTrustCenter() {
                         }`}>
                             {trustLevel}
                         </div>
-                        <p className="text-slate-500 text-xs mt-2">Overall Trust Score</p>
+                        <p className="text-gray-500 dark:text-slate-500 text-xs mt-2">Overall Trust Score</p>
                     </div>
                 </div>
             </div>
@@ -230,9 +230,9 @@ export default function DataTrustCenter() {
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Compliance Frameworks */}
-                <div className="lg:col-span-2 bg-slate-900 border border-white/5 rounded-3xl p-8">
+                <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-3xl p-8">
                     <div className="flex items-center justify-between mb-8">
-                        <h3 className="text-xl font-bold text-white">Healthcare Compliance Frameworks</h3>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">Healthcare Compliance Frameworks</h3>
                         <span className="text-xs font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
                             <CheckCircle size={14} />
                             All Active
@@ -240,11 +240,11 @@ export default function DataTrustCenter() {
                     </div>
                     <div className="space-y-4">
                         {complianceFrameworks.map((framework, i) => (
-                            <div key={i} className="p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald-500/20 transition-all">
+                            <div key={i} className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-white/5 hover:border-emerald-500/20 transition-all">
                                 <div className="flex items-center justify-between mb-3">
                                     <div>
-                                        <h4 className="text-white font-bold">{framework.name}</h4>
-                                        <p className="text-slate-500 text-xs">{framework.description}</p>
+                                        <h4 className="text-gray-900 dark:text-white font-bold">{framework.name}</h4>
+                                        <p className="text-gray-500 dark:text-slate-500 text-xs">{framework.description}</p>
                                     </div>
                                     <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
                                         framework.status === 'compliant'
@@ -255,7 +255,7 @@ export default function DataTrustCenter() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+                                    <div className="flex-1 h-2 bg-gray-50 dark:bg-slate-800 rounded-full overflow-hidden">
                                         <div
                                             className={`h-full transition-all duration-1000 ${
                                                 framework.coverage === 100
@@ -265,7 +265,7 @@ export default function DataTrustCenter() {
                                             style={{ width: `${framework.coverage}%` }}
                                         />
                                     </div>
-                                    <span className="text-sm font-bold text-white">{framework.coverage}%</span>
+                                    <span className="text-sm font-bold text-gray-900 dark:text-white">{framework.coverage}%</span>
                                 </div>
                                 <p className="text-slate-600 text-[10px] mt-2 flex items-center gap-1">
                                     <Clock size={10} />
@@ -279,9 +279,9 @@ export default function DataTrustCenter() {
                 {/* Quick Actions */}
                 <div className="space-y-6">
                     {/* PHI Scanner */}
-                    <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-8 text-white shadow-xl shadow-blue-900/20">
+                    <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-8 text-gray-900 dark:text-white shadow-xl shadow-blue-900/20">
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-white/10 flex items-center justify-center">
                                 <Eye size={24} />
                             </div>
                             <div>
@@ -295,7 +295,7 @@ export default function DataTrustCenter() {
                         <button
                             onClick={runPhiScan}
                             disabled={scanning}
-                            className="w-full py-4 bg-white/10 backdrop-blur-md rounded-xl font-bold hover:bg-white/20 transition-all border border-white/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="w-full py-4 bg-gray-100 dark:bg-white/10 backdrop-blur-md rounded-xl font-bold hover:bg-white/20 transition-all border border-white/20 flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             {scanning ? (
                                 <>
@@ -312,19 +312,19 @@ export default function DataTrustCenter() {
                     </div>
 
                     {/* Data Stewardship Card */}
-                    <div className="bg-slate-900 border border-white/5 rounded-3xl p-8">
-                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-3xl p-8">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                             <Users size={18} className="text-violet-400" />
                             Data Stewardship
                         </h3>
                         <div className="space-y-3">
-                            <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center font-bold text-white text-sm">
+                            <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-200 dark:border-white/5">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center font-bold text-gray-900 dark:text-white text-sm">
                                     DS
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-sm font-bold text-white">Data Steward</p>
-                                    <p className="text-xs text-slate-500">Healthcare Data</p>
+                                    <p className="text-sm font-bold text-gray-900 dark:text-white">Data Steward</p>
+                                    <p className="text-xs text-gray-500 dark:text-slate-500">Healthcare Data</p>
                                 </div>
                                 <CheckCircle size={16} className="text-emerald-400" />
                             </div>
@@ -338,26 +338,26 @@ export default function DataTrustCenter() {
                     </div>
 
                     {/* Audit Summary */}
-                    <div className="bg-slate-900 border border-white/5 rounded-3xl p-8">
-                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-3xl p-8">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                             <FileText size={18} className="text-amber-400" />
                             Audit Summary
                         </h3>
                         <div className="space-y-3">
-                            <div className="flex items-center justify-between py-2 border-b border-white/5">
-                                <span className="text-slate-400 text-sm">Last Full Audit</span>
-                                <span className="text-white font-bold text-sm">{metrics?.lastAuditDate || 'Today'}</span>
+                            <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-white/5">
+                                <span className="text-gray-600 dark:text-slate-400 text-sm">Last Full Audit</span>
+                                <span className="text-gray-900 dark:text-white font-bold text-sm">{metrics?.lastAuditDate || 'Today'}</span>
                             </div>
-                            <div className="flex items-center justify-between py-2 border-b border-white/5">
-                                <span className="text-slate-400 text-sm">PHI Datasets</span>
+                            <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-white/5">
+                                <span className="text-gray-600 dark:text-slate-400 text-sm">PHI Datasets</span>
                                 <span className="text-red-400 font-bold text-sm">{metrics?.phiDatasets || 0}</span>
                             </div>
-                            <div className="flex items-center justify-between py-2 border-b border-white/5">
-                                <span className="text-slate-400 text-sm">Recent Accesses</span>
-                                <span className="text-white font-bold text-sm">{metrics?.recentAccesses || 0}</span>
+                            <div className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-white/5">
+                                <span className="text-gray-600 dark:text-slate-400 text-sm">Recent Accesses</span>
+                                <span className="text-gray-900 dark:text-white font-bold text-sm">{metrics?.recentAccesses || 0}</span>
                             </div>
                             <div className="flex items-center justify-between py-2">
-                                <span className="text-slate-400 text-sm">Policy Violations</span>
+                                <span className="text-gray-600 dark:text-slate-400 text-sm">Policy Violations</span>
                                 <span className="text-emerald-400 font-bold text-sm">0</span>
                             </div>
                         </div>
@@ -366,8 +366,8 @@ export default function DataTrustCenter() {
             </div>
 
             {/* PHI Data Categories */}
-            <div className="bg-slate-900 border border-white/5 rounded-3xl p-8">
-                <h3 className="text-xl font-bold text-white mb-6">Autism Healthcare Data Categories</h3>
+            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-3xl p-8">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Autism Healthcare Data Categories</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     {phiCategories.map((category, i) => (
                         <div
@@ -389,7 +389,7 @@ export default function DataTrustCenter() {
                             }`}>
                                 <category.icon size={20} />
                             </div>
-                            <h4 className="text-white font-bold text-sm mb-1">{category.name}</h4>
+                            <h4 className="text-gray-900 dark:text-white font-bold text-sm mb-1">{category.name}</h4>
                             <div className={`text-[10px] font-black uppercase tracking-widest ${
                                 category.sensitivity === 'PHI'
                                     ? 'text-red-400'
@@ -428,13 +428,13 @@ function MetricCard({
     };
 
     return (
-        <div className="bg-slate-900 border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-all hover:shadow-lg">
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-2xl p-6 hover:border-gray-300 dark:border-white/10 transition-all hover:shadow-lg">
             <div className={`w-12 h-12 rounded-xl ${colorMap[color].bg} flex items-center justify-center mb-4`}>
                 <Icon className={colorMap[color].text} size={24} />
             </div>
-            <p className="text-slate-500 text-sm font-medium mb-1">{label}</p>
-            <h2 className="text-3xl font-bold text-white mb-2">{value}</h2>
-            <p className="text-xs text-slate-400 font-medium">{subValue}</p>
+            <p className="text-gray-500 dark:text-slate-500 text-sm font-medium mb-1">{label}</p>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{value}</h2>
+            <p className="text-xs text-gray-600 dark:text-slate-400 font-medium">{subValue}</p>
         </div>
     );
 }

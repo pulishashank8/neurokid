@@ -12,6 +12,7 @@ const dataNavItems = [
     { href: '/owner/dashboard/data/stewardship', label: 'Stewardship', icon: Users },
     { href: '/owner/dashboard/data/trust', label: 'Trust Center', icon: Heart },
     { href: '/owner/dashboard/data/access-logs', label: 'Audit Logs', icon: Eye },
+    { href: '/owner/dashboard/data/hipaa', label: 'HIPAA', icon: Shield },
     { href: '/owner/dashboard/data/governance', label: 'Privacy', icon: Shield },
 ];
 

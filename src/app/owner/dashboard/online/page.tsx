@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Users, Clock, Wifi, WifiOff } from 'lucide-react';
-import { format, formatDistanceToNow } from 'date-fns';
+import { FormattedDate } from '@/components/shared/FormattedDate';
 
 interface OnlineStats {
   onlineCount: number;
@@ -23,6 +23,7 @@ interface OnlineStats {
     lastLoginAt: string | null;
     profile: { username: string; displayName: string } | null;
   }[];
+  recentLoginsTodayCount?: number;
 }
 
 export default function OnlineUsersPage() {
@@ -82,104 +83,107 @@ export default function OnlineUsersPage() {
   return (
     <div className="space-y-8">
       <div className="mb-8">
-        <h1 className="text-2xl lg:text-3xl font-bold text-white">Live Operations</h1>
-        <p className="text-slate-400">Real-time view of active users (refreshes every 30 seconds)</p>
+        <h1 className="text-2xl lg:text-3xl font-bold text-foreground">Live Operations</h1>
+        <p className="text-muted-foreground">Real-time view of active users (refreshes every 30 seconds)</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-slate-900/50 backdrop-blur-xl rounded-2xl border border-white/5 p-6 shadow-xl">
+        <div className="bg-card backdrop-blur-xl rounded-2xl border border-border p-6 shadow-xl">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
-              <Wifi className="text-emerald-400" size={24} />
+              <Wifi className="text-emerald-500" size={24} />
             </div>
             <div>
-              <p className="text-sm text-slate-500 font-medium">Currently Online</p>
-              <p className="text-3xl font-bold text-white tabular-nums">{stats?.onlineCount || 0}</p>
+              <p className="text-sm text-muted-foreground font-medium">Currently Online</p>
+              <p className="text-3xl font-bold text-foreground tabular-nums">{stats?.onlineCount ?? 0}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-slate-900/50 backdrop-blur-xl rounded-2xl border border-white/5 p-6 shadow-xl">
+        <div className="bg-card backdrop-blur-xl rounded-2xl border border-border p-6 shadow-xl">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-blue-500/10 rounded-xl border border-blue-500/20">
-              <Clock className="text-blue-400" size={24} />
+              <Clock className="text-blue-500" size={24} />
             </div>
             <div>
-              <p className="text-sm text-slate-500 font-medium">Recent Logins Today</p>
-              <p className="text-3xl font-bold text-white tabular-nums">{stats?.recentLogins?.length || 0}</p>
+              <p className="text-sm text-muted-foreground font-medium">Recent Logins Today</p>
+              <p className="text-3xl font-bold text-foreground tabular-nums">
+                {stats?.recentLoginsTodayCount ?? stats?.recentLogins?.length ?? 0}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center gap-2 mb-6">
-            <Wifi className="text-green-600" size={20} />
-            <h2 className="text-lg font-semibold text-gray-800">Active Sessions</h2>
+            <Wifi className="text-emerald-500" size={20} />
+            <h2 className="text-lg font-semibold text-foreground">Active Sessions</h2>
           </div>
 
           {stats?.onlineSessions && stats.onlineSessions.length > 0 ? (
             <div className="space-y-3">
               {stats.onlineSessions.map((session) => (
-                <div key={session.id} className="p-4 bg-gray-50 rounded-lg">
+                <div key={session.id} className="p-4 bg-secondary/50 rounded-lg border border-border">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="font-medium text-gray-800">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                      <span className="font-medium text-foreground">
                         {session.user.profile?.displayName || session.user.email}
                       </span>
                     </div>
-                    <span className="text-xs text-gray-500">
-                      {formatDistanceToNow(new Date(session.lastActiveAt), { addSuffix: true })}
+                    <span className="text-xs text-muted-foreground">
+                      <FormattedDate date={session.lastActiveAt} relative />
                     </span>
                   </div>
                   {session.user.profile?.username && (
-                    <p className="text-sm text-gray-500">@{session.user.profile.username}</p>
+                    <p className="text-sm text-muted-foreground">@{session.user.profile.username}</p>
                   )}
                   {session.ipAddress && (
-                    <p className="text-xs text-gray-400 mt-1">IP: {session.ipAddress}</p>
+                    <p className="text-xs text-muted-foreground mt-1">IP: {session.ipAddress}</p>
                   )}
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-muted-foreground">
               <WifiOff size={48} className="mx-auto mb-2 opacity-50" />
               <p>No active sessions</p>
-              <p className="text-sm mt-1">Sessions are tracked when users interact with the platform</p>
+              <p className="text-sm mt-1">Sessions are tracked when authenticated users have the app open (heartbeat every 60s). You’ll appear here when viewing this page.</p>
             </div>
           )}
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center gap-2 mb-6">
-            <Users className="text-blue-600" size={20} />
-            <h2 className="text-lg font-semibold text-gray-800">Recent Logins</h2>
+            <Users className="text-blue-500" size={20} />
+            <h2 className="text-lg font-semibold text-foreground">Recent Logins</h2>
           </div>
 
           {stats?.recentLogins && stats.recentLogins.length > 0 ? (
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {stats.recentLogins.map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={user.id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg border border-border">
                   <div>
-                    <p className="font-medium text-gray-800">
+                    <p className="font-medium text-foreground">
                       {user.profile?.displayName || user.email}
                     </p>
                     {user.profile?.username && (
-                      <p className="text-sm text-gray-500">@{user.profile.username}</p>
+                      <p className="text-sm text-muted-foreground">@{user.profile.username}</p>
                     )}
                   </div>
-                  <span className="text-sm text-gray-500">
-                    {user.lastLoginAt ? format(new Date(user.lastLoginAt), 'MMM d, h:mm a') : 'Never'}
+                  <span className="text-sm text-muted-foreground">
+                    {user.lastLoginAt ? <FormattedDate date={user.lastLoginAt} style="dateTimeShort" /> : 'Never'}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-muted-foreground">
               <Users size={48} className="mx-auto mb-2 opacity-50" />
               <p>No recent logins</p>
+              <p className="text-sm mt-1">Login timestamps are recorded when users sign in via NextAuth.</p>
             </div>
           )}
         </div>

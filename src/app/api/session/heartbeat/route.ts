@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
+import { withApiHandler } from '@/lib/api/apiHandler';
 
-export async function POST(request: NextRequest) {
+async function heartbeatHandler(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
 
@@ -47,6 +48,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to update session' }, { status: 500 });
     }
 }
+
+export const POST = withApiHandler(heartbeatHandler);
 
 // Clean up old sessions (called occasionally)
 export async function DELETE() {

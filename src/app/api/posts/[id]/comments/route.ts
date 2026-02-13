@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { createCommentSchema } from "@/lib/validations/community";
+import { trackEvent } from "@/lib/analytics/events";
 import { canModerate } from "@/lib/rbac";
 import { invalidateCache } from "@/lib/redis";
 import { RATE_LIMITERS, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
@@ -198,6 +199,17 @@ export const POST = withApiHandler(async (
   ]);
 
   await invalidateCache(`comments:${id}:*`, { prefix: "posts" });
+
+  trackEvent({
+    userId: session.user.id,
+    eventType: "comment_create",
+    featureName: "community",
+    metadata: { commentId: comment.id, postId: id },
+  }).catch(() => {});
+
+  import("@/lib/owner/event-bus").then(({ emitRealtimeEvent }) =>
+    emitRealtimeEvent({ eventType: "comment_create", entityType: "Comment", entityId: comment.id, metadata: { postId: id } })
+  ).catch(() => {});
 
   // Format response for anonymity if needed
   const responseData = isAnonymous ? {

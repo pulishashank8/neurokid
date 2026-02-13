@@ -232,6 +232,14 @@ export const authOptions: NextAuthOptions = {
 
       if (user) {
         token.id = user.id;
+        // Track login event (fire-and-forget, non-blocking)
+        import("@/lib/analytics/events").then(({ trackEvent }) =>
+          trackEvent({
+            userId: user.id,
+            eventType: "login",
+            featureName: "auth",
+          })
+        ).catch(() => {});
         token.username = (user as any).username;
         token.roles = (user as any).roles || [];
         // Store login timestamp for absolute timeout

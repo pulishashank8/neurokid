@@ -14,6 +14,7 @@
   --color-surface: var(--surface);
   --color-surface2: var(--surface2);
   --color-text: var(--text);
+  --color-foreground: var(--text);
   --color-muted: var(--muted);
   --color-border: var(--border);
   --color-primary: var(--primary);
@@ -71,17 +72,18 @@
 }
 
 /* ============================================
-   LIGHT MODE (Default)
+   LIGHT MODE (Default) - TRUE LIGHT MODE
    Autism-friendly: Soft, calm, sensory-friendly palette
+   NO DARK/BLACK COLORS - Everything is light and bright
    ============================================ */
 :root {
-  /* Core Colors - Softer, warmer whites */
-  --background: #F8FAFB;
+  /* Core Colors - Bright, clean, light palette */
+  --background: #FAFBFC;
   --surface: #FFFFFF;
-  --surface2: #F0F4F7;
+  --surface2: #F5F7FA;
   --text: #2C3E50;
-  --muted: #5A6C7D;
-  --border: rgba(203, 213, 224, 0.5);
+  --muted: #64748B;
+  --border: rgba(203, 213, 224, 0.6);
 
   /* Primary (Emerald Green - Growth & Positivity) */
   --primary: #10b981;
@@ -180,8 +182,26 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Reduce motion for accessibility */
+/* Smooth theme transitions for owner dashboard - premium feel */
+[data-owner-dashboard] [class*="bg-card"],
+[data-owner-dashboard] [class*="bg-surface"],
+[data-owner-dashboard] [class*="bg-popover"],
+[data-owner-dashboard] [class*="border-border"],
+[data-owner-dashboard] .transition-theme {
+  transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reduce motion for accessibility - theme transitions also shorten */
 @media (prefers-reduced-motion: reduce) {
+  [data-owner-dashboard] [class*="bg-card"],
+  [data-owner-dashboard] [class*="bg-surface"],
+  [data-owner-dashboard] [class*="bg-popover"],
+  [data-owner-dashboard] [class*="border-border"],
+  [data-owner-dashboard] .transition-theme {
+    transition-duration: 0.01ms !important;
+  }
 
   *,
   *::before,
@@ -200,7 +220,7 @@ body {
   line-height: 1.6;
   min-height: 100vh;
   min-height: 100dvh;
-  transition: background var(--transition-slow), color var(--transition-slow);
+  transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   /* Safe area insets for notched devices */
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);

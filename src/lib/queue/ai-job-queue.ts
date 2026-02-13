@@ -12,6 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { FieldEncryption } from "@/lib/encryption";
 import { AuditLogger } from "@/lib/audit";
 import { callGroqChat } from "@/lib/ai/groq-keys";
+import { createAdminNotification } from "@/lib/owner/create-admin-notification";
 
 export type AIJobStatus = "pending" | "processing" | "completed" | "failed";
 
@@ -81,6 +82,10 @@ export class AIJobQueue {
       metadata: { jobId: job.id, messageCount: messages.length },
     });
 
+    import("@/lib/owner/event-bus").then(({ emitRealtimeEvent }) =>
+      emitRealtimeEvent({ eventType: "ai_request", entityType: "AIJob", entityId: job.id, metadata: { userId } })
+    ).catch(() => {});
+
     return job.id;
   }
 
@@ -134,7 +139,7 @@ export class AIJobQueue {
       );
 
       // Call AI with circuit breaker
-      const result = await this.callAIWithCircuitBreaker(messages);
+      const { content: result, tokensUsed: apiTokens } = await this.callAIWithCircuitBreaker(messages);
 
       // Encrypt result
       const encryptedResult = FieldEncryption.encrypt(result);
@@ -162,6 +167,10 @@ export class AIJobQueue {
         });
       }
 
+      const responseTimeMs = Date.now() - startTime;
+      const tokensUsed = apiTokens ?? Math.ceil(result.length / 4); // Use API count when available, else rough estimate
+      const feature = job.conversationId.startsWith("ephemeral_") ? "ai_chat" : "storytelling";
+
       await AuditLogger.log({
         action: "AI_CHAT_COMPLETED",
         userId: job.userId,
@@ -169,10 +178,25 @@ export class AIJobQueue {
         resourceId: job.conversationId,
         metadata: {
           jobId,
-          durationMs: Date.now() - startTime,
-          tokens: result.length / 4, // Rough estimate
+          durationMs: responseTimeMs,
+          tokens: tokensUsed,
         },
       });
+
+      try {
+        await prisma.aIUsageLog.create({
+          data: {
+            aiJobId: jobId,
+            userId: job.userId,
+            feature,
+            tokensUsed,
+            responseTimeMs,
+            status: "success",
+          },
+        });
+      } catch (logErr) {
+        console.error("[AIJobQueue] Failed to create AIUsageLog:", logErr);
+      }
     } catch (error) {
       await this.handleJobFailure(jobId, error);
     }
@@ -222,6 +246,30 @@ export class AIJobQueue {
         resourceId: job.conversationId,
         metadata: { jobId, error: errorMessage, failed: true },
       });
+
+      const feature = job.conversationId.startsWith("ephemeral_") ? "ai_chat" : "storytelling";
+      try {
+        await prisma.aIUsageLog.create({
+          data: {
+            aiJobId: jobId,
+            userId: job.userId,
+            feature,
+            status: "failed",
+            tokensUsed: null,
+            responseTimeMs: null,
+          },
+        });
+      } catch (logErr) {
+        console.error("[AIJobQueue] Failed to create AIUsageLog (failure):", logErr);
+      }
+
+      await createAdminNotification({
+        type: "ai_failure",
+        severity: "warning",
+        message: `AI chat job failed: ${errorMessage}`,
+        relatedEntity: jobId,
+        metadata: { userId: job.userId, conversationId: job.conversationId },
+      });
     }
   }
 
@@ -230,7 +278,7 @@ export class AIJobQueue {
    */
   private static async callAIWithCircuitBreaker(
     messages: ChatMessage[]
-  ): Promise<string> {
+  ): Promise<{ content: string; tokensUsed?: number }> {
     const provider = "groq"; // Primary provider
 
     // Check circuit breaker
@@ -252,8 +300,9 @@ export class AIJobQueue {
 
   /**
    * Call Groq API (uses shared callGroqChat with key rotation + retry on 429)
+   * Returns content and actual token usage from API when available.
    */
-  private static async callGroq(messages: ChatMessage[]): Promise<string> {
+  private static async callGroq(messages: ChatMessage[]): Promise<{ content: string; tokensUsed?: number }> {
     const data = await callGroqChat({
       messages,
       temperature: 0.7,
@@ -261,13 +310,15 @@ export class AIJobQueue {
     });
     const content = data?.choices?.[0]?.message?.content;
     if (!content) throw new Error("Empty response from Groq");
-    return content;
+    const tokensUsed = data?.usage?.total_tokens ?? data?.usage?.completion_tokens;
+    return { content, tokensUsed };
   }
 
   /**
    * Call fallback AI (Gemini)
+   * Returns content and token estimate; Gemini usageMetadata has promptTokenCount/candidatesTokenCount.
    */
-  private static async callFallbackAI(messages: ChatMessage[]): Promise<string> {
+  private static async callFallbackAI(messages: ChatMessage[]): Promise<{ content: string; tokensUsed?: number }> {
     const apiKey = process.env.GOOGLE_API_KEY;
     if (!apiKey || apiKey === "mock-key") {
       throw new Error("No AI providers available");
@@ -322,7 +373,11 @@ export class AIJobQueue {
         throw new Error("Empty response from Gemini");
       }
 
-      return content;
+      const usage = data?.usageMetadata;
+      const tokensUsed = usage?.totalTokenCount ?? (usage?.promptTokenCount != null && usage?.candidatesTokenCount != null
+        ? usage.promptTokenCount + usage.candidatesTokenCount
+        : undefined);
+      return { content, tokensUsed };
     } finally {
       clearTimeout(timeout);
     }

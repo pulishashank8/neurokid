@@ -28,16 +28,16 @@ export default function SessionTimer() {
     try {
       const response = await fetch('/api/owner/session-status');
       const data = await response.json();
-      
+
       if (!data.authenticated || data.timeRemaining <= 0) {
         logout();
         return;
       }
-      
+
       setTimeLeft(data.timeRemaining);
       setInitialized(true);
-    } catch (error) {
-      console.error('Session sync error:', error);
+    } catch {
+      // Failed to fetch: often transient (cold start, network). Silently retry on next interval.
     }
   }, [logout]);
 
@@ -121,13 +121,13 @@ export default function SessionTimer() {
   }
 
   return (
-    <div className={`fixed top-4 right-4 z-50 transition-all duration-300 ${
+    <div className={`relative transition-all duration-300 ${
       showWarning ? 'animate-pulse' : ''
     }`}>
-      <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl backdrop-blur-xl border shadow-lg ${
+      <div className={`flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl backdrop-blur-xl border shadow-lg ${
         showWarning 
           ? 'bg-red-500/20 border-red-500/30 text-red-400' 
-          : 'bg-slate-800/80 border-white/10 text-slate-400'
+          : 'bg-surface/90 border-border text-muted-foreground'
       }`}>
         {showWarning ? (
           <AlertTriangle size={16} className="text-red-400" />

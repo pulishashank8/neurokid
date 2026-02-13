@@ -145,6 +145,16 @@ export const POST = withApiHandler(async (request: NextRequest) => {
   }
 
   logger.info({ userId: user.id, username }, 'User registered successfully');
+
+  import("@/lib/owner/event-bus").then(({ emitRealtimeEvent }) =>
+    emitRealtimeEvent({
+      eventType: "user_signup",
+      entityType: "User",
+      entityId: user.id,
+      metadata: { userId: user.id },
+    })
+  ).catch(() => {});
+
   return NextResponse.json(
     {
       message: "User registered successfully",

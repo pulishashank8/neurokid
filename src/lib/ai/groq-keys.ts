@@ -100,9 +100,10 @@ export interface GroqChatOptions {
   max_tokens?: number;
 }
 
-/** Groq chat completions response (subset we use) */
+/** Groq chat completions response (subset we use) - OpenAI compatible */
 export interface GroqChatResponse {
   choices?: Array<{ message?: { content?: string } }>;
+  usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
 }
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";

@@ -1,5 +1,5 @@
-
 import { prisma } from '@/lib/prisma';
+import PlatformQualityMetrics from './PlatformQualityMetrics';
 import CheckRunner from './check-runner';
 import { ShieldCheck, AlertCircle, CheckCircle2, Zap, BarChart3, Search, Activity, RefreshCw, XCircle, AlertTriangle, Database } from 'lucide-react';
 import { format } from 'date-fns';
@@ -26,52 +26,54 @@ export default async function DataQualityPage() {
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Data Quality & <span className="text-emerald-400 font-black tracking-widest">ML OPS</span></h1>
-                    <p className="text-slate-400 font-medium font-inter">Automated Z-Score Anomaly Detection and Healthcare Rule Validation.</p>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight">Data Quality & <span className="text-emerald-400 font-black tracking-widest">ML OPS</span></h1>
+                    <p className="text-gray-600 dark:text-slate-400 font-medium font-inter">Automated Z-Score Anomaly Detection and Healthcare Rule Validation.</p>
                 </div>
                 <CheckRunner />
             </div>
 
+            <PlatformQualityMetrics />
+
             {/* ML Insight Banner (Conditional) */}
             {anomalyFound ? (
-                <div className="bg-slate-900 border border-red-500/20 rounded-3xl p-8 relative overflow-hidden group shadow-2xl shadow-red-500/5">
+                <div className="bg-white dark:bg-slate-900 border border-red-500/20 rounded-3xl p-8 relative overflow-hidden group shadow-2xl shadow-red-500/5">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/10 rounded-full blur-3xl group-hover:bg-red-500/20 transition-all"></div>
                     <div className="flex flex-col lg:flex-row items-center gap-8 relative z-10">
                         <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center text-red-500 border border-red-500/20">
                             <AlertCircle size={32} />
                         </div>
                         <div className="flex-1 text-center lg:text-left">
-                            <h3 className="text-xl font-bold text-white mb-2 underline decoration-red-500/50 decoration-4 underline-offset-4">ML Anomaly Detected: Critical Drift</h3>
-                            <p className="text-slate-400 font-medium leading-relaxed">
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 underline decoration-red-500/50 decoration-4 underline-offset-4">ML Anomaly Detected: Critical Drift</h3>
+                            <p className="text-gray-600 dark:text-slate-400 font-medium leading-relaxed">
                                 Statistical engine detected a significant deviation in recent processing runs. This suggest potential <span className="text-red-400 font-bold">Data Poisoning</span> or <span className="text-red-400 font-bold">Integration Failure</span> in sensitive healthcare pipelines.
                             </p>
                         </div>
-                        <button className="px-6 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-500/20">
+                        <button className="px-6 py-3 bg-red-500 text-gray-900 dark:text-white rounded-xl font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-500/20">
                             Drill Down Analysis
                         </button>
                     </div>
                 </div>
             ) : (
-                <div className="bg-slate-900 border border-white/5 rounded-3xl p-8 relative overflow-hidden group shadow-2xl">
+                <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-3xl p-8 relative overflow-hidden group shadow-2xl">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl group-hover:bg-emerald-500/20 transition-all"></div>
                     <div className="flex flex-col lg:flex-row items-center gap-8 relative z-10">
                         <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
                             <ShieldCheck size={32} />
                         </div>
                         <div className="flex-1 text-center lg:text-left">
-                            <h3 className="text-xl font-bold text-white mb-2 underline decoration-emerald-500/50 decoration-4 underline-offset-4">Governance Health: Optimal</h3>
-                            <p className="text-slate-400 font-medium leading-relaxed">
-                                All automated quality controls are currently within the 95th percentile of expected statistical bounds. No high-confidence anomalies detected in the last <span className="text-white font-bold">24 hours</span>.
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 underline decoration-emerald-500/50 decoration-4 underline-offset-4">Governance Health: Optimal</h3>
+                            <p className="text-gray-600 dark:text-slate-400 font-medium leading-relaxed">
+                                All automated quality controls are currently within the 95th percentile of expected statistical bounds. No high-confidence anomalies detected in the last <span className="text-gray-900 dark:text-white font-bold">24 hours</span>.
                             </p>
                         </div>
                         <div className="flex gap-2">
-                            <div className="flex flex-col items-center px-4 py-2 bg-white/5 rounded-xl border border-white/5">
-                                <span className="text-xs text-slate-500 font-bold uppercase">Uptime</span>
+                            <div className="flex flex-col items-center px-4 py-2 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/5">
+                                <span className="text-xs text-gray-500 dark:text-slate-500 font-bold uppercase">Uptime</span>
                                 <span className="text-sm font-black text-emerald-400 tracking-tighter">100%</span>
                             </div>
-                            <div className="flex flex-col items-center px-4 py-2 bg-white/5 rounded-xl border border-white/5">
-                                <span className="text-xs text-slate-500 font-bold uppercase">Alerts</span>
-                                <span className="text-sm font-black text-slate-300 tracking-tighter">0</span>
+                            <div className="flex flex-col items-center px-4 py-2 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/5">
+                                <span className="text-xs text-gray-500 dark:text-slate-500 font-bold uppercase">Alerts</span>
+                                <span className="text-sm font-black text-gray-700 dark:text-slate-300 tracking-tighter">0</span>
                             </div>
                         </div>
                     </div>
@@ -79,10 +81,10 @@ export default async function DataQualityPage() {
             )}
 
             {/* Rules Table */}
-            <div className="bg-slate-900 border border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl">
-                <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-                    <h3 className="text-xl font-bold text-white tracking-tight">Quality Execution Registry</h3>
-                    <div className="flex gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-[2.5rem] overflow-hidden shadow-2xl">
+                <div className="p-8 border-b border-gray-200 dark:border-white/5 flex items-center justify-between bg-gray-50 dark:bg-white/[0.01]">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Quality Execution Registry</h3>
+                    <div className="flex gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 dark:text-slate-500">
                         <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Pass: {results.length - failureCount}</span>
                         <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div> Fail: {failureCount}</span>
                     </div>
@@ -90,12 +92,12 @@ export default async function DataQualityPage() {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="bg-white/[0.02]">
-                                <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Verification Status</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Data Asset & Rule</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Detection Logic</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-center">ML Score</th>
-                                <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-right">Records Check</th>
+                            <tr className="bg-gray-50 dark:bg-white/[0.02]">
+                                <th className="px-8 py-5 text-[10px] font-black text-gray-500 dark:text-slate-500 uppercase tracking-[0.2em]">Verification Status</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-gray-500 dark:text-slate-500 uppercase tracking-[0.2em]">Data Asset & Rule</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-gray-500 dark:text-slate-500 uppercase tracking-[0.2em]">Detection Logic</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-gray-500 dark:text-slate-500 uppercase tracking-[0.2em] text-center">ML Score</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-gray-500 dark:text-slate-500 uppercase tracking-[0.2em] text-right">Records Check</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
@@ -118,14 +120,14 @@ export default async function DataQualityPage() {
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">
-                                        <div className="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors uppercase tracking-tight">{res.rule.name}</div>
-                                        <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 mt-1">
+                                        <div className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-emerald-400 transition-colors uppercase tracking-tight">{res.rule.name}</div>
+                                        <div className="text-[10px] font-black text-gray-500 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5 mt-1">
                                             <Database size={10} /> {res.rule.dataset.name}
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase">
-                                            <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/5 text-slate-400">
+                                            <span className="px-2 py-0.5 rounded-md bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 text-gray-600 dark:text-slate-400">
                                                 {res.rule.ruleType}
                                             </span>
                                             {res.rule.ruleType === 'ANOMALY_DETECTION' && (
@@ -137,17 +139,17 @@ export default async function DataQualityPage() {
                                     </td>
                                     <td className="px-8 py-6 text-center">
                                         <div className="flex flex-col items-center">
-                                            <span className={`text-sm font-black tabular-nums ${res.anomalyScore && res.anomalyScore > 2 ? 'text-amber-500' : 'text-slate-400'}`}>
+                                            <span className={`text-sm font-black tabular-nums ${res.anomalyScore && res.anomalyScore > 2 ? 'text-amber-500' : 'text-gray-600 dark:text-slate-400'}`}>
                                                 {res.anomalyScore ? res.anomalyScore.toFixed(3) : '–'}
                                             </span>
                                             <span className="text-[8px] font-bold text-slate-600 uppercase">Z-Score</span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-right">
-                                        <div className="text-sm font-black text-white tabular-nums tracking-tighter">
+                                        <div className="text-sm font-black text-gray-900 dark:text-white tabular-nums tracking-tighter">
                                             {res.recordsChecked.toLocaleString()}
                                         </div>
-                                        <div className="text-[10px] font-bold text-slate-500 uppercase">Rows Validated</div>
+                                        <div className="text-[10px] font-bold text-gray-500 dark:text-slate-500 uppercase">Rows Validated</div>
                                     </td>
                                 </tr>
                             ))}
@@ -155,9 +157,9 @@ export default async function DataQualityPage() {
                                 <tr>
                                     <td colSpan={5} className="px-8 py-24 text-center">
                                         <div className="flex flex-col items-center opacity-40">
-                                            <Search size={48} className="text-slate-500 mb-4" />
-                                            <p className="text-lg font-bold text-white uppercase tracking-widest">No Execution History</p>
-                                            <p className="text-slate-500 text-sm font-medium">Global integrity scanner is awaiting manual trigger.</p>
+                                            <Search size={48} className="text-gray-500 dark:text-slate-500 mb-4" />
+                                            <p className="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-widest">No Execution History</p>
+                                            <p className="text-gray-500 dark:text-slate-500 text-sm font-medium">Global integrity scanner is awaiting manual trigger.</p>
                                         </div>
                                     </td>
                                 </tr>

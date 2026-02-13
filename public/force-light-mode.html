@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force Light Mode - NeuroKid</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+        }
+        .container {
+            text-align: center;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        p {
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        button {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        .btn-light {
+            background: white;
+            color: #667eea;
+        }
+        .btn-light:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.3);
+        }
+        .btn-dark {
+            background: #2C3E50;
+            color: white;
+        }
+        .btn-dark:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(44, 62, 80, 0.5);
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            font-weight: 500;
+        }
+        .success {
+            background: rgba(16, 185, 129, 0.3);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Theme Manager</h1>
+        <p>Use the buttons below to immediately switch your NeuroKid dashboard theme.</p>
+        
+        <div>
+            <button class="btn-light" onclick="setLightMode()">
+                ☀️ Force Light Mode
+            </button>
+            <button class="btn-dark" onclick="setDarkMode()">
+                🌙 Force Dark Mode
+            </button>
+        </div>
+        
+        <div id="status" class="status" style="display: none;"></div>
+        
+        <p style="margin-top: 30px; font-size: 0.9rem;">
+            After clicking, go to <a href="/" style="color: #FFE66D; text-decoration: underline;">localhost:5000</a> to see your changes.
+        </p>
+    </div>
+
+    <script>
+        function setLightMode() {
+            localStorage.setItem('neurokid-theme', 'light');
+            showStatus('✅ Light mode activated! Refresh your dashboard.', true);
+        }
+
+        function setDarkMode() {
+            localStorage.setItem('neurokid-theme', 'dark');
+            showStatus('✅ Dark mode activated! Refresh your dashboard.', true);
+        }
+
+        function showStatus(message, success) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.style.display = 'block';
+            if (success) {
+                status.classList.add('success');
+            }
+        }
+
+        // Show current theme on load
+        window.addEventListener('load', () => {
+            const currentTheme = localStorage.getItem('neurokid-theme');
+            if (currentTheme) {
+                showStatus(`Current theme: ${currentTheme}`, false);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
   try {
     switch (type) {
       case 'growth': {
-        const days = 30;
+        const daysParam = searchParams.get('days');
+        const days = Math.min(90, Math.max(7, daysParam ? parseInt(daysParam, 10) || 30 : 30));
         const startDate = startOfDay(subDays(new Date(), days));
         
         const users = await prisma.user.findMany({
@@ -134,8 +135,9 @@ export async function GET(request: NextRequest) {
       }
 
       case 'online': {
-        const fiveMinutesAgo = subDays(new Date(), 0);
-        fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+        const now = new Date();
+        const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+        const todayStart = startOfDay(now);
 
         const onlineSessions = await prisma.userSession.findMany({
           where: { lastActiveAt: { gte: fiveMinutesAgo } },
@@ -143,17 +145,23 @@ export async function GET(request: NextRequest) {
           orderBy: { lastActiveAt: 'desc' },
         });
 
-        const recentLogins = await prisma.user.findMany({
-          where: { lastLoginAt: { not: null } },
-          orderBy: { lastLoginAt: 'desc' },
-          take: 20,
-          include: { profile: true },
-        });
+        const [recentLogins, recentLoginsTodayCount] = await Promise.all([
+          prisma.user.findMany({
+            where: { lastLoginAt: { not: null } },
+            orderBy: { lastLoginAt: 'desc' },
+            take: 20,
+            include: { profile: true },
+          }),
+          prisma.user.count({
+            where: { lastLoginAt: { gte: todayStart } },
+          }),
+        ]);
 
         return NextResponse.json({ 
           onlineCount: onlineSessions.length,
           onlineSessions,
           recentLogins,
+          recentLoginsTodayCount,
         });
       }
 

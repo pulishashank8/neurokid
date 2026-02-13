@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logAIUsage } from '@/lib/ai/usage-logger';
 
 export async function POST(req: NextRequest) {
     try {
@@ -28,6 +29,7 @@ export async function POST(req: NextRequest) {
       6. Use a compassionate, clear, and professional tone.
     `;
 
+        const startTime = Date.now();
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -46,6 +48,19 @@ export async function POST(req: NextRequest) {
         });
 
         const data = await response.json();
+        const responseTimeMs = Date.now() - startTime;
+
+        const usage = (data as { usage?: { total_tokens?: number; prompt_tokens?: number; completion_tokens?: number } })?.usage;
+        const tokensUsed = usage?.total_tokens ?? (usage ? (usage.prompt_tokens ?? 0) + (usage.completion_tokens ?? 0) : undefined);
+
+        const hasError = data?.error || !data?.choices?.length;
+        logAIUsage({
+            feature: 'navigator_chat',
+            tokensUsed: tokensUsed ?? undefined,
+            responseTimeMs,
+            status: hasError ? 'failed' : 'success',
+        }).catch(() => {});
+
         return NextResponse.json(data);
     } catch (error) {
         console.error('AI Chat Error:', error);
